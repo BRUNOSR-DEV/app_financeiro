@@ -78,7 +78,7 @@ def pega_dados(conn=None):
     cursor = conn.cursor()
 
     try:
-        cursor.execute('SELECT * FROM usuario')
+        cursor.execute('SELECT * FROM usuarios')
         usuarios = cursor.fetchall()
 
         if usuarios:
@@ -112,7 +112,7 @@ def pega_id(usuario, conn=None):
     cursor = conn.cursor() 
 
     try:
-        sql = "SELECT id FROM usuario WHERE nome_usuario = %s" 
+        sql = "SELECT id FROM usuarios WHERE nome_usuario = %s" 
         cursor.execute(sql, (usuario,)) #obs. obrigatório passar uma tupla como parâmetro para cursor
         result = cursor.fetchone()
 
@@ -131,7 +131,7 @@ def pega_id(usuario, conn=None):
 
 
 
-def inserir_usuario(usuario, senha, conn=None):
+def inserir_usuario(nome_comp, nome_usu, senha, sal_fixo, conn=None):
     """
     Função para inserir um usuário novo completo
     """  
@@ -146,11 +146,11 @@ def inserir_usuario(usuario, senha, conn=None):
 
     try:
 
-        cursor.execute("INSERT INTO usuario (nome_usuario, senha) VALUES (%s, %s)",(usuario, senha))
+        cursor.execute("INSERT INTO usuarios (nome_completo, nome_usuario, senha, salario_fixo) VALUES (%s, %s, %s, %s)",(nome_comp, nome_usu, senha, sal_fixo))
         conn.commit()
 
         if cursor.rowcount == 1: #retorna o número de linhas afetadas pela última operação executada.
-            print(f'Usuário inserido com sucesso! {usuario}')
+            print(f'Usuário inserido com sucesso! olá {nome_comp}')
             sucesso = True
             return sucesso 
         else:
@@ -174,8 +174,8 @@ def inserir_usuario(usuario, senha, conn=None):
     
     
 
-def inserir_tarefas(descricao, id_usuario, checkbox, conn=None):
-    """ Função que inseri a tarefa no BD e retorna o id da mesma"""
+def inserir_receitas(id_usu, valor, descricao, data, conn=None):
+    """ Função que inseri a receita do usuário no BD e retorna o id da mesma"""
     
     gerenciar_conn = False
     if conn is None:
@@ -184,8 +184,8 @@ def inserir_tarefas(descricao, id_usuario, checkbox, conn=None):
 
     cursor = conn.cursor()
     try:
-        sql = "INSERT INTO tarefas (descricao, fk_usuario, checkbox) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (descricao, id_usuario, checkbox))
+        sql = "INSERT INTO receitas (id_usuario, valor, descricao, data) VALUES (%s, %s, %s, %s)"
+        cursor.execute(sql, (id_usu, valor, descricao, data))
         conn.commit()
         return cursor.lastrowid # Retorna o ID da tarefa recém-inserida
     
@@ -221,7 +221,34 @@ def inserir_tarefas(descricao, id_usuario, checkbox, conn=None):
     finally:
         conn.close()'''
 
+def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, data, categoria=None, data_venc=None, id_cc=None, conn=None):
+    """ Função que inseri as despesas do usuário no BD e retorna o id da mesma"""
+    
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
 
+    cursor = conn.cursor()
+    try:
+        sql = "INSERT INTO despesas (id_usuario, local, valor_total, parcelas, descricao, categoria, data, data_vencimento, id_cc) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(sql, (id_usu, local,valor_total, parcelas, descricao, categoria, data, data_venc, id_cc))
+        conn.commit()
+        return cursor.lastrowid # Retorna o ID da tarefa recém-inserida
+    
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f"Erro MySQL ao inserir tarefa: {e}")
+        conn.rollback()
+        return None # Retorna None para indicar falha
+    
+    except Exception as e:
+        print(f"Erro inesperado ao inserir tarefa: {e}")
+        conn.rollback()
+        return None
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
 
 def listar_tarefas(id_usuario, conn=None):
     """ Função que retorna a lista de tarefas do usuário passando o id do mesmo"""

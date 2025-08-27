@@ -1,0 +1,117 @@
+
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema app_financeiro
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema app_financeiro
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `app_financeiro` DEFAULT CHARACTER SET utf8 ;
+USE `app_financeiro` ;
+
+-- -----------------------------------------------------
+-- Table `app_financeiro`.`usuarios`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `app_financeiro`.`usuarios` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nome_completo` VARCHAR(150) NOT NULL,
+  `nome_usuario` VARCHAR(80) NOT NULL,
+  `senha` VARCHAR(80) NOT NULL,
+  `salario_fixo` DECIMAL(10,2) NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `app_financeiro`.`receitas`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `app_financeiro`.`receitas` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `id_usuario` INT NOT NULL,
+  `valor` DECIMAL(10,2) NOT NULL,
+  `descricao` VARCHAR(100) NOT NULL,
+  `data` DATE NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_receita_01_idx` (`id_usuario` ASC) VISIBLE,
+  CONSTRAINT `fk_receita_01`
+    FOREIGN KEY (`id_usuario`)
+    REFERENCES `app_financeiro`.`usuarios` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `app_financeiro`.`cartoes_credito`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `app_financeiro`.`cartoes_credito` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `id_usuario` INT NOT NULL,
+  `nome` VARCHAR(80) NOT NULL,
+  `limite` DECIMAL(10,2) NOT NULL,
+  `dia_fechamento` INT NOT NULL,
+  `dia_vencimento` INT NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `app_financeiro`.`despesas`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `app_financeiro`.`despesas` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `id_usuario` INT NOT NULL,
+  `local` VARCHAR(80) NOT NULL,
+  `valor_total` DECIMAL(10,2) NOT NULL,
+  `parcelas` INT NOT NULL,
+  `descricao` VARCHAR(200) NOT NULL,
+  `categoria` VARCHAR(50) NULL,
+  `data` DATE NOT NULL,
+  `data_vencimento` DATE NULL,
+  `id_cc` INT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_despesas_01_idx` (`id_usuario` ASC) VISIBLE,
+  INDEX `fk_despesas_02_idx` (`id_cc` ASC) VISIBLE,
+  CONSTRAINT `fk_despesas_01`
+    FOREIGN KEY (`id_usuario`)
+    REFERENCES `app_financeiro`.`usuarios` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_despesas_02`
+    FOREIGN KEY (`id_cc`)
+    REFERENCES `app_financeiro`.`cartoes_credito` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `app_financeiro`.`dividas`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `app_financeiro`.`dividas` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `id_usuario` INT NOT NULL,
+  `valor_total` DECIMAL(10,2) NOT NULL,
+  `valor_pago` DECIMAL(10,2) NOT NULL,
+  `descricao` VARCHAR(200) NOT NULL,
+  `data_vencimento` DATE NOT NULL,
+  `status` TINYINT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_dividas_01_idx` (`id_usuario` ASC) VISIBLE,
+  CONSTRAINT `fk_dividas_01`
+    FOREIGN KEY (`id_usuario`)
+    REFERENCES `app_financeiro`.`usuarios` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
