@@ -187,15 +187,15 @@ def inserir_receitas(id_usu, valor, descricao, data, conn=None):
         sql = "INSERT INTO receitas (id_usuario, valor, descricao, data) VALUES (%s, %s, %s, %s)"
         cursor.execute(sql, (id_usu, valor, descricao, data))
         conn.commit()
-        return cursor.lastrowid # Retorna o ID da tarefa recém-inserida
+        return cursor.lastrowid # Retorna o ID da receita recém-inserida
     
     except MySQLdb.Error as e: # Captura erro específico do MySQL
-        print(f"Erro MySQL ao inserir tarefa: {e}")
+        print(f"Erro MySQL ao inserir receita: {e}")
         conn.rollback()
         return None # Retorna None para indicar falha
     
     except Exception as e:
-        print(f"Erro inesperado ao inserir tarefa: {e}")
+        print(f"Erro inesperado ao inserir receita: {e}")
         conn.rollback()
         return None
         
@@ -221,6 +221,7 @@ def inserir_receitas(id_usu, valor, descricao, data, conn=None):
     finally:
         conn.close()'''
 
+
 def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, data, categoria=None, data_venc=None, id_cc=None, conn=None):
     """ Função que inseri as despesas do usuário no BD e retorna o id da mesma"""
     
@@ -234,21 +235,53 @@ def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, data, cate
         sql = "INSERT INTO despesas (id_usuario, local, valor_total, parcelas, descricao, categoria, data, data_vencimento, id_cc) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
         cursor.execute(sql, (id_usu, local,valor_total, parcelas, descricao, categoria, data, data_venc, id_cc))
         conn.commit()
-        return cursor.lastrowid # Retorna o ID da tarefa recém-inserida
+        return cursor.lastrowid # Retorna o ID da despesa recém-inserida
     
     except MySQLdb.Error as e: # Captura erro específico do MySQL
-        print(f"Erro MySQL ao inserir tarefa: {e}")
+        print(f"Erro MySQL ao inserir despesa: {e}")
         conn.rollback()
         return None # Retorna None para indicar falha
     
     except Exception as e:
-        print(f"Erro inesperado ao inserir tarefa: {e}")
+        print(f"Erro inesperado ao inserir despesa: {e}")
         conn.rollback()
         return None
         
     finally:
         if gerenciar_conn:
             desconectar(conn)
+
+
+def inserir_cc(id_usu, nome, limite, dia_f, dia_v, conn=None):
+    """ Função que inseri os cartões de crédito do usuário no BD e retorna o id do mesmo"""
+    
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    try:
+        sql = "INSERT INTO cartoes_credito (id_usuario, nome, limite, dia_fechamento, dia_vencimento) VALUES (%s, %s, %s, %s, %s)"
+        cursor.execute(sql, (id_usu, nome, limite, dia_f, dia_v))
+        conn.commit()
+        return cursor.lastrowid # Retorna o ID do c.c. recém-inserida
+    
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f"Erro MySQL ao inserir cartão: {e}")
+        conn.rollback()
+        return None # Retorna None para indicar falha
+    
+    except Exception as e:
+        print(f"Erro inesperado ao inserir cartão: {e}")
+        conn.rollback()
+        return None
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
 
 def listar_tarefas(id_usuario, conn=None):
     """ Função que retorna a lista de tarefas do usuário passando o id do mesmo"""
