@@ -130,7 +130,6 @@ def pega_id(usuario, conn=None):
             desconectar(conn)
 
 
-
 def inserir_usuario(nome_comp, nome_usu, senha, sal_fixo, conn=None):
     """
     Função para inserir um usuário novo completo
@@ -171,8 +170,7 @@ def inserir_usuario(nome_comp, nome_usu, senha, sal_fixo, conn=None):
     finally:
         if gerenciar_conn:
             desconectar(conn)
-    
-    
+      
 
 def inserir_receitas(id_usu, valor, descricao, data, conn=None):
     """ Função que inseri a receita do usuário no BD e retorna o id da mesma"""
@@ -280,6 +278,69 @@ def inserir_cc(id_usu, nome, limite, dia_f, dia_v, conn=None):
     finally:
         if gerenciar_conn:
             desconectar(conn)
+
+
+def inserir_dividas(id_usu, valor_total, descricao, data_venc, conn=None):
+    """ Função que inseri as dividas do usuário no BD e retorna o id do mesmo"""
+    
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    try:
+        sql = "INSERT INTO dividas (id_usuario, valor_total, valor_pago, descricao, data_vencimento, status) VALUES (%s, %s, %s, %s, %s)"
+        cursor.execute(sql, (id_usu, valor_total, 0, descricao, data_venc, 'Ativa'))
+        conn.commit()
+        return cursor.lastrowid # Retorna o ID do c.c. recém-inserida
+    
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f"Erro MySQL ao inserir cartão: {e}")
+        conn.rollback()
+        return None # Retorna None para indicar falha
+    
+    except Exception as e:
+        print(f"Erro inesperado ao inserir cartão: {e}")
+        conn.rollback()
+        return None
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
+def atualizar_divida(id_divida, valor_pago, conn=None):
+    """Atualiza a tabela 'dividas' no banco de dados"""
+
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    try:
+        sql = "UPDATE dividas SET valor_pago = valor_pago + %s WHERE id = %s"
+        cursor.execute(sql, (valor_pago, id_divida))
+        conn.commit()
+        print(f"Dívida com ID {id_divida} atualizada com sucesso!")
+    
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f"Erro MySQL ao fazer atualização: {e}")
+        conn.rollback()
+        return None # Retorna None para indicar falha
+    
+    except Exception as e:
+        print(f"Erro inesperado ao inserir cartão: {e}")
+        conn.rollback()
+        return None
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
+
 
 
 

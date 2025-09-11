@@ -1,7 +1,8 @@
-import customtkinter
-import mysql.connector
-from mysql.connector import Error
-import hashlib
+
+from models.conecte_bd import ( pega_dados, pega_id, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_dividas)
+
+from time import sleep
+import customtkinter as ctk
 
 # ---------------------------------------------------------------------------------------------------
 # INSTRUÇÕES IMPORTANTES
@@ -50,7 +51,7 @@ class App(customtkinter.CTk):
         if hasattr(self, 'current_frame'):
             self.current_frame.destroy()
         
-        self.current_frame = customtkinter.CTkFrame(self)
+        self.current_frame = ctk.CTkFrame(self)
         self.current_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         self.current_frame.grid_rowconfigure(5, weight=1)
         self.current_frame.grid_columnconfigure(0, weight=1)
