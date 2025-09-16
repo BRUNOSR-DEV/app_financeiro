@@ -176,6 +176,44 @@ class Main_app(ctk.CTk):
         self.grid_rowconfigure(1, weight=1) # Linha para o frame de tarefas rolavel
         self.grid_columnconfigure(0, weight=1)
 
+        self.top_section_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.top_section_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        self.top_section_frame.grid_columnconfigure(0, weight=0) # primeira coluna para label usuário
+        self.top_section_frame.grid_columnconfigure(0, weight=1) # segunda coluna para botão sair
+
+        if self.usuario_logado: 
+            self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame,
+                                               text=f"Bem-vindo, {self.usuario_logado}!",
+                                               font=ctk.CTkFont(size=16, weight="bold"))
+            
+        else:
+            self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame,
+                                               text="Bem-vindo!",
+                                               font=ctk.CTkFont(size=16, weight="bold"))
+            
+        self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, width=80,
+                                        fg_color="#FF0000", hover_color="#810000")
+        
+        self.botao_sair.grid(row=0, column=1,sticky="e") #coluna 1 alinhado a direita
+
+        #Primeira Label da janela de tarefas    
+        self.nomeusuario_label.grid(row=0, column=0, pady=(0, 10), sticky="w")
+    
+
+    def voltar_Plogin(self):
+        """ Método para voltar para a tela de login (botão 'Sair')"""
+
+        self.nomeusuario_label.configure(text=f'Até a próxima {self.usuario_logado} !', text_color='red')
+        self.update_idletasks()
+
+        sleep(3)
+
+        self.destroy()
+        from app import Login
+
+        login_app = Login()
+        login_app.mainloop()
+
 
 
 
