@@ -65,7 +65,7 @@ def desconectar(conn):
 
 
 
-def pega_dados(conn=None):
+def pega_usuarios(conn=None):
     """
     Função que retorna lista de usuarios
     """
@@ -98,6 +98,40 @@ def pega_dados(conn=None):
         if gerenciar_conn:
             desconectar(conn)
 
+
+def dados_user(id_user, conn=None):
+    """
+    Função que retorna os dados do  usuario
+    """
+    gerenciar_conn = False
+
+    if conn is None:
+        conn= conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+        sql = "SELECT * FROM usuarios WHERE id= %s"
+        cursor.execute(sql, (id_user, ))
+        usuario = cursor.fetchall()
+
+        if usuario:
+            return usuario
+        else:
+            return []
+            return 'Não tem usuários cadastrados'
+        
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f'Erro no MySQL ao buscar usuário: {e}')
+        raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
+
+    except Exception as e:
+        print(f'Erro inesperado ao buscar usuário: {e}')
+
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
 
 
 def pega_id(usuario, conn=None): 

@@ -1,5 +1,5 @@
 
-from models.conecte_bd import ( pega_dados, pega_id, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_dividas)
+from models.conecte_bd import ( pega_usuarios, dados_user, pega_id, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_dividas)
 
 from time import sleep
 import customtkinter as ctk
@@ -47,7 +47,7 @@ class Login(ctk.CTk):
         login_sucesso = False
         usuario_logado = usuario
 
-        for _, v in enumerate(pega_dados()):
+        for _, v in enumerate(pega_usuarios()):
             if usuario == v[2] and senha == v[3]:
                 login_sucesso = True
                 break
@@ -171,9 +171,10 @@ class Main_app(ctk.CTk):
         self.__dict__['usuario_logado'] = logged_in_username
         
         self.user_id = pega_id(self.usuario_logado)
+        self.nomeComp = dados_user(self.user_id)[0][1]
 
         self.grid_rowconfigure(0, weight=0) # Linha para o frame superior (usuário e add tarefa)
-        self.grid_rowconfigure(1, weight=1) # Linha para o frame de tarefas rolavel
+        self.grid_rowconfigure(1, weight=1) 
         self.grid_columnconfigure(0, weight=1)
 
         self.top_section_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -183,7 +184,7 @@ class Main_app(ctk.CTk):
 
         if self.usuario_logado: 
             self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame,
-                                               text=f"Bem-vindo, {self.usuario_logado}!",
+                                               text=f"Bem-vindo, {self.nomeComp}!",
                                                font=ctk.CTkFont(size=16, weight="bold"))
             
         else:
@@ -196,9 +197,39 @@ class Main_app(ctk.CTk):
         
         self.botao_sair.grid(row=0, column=1,sticky="e") #coluna 1 alinhado a direita
 
-        #Primeira Label da janela de tarefas    
+        #Primeira Label da janela   
         self.nomeusuario_label.grid(row=0, column=0, pady=(0, 10), sticky="w")
-    
+
+
+        #-------------------------------------------------------------------------------------
+        # Frame para agrupar os botões de cadastro
+        self.cadastro_frame = ctk.CTkFrame(self.top_section_frame, fg_color="transparent")
+        self.cadastro_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="ew")
+        self.cadastro_frame.grid_columnconfigure((0, 1, 2), weight=1) # Distribui o espaço entre os botões
+        #---------------------------------------------------------------------------------------
+        #---------------------------------------------------------------------------------------
+        # Botões de cadastro
+        self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Receitas", command=self.abrir_receitas)
+        self.btn_receitas.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+
+        self.btn_despesas = ctk.CTkButton(self.cadastro_frame, text="Despesas", command=self.abrir_despesas)
+        self.btn_despesas.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+
+        self.btn_cc = ctk.CTkButton(self.cadastro_frame, text="Cartão de Crédito", command=self.abrir_cc)
+        self.btn_cc.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+        #---------------------------------------------------------------------------------------
+
+
+    def abrir_receitas(self):
+        print("Botão Receitas clicado!")
+
+    def abrir_despesas(self):
+        print("Botão Despesas clicado!")
+
+    def abrir_cc(self):
+        print("Botão Cartão de Crédito clicado!")
+
+
 
     def voltar_Plogin(self):
         """ Método para voltar para a tela de login (botão 'Sair')"""
