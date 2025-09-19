@@ -3,6 +3,8 @@ from models.conecte_bd import ( pega_usuarios, dados_user, pega_id, inserir_usua
 
 from time import sleep
 import customtkinter as ctk
+from tkcalendar import Calendar
+from datetime import datetime
 
 #configura a aparência
 ctk.set_appearance_mode('light')
@@ -221,7 +223,14 @@ class Main_app(ctk.CTk):
 
 
     def abrir_receitas(self):
-        print("Botão Receitas clicado!")
+        """ Direciona o usuário para fazer o cadastro de suas receitas, chamando a classe receitas"""
+        
+        # Passa a própria instância da tela de login para a tela de registro
+        register_window = Receitas(self, self.user_id, login_instance=self)
+        #self.status_label.configure(text='Abrindo tela de registro...', text_color='blue')
+        
+        # A mainloop() não é chamada para toplevels, elas são gerenciadas pelo master.
+        self.wait_window(register_window) #Pausa a janela de login até a popup fechar
 
     def abrir_despesas(self):
         print("Botão Despesas clicado!")
@@ -246,6 +255,77 @@ class Main_app(ctk.CTk):
         login_app.mainloop()
 
 
+
+class Receitas(ctk.CTkToplevel):
+
+    def __init__(self,  master=None, user_id=None, login_instance=None):
+        super().__init__(master)
+
+        self.user_id = user_id
+
+        self.title("Registrar Novas Receitas")
+        self.geometry("500x700")
+        self.transient(master) # Faz a popup aparecer sobre a janela principal e fechar com ela
+        self.grab_set() # Bloqueia interações com a janela principal enquanto a popup está aberta
+        self.focus_set() # Define o foco para esta janela
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=0)
+
+        ctk.CTkLabel(self, text="Cadastre Seus Ganhos", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
+
+        self.valor = ctk.CTkEntry(self, placeholder_text="Valor Ganho")
+        self.valor.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+
+        self.descricao = ctk.CTkEntry(self, placeholder_text="Descrição")
+        self.descricao.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+
+            
+        self.data_calendario = Calendar(self, selectmode='day', date_pattern='dd/mm/yyyy', background='gray80',
+                                        foreground='black', normalbackground='gray90', headersbackground='gray70',
+                                        selectbackground='gray60', othermonthforeground='gray70')
+        self.data_calendario.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+
+        self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
+        self.botao_salvar.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+
+        self.status_label = ctk.CTkLabel(self, text="", text_color="red")
+        self.status_label.grid(row=5, column=0, pady=5)
+
+
+    def salvar_dados(self):
+        """ Verifica e salva os dados no BD """
+
+        valor = self.valor.get().strip()
+        descricao = self.descricao.get().strip()
+        data_str = self.data_calendario.get_date()
+
+        data_obj = datetime.strptime(data_str, '%d/%m/%Y')
+    
+        # Formata o objeto datetime para a string 'AAAA-MM-DD'
+        data_formatada = data_obj.strftime('%Y-%m-%d')
+
+        if not valor or not descricao or not data_str:
+            self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
+            self.update_idletasks()
+            sleep(1)
+            return
+        else:
+            retorno = inserir_receitas(self.user_id, valor, descricao, data_formatada)
+
+        if retorno:
+            self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+            self.update_idletasks()
+            sleep(2)
+
+            #self.destroy()
+                
+        else:
+            self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
+            self.update_idletasks()
+
+    
 
 
 
