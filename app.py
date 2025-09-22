@@ -233,10 +233,14 @@ class Main_app(ctk.CTk):
         self.wait_window(register_window) #Pausa a janela de login até a popup fechar
 
     def abrir_despesas(self):
-        print("Botão Despesas clicado!")
+        register_window = Despesas(self, self.user_id, login_instance=self)
+
+        self.wait_window(register_window)
 
     def abrir_cc(self):
-        print("Botão Cartão de Crédito clicado!")
+        register_window = Car_cred(self, self.user_id, login_instance=self)
+
+        self.wait_window(register_window)
 
 
 
@@ -264,7 +268,7 @@ class Receitas(ctk.CTkToplevel):
         self.user_id = user_id
 
         self.title("Registrar Novas Receitas")
-        self.geometry("500x700")
+        self.geometry("450x600")
         self.transient(master) # Faz a popup aparecer sobre a janela principal e fechar com ela
         self.grab_set() # Bloqueia interações com a janela principal enquanto a popup está aberta
         self.focus_set() # Define o foco para esta janela
@@ -325,11 +329,57 @@ class Receitas(ctk.CTkToplevel):
             self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
             self.update_idletasks()
 
+
+ 
+class Despesas(ctk.CTkToplevel):
+
+    def __init__(self,  master=None, user_id=None, login_instance=None):
+        super().__init__(master)
+
+        self.user_id = user_id
+
+        self.title("Registrar Novas Receitas")
+        self.geometry("450x600")
+        self.transient(master)
+        self.grab_set() 
+        self.focus_set() 
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=0)
+
+        ctk.CTkLabel(self, text="Cadastre Suas Despesas", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
+
+        self.local = ctk.CTkEntry(self, placeholder_text="Local da compra")
+        self.local.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+
+        self.valor_total = ctk.CTkEntry(self, placeholder_text="Valor total da compra")
+        self.valor_total.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+        self.parcelas = ctk.CTkProgressBar(self, placeholder_text="N° de Parcelas")
+        self.parcelas.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+        self.descricao = ctk.CTkTextbox(self, placeholder_text="Valor total da compra")
+        self.descricao.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+        self.valor_total = ctk.CTkEntry(self, placeholder_text="Valor total da compra")
+        self.valor_total.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+class Car_cred(ctk.CTkToplevel):
+
+    def __init__(self,  master=None, user_id=None, login_instance=None):
+        super().__init__(master)
+
+        self.user_id = user_id
+
+        self.title("Registrar Novas Receitas")
+        self.geometry("450x600")
+        self.transient(master)
+        self.grab_set() 
+        self.focus_set()
+
+
+
     
-
-
-
-
 
 
 
