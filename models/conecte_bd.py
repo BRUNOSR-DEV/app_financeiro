@@ -374,6 +374,38 @@ def atualizar_divida(id_divida, valor_pago, conn=None):
             desconectar(conn)
 
 
+def buscar_cartoes(id_user, conn=None):
+    """
+    Função que retorna uma lista com o id do cartão e o nome da tabela cartoes_credito
+    """
+    gerenciar_conn = False
+
+    if conn is None:
+        conn= conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+        sql = "SELECT * FROM cartoes_credito WHERE id= %s"
+        cursor.execute(sql, (id_user, ))
+        cartoes = cursor.fetchall()
+
+        if cartoes:
+            return cartoes
+        else:
+            return []
+        
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f'Erro no MySQL ao buscar cartões de crédito: {e}')
+        raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
+
+    except Exception as e:
+        print(f'Erro inesperado ao buscar cartões de crédito: {e}')
+
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
 
 
 

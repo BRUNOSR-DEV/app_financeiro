@@ -1,5 +1,5 @@
 
-from models.conecte_bd import ( pega_usuarios, dados_user, pega_id, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_dividas)
+from models.conecte_bd import ( pega_usuarios, dados_user, pega_id, buscar_cartoes, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_dividas)
 
 from time import sleep
 import customtkinter as ctk
@@ -339,13 +339,13 @@ class Despesas(ctk.CTkToplevel):
         self.user_id = user_id
 
         self.title("Registrar Novas Receitas")
-        self.geometry("450x600")
+        self.geometry("700x800")
         self.transient(master)
         self.grab_set() 
         self.focus_set() 
 
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=0)
+        self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8), weight=0)
 
         ctk.CTkLabel(self, text="Cadastre Suas Despesas", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
 
@@ -355,14 +355,52 @@ class Despesas(ctk.CTkToplevel):
         self.valor_total = ctk.CTkEntry(self, placeholder_text="Valor total da compra")
         self.valor_total.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
-        self.parcelas = ctk.CTkProgressBar(self, placeholder_text="N° de Parcelas")
-        self.parcelas.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        parcelas_opcoes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
 
-        self.descricao = ctk.CTkTextbox(self, placeholder_text="Valor total da compra")
-        self.descricao.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        self.menu_parcelas = ctk.CTkOptionMenu(self, values=parcelas_opcoes)
+        self.menu_parcelas.grid(row=3, column=0, padx=20, pady=20, sticky="ew")
+        self.menu_parcelas.set("1")
 
-        self.valor_total = ctk.CTkEntry(self, placeholder_text="Valor total da compra")
-        self.valor_total.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        self.descricao = ctk.CTkEntry(self, placeholder_text="Descrição da compra")
+        self.descricao.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+
+        categorias = ['Laser', 'Roupas', 'Higiene', 'Curso', 'Comida', 'Divida',]
+
+        self.categoria = ctk.CTkOptionMenu(self, values=categorias)
+        self.categoria.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+        self.categoria.set("Categoria")
+
+        self.data = Calendar(self, selectmode='day', date_pattern='dd/mm/yyyy', background='gray80',
+                                        foreground='black', normalbackground='gray90', headersbackground='gray70',
+                                        selectbackground='gray60', othermonthforeground='gray70')
+        self.data.grid(row=6, column=0, padx=20, pady=10, sticky="ew")
+
+        self.data_vencimento = ctk.CTkEntry(self, placeholder_text="Qual data vence a divida (opcional)")
+        self.data_vencimento.grid(row=7, column=0, padx=20, pady=10, sticky="ew")
+
+        cartoes = self.verifica_cartoes()
+
+        self.car_cred = ctk.CTkOptionMenu(self, values=cartoes)
+        self.car_cred.grid(row=8, column=0, padx=20, pady=10, sticky="ew")
+
+
+    def verifica_cartoes(self):
+
+        cartoes = buscar_cartoes(self.user_id)
+        lista_nomes = []
+        if cartoes:
+            for cartao in cartoes:
+                # Assumindo que a tupla do cartão é algo como (id, id_usuario, nome, limite, etc.)
+                # O nome seria o terceiro elemento, por isso o índice [2]
+                lista_nomes.append(cartao[2]) 
+        else:
+            return []
+        
+        return lista_nomes
+                
+        
+
+
 
 class Car_cred(ctk.CTkToplevel):
 
