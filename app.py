@@ -339,7 +339,7 @@ class Despesas(ctk.CTkToplevel):
         self.user_id = user_id
 
         self.title("Registrar Novas Receitas")
-        self.geometry("700x800")
+        self.geometry("600x700")
         self.transient(master)
         self.grab_set() 
         self.focus_set() 
@@ -349,17 +349,17 @@ class Despesas(ctk.CTkToplevel):
 
         ctk.CTkLabel(self, text="Cadastre Suas Despesas", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
 
-        self.local = ctk.CTkEntry(self, placeholder_text="Local da compra")
+        self.local = ctk.CTkEntry(self, placeholder_text="Local da compra*")
         self.local.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
-        self.valor_total = ctk.CTkEntry(self, placeholder_text="Valor total da compra")
+        self.valor_total = ctk.CTkEntry(self, placeholder_text="Valor total da compra*")
         self.valor_total.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
         parcelas_opcoes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
 
         self.menu_parcelas = ctk.CTkOptionMenu(self, values=parcelas_opcoes)
         self.menu_parcelas.grid(row=3, column=0, padx=20, pady=20, sticky="ew")
-        self.menu_parcelas.set("1")
+        self.menu_parcelas.set("")
 
         self.descricao = ctk.CTkEntry(self, placeholder_text="Descrição da compra")
         self.descricao.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
@@ -375,13 +375,73 @@ class Despesas(ctk.CTkToplevel):
                                         selectbackground='gray60', othermonthforeground='gray70')
         self.data.grid(row=6, column=0, padx=20, pady=10, sticky="ew")
 
-        self.data_vencimento = ctk.CTkEntry(self, placeholder_text="Qual data vence a divida (opcional)")
-        self.data_vencimento.grid(row=7, column=0, padx=20, pady=10, sticky="ew")
+        self.dia_vencimento = ctk.CTkEntry(self, placeholder_text="Qual dia que vence a divida (opcional)")
+        self.dia_vencimento.grid(row=7, column=0, padx=20, pady=10, sticky="ew")
 
         cartoes = self.verifica_cartoes()
 
         self.car_cred = ctk.CTkOptionMenu(self, values=cartoes)
         self.car_cred.grid(row=8, column=0, padx=20, pady=10, sticky="ew")
+        self.car_cred.set("")
+
+        self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
+        self.botao_salvar.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
+
+        self.status_label = ctk.CTkLabel(self, text="", text_color="red")
+        self.status_label.grid(row=10, column=0, pady=5)
+
+
+    def salvar_dados(self):
+        """ Verifica e salva os dados no BD """
+
+        verificacao = []
+
+        local = self.local.get().strip()
+        valor_total = self.valor_total.get().strip()
+        menu_parcelas = self.menu_parcelas.get().strip()
+        descricao = self.descricao.get().strip()
+        categoria = self.categoria.get().strip()
+        data_str = self.data.get_date()
+        dia_vencimento = self.dia_vencimento.get().strip()
+        car_cred = self.car_cred.get().strip()
+
+        data_obj = datetime.strptime(data_str, '%d/%m/%Y')
+    
+        # Formata o objeto datetime para a string 'AAAA-MM-DD'
+        data_formatada = data_obj.strftime('%Y-%m-%d')
+
+        verificacao.append(local)
+        verificacao.append(valor_total)
+        verificacao.append(menu_parcelas)
+        verificacao.append(descricao)
+        if categoria != 'Categoria':
+            verificacao.append(categoria)
+        verificacao.append(data_formatada)
+        if car_cred != "Cartões" and dia_vencimento == None:
+            verificacao.append(car_cred)
+        elif car_cred == "Cartões" and dia_vencimento == None:
+            verificacao.append(dia_vencimento)
+
+        tamanho = len(verificacao)
+
+        if tamanho < 7:
+            self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
+            self.update_idletasks()
+            sleep(1)
+            return
+        elif tamanho >= 7:
+            retorno = inserir_despesas(self.user_id, local, valor_total, menu_parcelas,  descricao, categoria, data_formatada, dia_vencimento, car_cred)
+
+        if retorno:
+            self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+            self.update_idletasks()
+            sleep(2)
+
+            #self.destroy()
+                
+        else:
+            self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
+            self.update_idletasks()
 
 
     def verifica_cartoes(self):
@@ -415,7 +475,22 @@ class Car_cred(ctk.CTkToplevel):
         self.grab_set() 
         self.focus_set()
 
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8), weight=0)
 
+        ctk.CTkLabel(self, text="Cadastre Seus Cartões de Crédito", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
+
+        self.nome_cc = ctk.CTkEntry(self, placeholder_text="Nome do Cartão")
+        self.nome_cc.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+
+        self.limite = ctk.CTkEntry(self, placeholder_text="Limite do Cartão")
+        self.limite.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+        self.dia_fechamento = ctk.CTkEntry(self, placeholder_text="Dia do fechamento")
+        self.dia_fechamento.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+        self.dia_vencimento = ctk.CTkEntry(self, placeholder_text="Dia do vencimento")
+        self.dia_vencimento.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
     
 

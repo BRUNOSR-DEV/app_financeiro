@@ -254,7 +254,7 @@ def inserir_receitas(id_usu, valor, descricao, data, conn=None):
         conn.close()'''
 
 
-def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, data, categoria=None, data_venc=None, id_cc=None, conn=None):
+def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, categoria, data, data_venc=None, id_cc=None, conn=None):
     """ Função que inseri as despesas do usuário no BD e retorna o id da mesma"""
     
     gerenciar_conn = False
