@@ -1,5 +1,5 @@
 
-from models.conecte_bd import ( pega_usuarios, dados_user, pega_id, buscar_cartoes, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_dividas)
+from models.conecte_bd import ( pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_dividas)
 
 from time import sleep
 import customtkinter as ctk
@@ -378,9 +378,12 @@ class Despesas(ctk.CTkToplevel):
         self.dia_vencimento = ctk.CTkEntry(self, placeholder_text="Qual dia que vence a divida (opcional)")
         self.dia_vencimento.grid(row=7, column=0, padx=20, pady=10, sticky="ew")
 
-        cartoes = self.verifica_cartoes()
+        
+        for i in self.verifica_cartoes():
+            lista_nomes = []
+            lista_nomes.append(i[1])
 
-        self.car_cred = ctk.CTkOptionMenu(self, values=cartoes)
+        self.car_cred = ctk.CTkOptionMenu(self, values=lista_nomes)
         self.car_cred.grid(row=8, column=0, padx=20, pady=10, sticky="ew")
         self.car_cred.set("")
 
@@ -419,18 +422,23 @@ class Despesas(ctk.CTkToplevel):
         verificacao.append(data_formatada)
         if car_cred != "Cartões" and dia_vencimento == None:
             verificacao.append(car_cred)
-        elif car_cred == "Cartões" and dia_vencimento == None:
+        elif car_cred == "Cartões" and dia_vencimento != None:
             verificacao.append(dia_vencimento)
 
         tamanho = len(verificacao)
 
+        for i in self.verifica_cartoes():
+            if car_cred == i[1]:
+                id_card = i[0]
+                
+
         if tamanho < 7:
-            self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
+            self.status_label.configure(text='Por favor, preencha todos os campos obrigarórios', text_color='red')
             self.update_idletasks()
             sleep(1)
             return
         elif tamanho >= 7:
-            retorno = inserir_despesas(self.user_id, local, valor_total, menu_parcelas,  descricao, categoria, data_formatada, dia_vencimento, car_cred)
+            retorno = inserir_despesas(self.user_id, local, valor_total, menu_parcelas,  descricao, categoria, data_formatada, dia_vencimento, id_card)
 
         if retorno:
             self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
@@ -446,17 +454,17 @@ class Despesas(ctk.CTkToplevel):
 
     def verifica_cartoes(self):
 
-        cartoes = buscar_cartoes(self.user_id)
-        lista_nomes = []
+        cartoes = dados_card(self.user_id)
+        lista_cartoes = []
         if cartoes:
             for cartao in cartoes:
                 # Assumindo que a tupla do cartão é algo como (id, id_usuario, nome, limite, etc.)
                 # O nome seria o terceiro elemento, por isso o índice [2]
-                lista_nomes.append(cartao[2]) 
+                lista_cartoes.append((cartao[0], cartao[2]))
         else:
-            return []
+            return [("0", "Nenhum Cartão")]
         
-        return lista_nomes
+        return lista_cartoes
                 
         
 
@@ -476,23 +484,56 @@ class Car_cred(ctk.CTkToplevel):
         self.focus_set()
 
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8), weight=0)
+        self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6), weight=0)
 
         ctk.CTkLabel(self, text="Cadastre Seus Cartões de Crédito", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
 
-        self.nome_cc = ctk.CTkEntry(self, placeholder_text="Nome do Cartão")
+        self.nome_cc = ctk.CTkEntry(self, placeholder_text="Nome do Cartão*")
         self.nome_cc.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
-        self.limite = ctk.CTkEntry(self, placeholder_text="Limite do Cartão")
+        self.limite = ctk.CTkEntry(self, placeholder_text="Limite do Cartão*")
         self.limite.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
-        self.dia_fechamento = ctk.CTkEntry(self, placeholder_text="Dia do fechamento")
-        self.dia_fechamento.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        self.dia_fechamento = ctk.CTkEntry(self, placeholder_text="Dia do fechamento*")
+        self.dia_fechamento.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
 
-        self.dia_vencimento = ctk.CTkEntry(self, placeholder_text="Dia do vencimento")
-        self.dia_vencimento.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        self.dia_vencimento = ctk.CTkEntry(self, placeholder_text="Dia do vencimento*")
+        self.dia_vencimento.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
 
-    
+        self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
+        self.botao_salvar.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+
+        self.status_label = ctk.CTkLabel(self, text="", text_color="red")
+        self.status_label.grid(row=6, column=0, pady=5)
+
+
+    def salvar_dados(self):
+        """ Verifica e salva os dados no BD """
+
+        nome_cc = self.nome_cc.get().strip()
+        limite = self.limite.get().strip()
+        dia_f = self.dia_fechamento.get().strip()
+        dia_v = self.dia_vencimento.get().strip()
+                
+
+        if not nome_cc or not limite or not dia_f or not dia_v:
+            self.status_label.configure(text='Por favor, preencha todos os campos obrigarórios', text_color='red')
+            self.update_idletasks()
+            sleep(1)
+            return
+        else:
+            retorno = inserir_cc(self.user_id, nome_cc, limite, dia_f, dia_v)
+
+        if retorno:
+            self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+            self.update_idletasks()
+            sleep(2)
+
+            #self.destroy()
+                
+        else:
+            self.status_label.configure(text='Não foi possível salvar os dados, contate o adm do sistema...', text_color='red')
+            self.update_idletasks()
 
 
 

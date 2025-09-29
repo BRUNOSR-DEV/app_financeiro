@@ -134,6 +134,40 @@ def dados_user(id_user, conn=None):
             desconectar(conn)
 
 
+def dados_card(id_user, conn=None):
+    """
+    Função que retorna uma lista com o id do cartão e o nome da tabela cartoes_credito
+    """
+    gerenciar_conn = False
+
+    if conn is None:
+        conn= conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+        sql = "SELECT * FROM cartoes_credito WHERE id_usuario= %s"
+        cursor.execute(sql, (id_user, ))
+        cartoes = cursor.fetchall()
+
+        if cartoes:
+            return cartoes
+        else:
+            return []
+        
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f'Erro no MySQL ao buscar cartões de crédito: {e}')
+        raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
+
+    except Exception as e:
+        print(f'Erro inesperado ao buscar cartões de crédito: {e}')
+
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
 def pega_id(usuario, conn=None): 
     '''função que busca id do usuário no bd, passando o nome do usuário ''' 
 
@@ -254,7 +288,7 @@ def inserir_receitas(id_usu, valor, descricao, data, conn=None):
         conn.close()'''
 
 
-def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, categoria, data, data_venc=None, id_cc=None, conn=None):
+def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, categoria, data, dia_venc=None, id_cc=None, conn=None):
     """ Função que inseri as despesas do usuário no BD e retorna o id da mesma"""
     
     gerenciar_conn = False
@@ -264,8 +298,8 @@ def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, categoria,
 
     cursor = conn.cursor()
     try:
-        sql = "INSERT INTO despesas (id_usuario, local, valor_total, parcelas, descricao, categoria, data, data_vencimento, id_cc) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(sql, (id_usu, local,valor_total, parcelas, descricao, categoria, data, data_venc, id_cc))
+        sql = "INSERT INTO despesas (id_usuario, local, valor_total, parcelas, descricao, categoria, data, dia_vencimento, id_cc) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(sql, (id_usu, local,valor_total, parcelas, descricao, categoria, data, dia_venc, id_cc))
         conn.commit()
         return cursor.lastrowid # Retorna o ID da despesa recém-inserida
     
@@ -374,38 +408,7 @@ def atualizar_divida(id_divida, valor_pago, conn=None):
             desconectar(conn)
 
 
-def buscar_cartoes(id_user, conn=None):
-    """
-    Função que retorna uma lista com o id do cartão e o nome da tabela cartoes_credito
-    """
-    gerenciar_conn = False
 
-    if conn is None:
-        conn= conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-
-    try:
-        sql = "SELECT * FROM cartoes_credito WHERE id= %s"
-        cursor.execute(sql, (id_user, ))
-        cartoes = cursor.fetchall()
-
-        if cartoes:
-            return cartoes
-        else:
-            return []
-        
-    except MySQLdb.Error as e: # Captura erro específico do MySQL
-        print(f'Erro no MySQL ao buscar cartões de crédito: {e}')
-        raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
-
-    except Exception as e:
-        print(f'Erro inesperado ao buscar cartões de crédito: {e}')
-
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
 
 
 
