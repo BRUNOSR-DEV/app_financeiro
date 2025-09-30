@@ -359,7 +359,7 @@ class Despesas(ctk.CTkToplevel):
 
         self.menu_parcelas = ctk.CTkOptionMenu(self, values=parcelas_opcoes)
         self.menu_parcelas.grid(row=3, column=0, padx=20, pady=20, sticky="ew")
-        self.menu_parcelas.set("")
+        self.menu_parcelas.set("N° Parcelas")
 
         self.descricao = ctk.CTkEntry(self, placeholder_text="Descrição da compra")
         self.descricao.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
@@ -378,14 +378,13 @@ class Despesas(ctk.CTkToplevel):
         self.dia_vencimento = ctk.CTkEntry(self, placeholder_text="Qual dia que vence a divida (opcional)")
         self.dia_vencimento.grid(row=7, column=0, padx=20, pady=10, sticky="ew")
 
-        
+        lista_nomes = []
         for i in self.verifica_cartoes():
-            lista_nomes = []
             lista_nomes.append(i[1])
 
         self.car_cred = ctk.CTkOptionMenu(self, values=lista_nomes)
         self.car_cred.grid(row=8, column=0, padx=20, pady=10, sticky="ew")
-        self.car_cred.set("")
+        self.car_cred.set("Selecione um Cartão")
 
         self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
         self.botao_salvar.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
@@ -397,11 +396,9 @@ class Despesas(ctk.CTkToplevel):
     def salvar_dados(self):
         """ Verifica e salva os dados no BD """
 
-        verificacao = []
-
         local = self.local.get().strip()
         valor_total = self.valor_total.get().strip()
-        menu_parcelas = self.menu_parcelas.get().strip()
+        menu_parcelas_str = self.menu_parcelas.get().strip()
         descricao = self.descricao.get().strip()
         categoria = self.categoria.get().strip()
         data_str = self.data.get_date()
@@ -413,37 +410,59 @@ class Despesas(ctk.CTkToplevel):
         # Formata o objeto datetime para a string 'AAAA-MM-DD'
         data_formatada = data_obj.strftime('%Y-%m-%d')
 
-        verificacao.append(local)
-        verificacao.append(valor_total)
-        verificacao.append(menu_parcelas)
-        verificacao.append(descricao)
-        if categoria != 'Categoria':
-            verificacao.append(categoria)
-        verificacao.append(data_formatada)
-        if car_cred != "Cartões" and dia_vencimento == None:
-            verificacao.append(car_cred)
-        elif car_cred == "Cartões" and dia_vencimento != None:
-            verificacao.append(dia_vencimento)
 
-        tamanho = len(verificacao)
+        if not local or not valor_total or categoria == "Categoria" or menu_parcelas_str == "N° Parcelas":
+            self.status_label.configure(text='Preencha Local, Valor, Categoria e N° Parcelas!', text_color='red')
+            self.after(2000, lambda: self.status_label.configure(text='')) # Usa after() para não travar
+            return
+    
+        try:
+            parcelas = int(menu_parcelas_str)
+             # Tenta converter o valor para float
+            float(valor_total.replace(',', '.'))
+        except ValueError:
+            self.status_label.configure(text='Valor ou Parcelas devem ser números válidos!', text_color='red')
+            self.after(2000, lambda: self.status_label.configure(text=''))
+            return
+        
+        # 2. VALIDAÇÃO CONDICIONAL PRINCIPAL
+    
+        # Verifica se a despesa é parcelada (se for mais de 1 parcela)
+        is_parcelado = parcelas > 1
+    
+        # Flag para saber se o requisito de pagamento foi atendido
+        pagamento_atendido = True
+    
+        if is_parcelado:
+        # A despesa é parcelada, DEVE ter um cartão OU dia de vencimento
+        
+            tem_cartao = car_cred != "Selecione um Cartão"
+            tem_vencimento = bool(dia_vencimento) # Verifica se a string não está vazia
+        
+            if not tem_cartao and not tem_vencimento:
+                # Se não tem cartão E não tem dia de vencimento, falha!
+                self.status_label.configure(text='Se parcelado, informe o Cartão OU Dia de Vencimento.', text_color='red')
+                self.after(4000, lambda: self.status_label.configure(text=''))
+                return # Sai do método
 
+
+        id_card = None
         for i in self.verifica_cartoes():
             if car_cred == i[1]:
                 id_card = i[0]
+                break
                 
+        if not dia_vencimento:
+            dia_vencimento = None
 
-        if tamanho < 7:
-            self.status_label.configure(text='Por favor, preencha todos os campos obrigarórios', text_color='red')
-            self.update_idletasks()
-            sleep(1)
-            return
-        elif tamanho >= 7:
-            retorno = inserir_despesas(self.user_id, local, valor_total, menu_parcelas,  descricao, categoria, data_formatada, dia_vencimento, id_card)
+
+        retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, data_formatada, dia_vencimento, id_card)
 
         if retorno:
             self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
             self.update_idletasks()
-            sleep(2)
+            sleep(3)
+            self.limpar_campos()
 
             #self.destroy()
                 
@@ -465,6 +484,28 @@ class Despesas(ctk.CTkToplevel):
             return [("0", "Nenhum Cartão")]
         
         return lista_cartoes
+    
+
+    def limpar_campos(self):
+        """Limpa todos os campos de entrada do formulário de despesas."""
+        
+        # Limpa CTkEntry's
+        self.local.delete(0, ctk.END)
+        self.valor_total.delete(0, ctk.END)
+        self.descricao.delete(0, ctk.END)
+        self.dia_vencimento.delete(0, ctk.END)
+        
+        # Reseta CTkOptionMenu's para seus valores padrão
+        self.menu_parcelas.set("N° Parcelas")
+        self.categoria.set("Categoria")
+        self.car_cred.set("Selecione um Cartão")
+        
+        """
+        # Reseta o menu de Cartões (para o primeiro item da lista)
+        lista_nomes = [cartao[1] for cartao in self.lista_cartoes_id_nome] 
+        if lista_nomes:
+            self.car_cred.set(lista_nomes[0])
+        """
                 
         
 
