@@ -81,6 +81,7 @@ class Login(ctk.CTk):
         self.wait_window(register_window) #Pausa a janela de login até a popup fechar
 
 
+
 class Registro_usuario(ctk.CTkToplevel):
     """Classe para registro: configuração da interface para receber dados e a inserção dos dados no BD. (inserir_usuario)"""
 
@@ -508,8 +509,6 @@ class Despesas(ctk.CTkToplevel):
         """
                 
         
-
-
 
 class Car_cred(ctk.CTkToplevel):
 
