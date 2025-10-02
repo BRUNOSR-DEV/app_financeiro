@@ -1,10 +1,18 @@
 
-from models.conecte_bd import ( pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_dividas)
+from models.conecte_bd import (
+     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_dividas, pegar_despesas_por_local_mensal, pegar_gastos_previstos_proximo_mes
+     )
 
 from time import sleep
 import customtkinter as ctk
 from tkcalendar import Calendar
 from datetime import datetime
+
+#gráficos
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+from collections import defaultdict 
 
 #configura a aparência
 ctk.set_appearance_mode('light')
@@ -222,6 +230,21 @@ class Main_app(ctk.CTk):
         self.btn_cc.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
         #---------------------------------------------------------------------------------------
 
+        # Frame principal para o conteúdo (Gráfico e Dados)
+        self.main_content_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.main_content_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.main_content_frame.grid_columnconfigure(0, weight=1)
+        self.main_content_frame.grid_rowconfigure(0, weight=1) # Ocupa todo o espaço
+
+        # Frame para o Gráfico (dentro do main_content_frame)
+        self.grafico_frame = ctk.CTkFrame(self.main_content_frame)
+        self.grafico_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.grafico_frame.grid_columnconfigure(0, weight=1)
+        self.grafico_frame.grid_rowconfigure(0, weight=1)
+
+        # Gerar o gráfico ao iniciar
+        self.gerar_grafico_mensal() 
+
 
     def abrir_receitas(self):
         """ Direciona o usuário para fazer o cadastro de suas receitas, chamando a classe receitas"""
@@ -242,6 +265,71 @@ class Main_app(ctk.CTk):
         register_window = Car_cred(self, self.user_id, login_instance=self)
 
         self.wait_window(register_window)
+
+
+    def gerar_grafico_mensal(self):
+        """
+        Busca gastos previstos do BD para o próximo mês e gera um gráfico de pizza.
+        """
+        
+        # 1. Limpar o frame anterior
+        for widget in self.grafico_frame.winfo_children():
+            widget.destroy()
+
+        # 2. Buscar Dados de Previsão
+        # Não precisa mais de ano e mês como parâmetros, a função do BD calcula isso
+        dados_previstos = pegar_gastos_previstos_proximo_mes(self.user_id)
+
+        # Se não houver dados, exibe uma mensagem
+        if not dados_previstos:
+            ctk.CTkLabel(self.grafico_frame, 
+                         text="Nenhuma despesa futura ou parcelada encontrada.", 
+                         text_color="gray").grid(row=0, column=0, padx=20, pady=20)
+            return
+
+        # 3. Agrupar os dados por Categoria
+        # A função do BD retorna a lista detalhada. Precisamos totalizar por categoria.
+        gastos_por_categoria = defaultdict(float)
+        total_previsto = 0.0
+
+        for item in dados_previstos:
+            gastos_por_categoria[item['categoria']] += item['valor']
+            total_previsto += item['valor']
+            
+        categorias = list(gastos_por_categoria.keys())
+        totais = list(gastos_por_categoria.values())
+        
+        # 4. Determinar o Mês de Previsão para o Título
+        hoje = datetime.now()
+        mes_previsto = hoje.month % 12 + 1
+        ano_previsto = hoje.year + (1 if hoje.month == 12 else 0)
+        
+        mes_nome = datetime(ano_previsto, mes_previsto, 1).strftime('%B').capitalize()
+        
+        # 5. Criação do Gráfico de Pizza
+        
+        # Cria a figura e o eixo
+        fig, ax = plt.subplots(figsize=(5, 5))
+        
+        # Configurações do gráfico de pizza
+        ax.pie(
+            totais, 
+            labels=categorias, 
+            autopct='%1.1f%%', 
+            startangle=90,
+            textprops={'fontsize': 8}
+        )
+        ax.axis('equal') # Garante que o gráfico de pizza seja desenhado como um círculo
+        
+        # Título do Gráfico
+        titulo = f"Previsão de Gastos para {mes_nome}/{ano_previsto}\nTotal: R$ {total_previsto:,.2f}"
+        ax.set_title(titulo, fontsize=12)
+
+        # 6. Integração com CustomTkinter
+        canvas = FigureCanvasTkAgg(fig, master=self.grafico_frame)
+        canvas_widget = canvas.get_tk_widget()
+        canvas_widget.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        canvas.draw()
 
 
 

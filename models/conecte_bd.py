@@ -1,6 +1,8 @@
 import MySQLdb
 
 import configparser
+from calendar import monthrange
+from datetime import datetime
 
 
 def ler_configuracao_bd():
@@ -410,6 +412,139 @@ def atualizar_divida(id_divida, valor_pago, conn=None):
 
 
 
+def pegar_despesas_por_local_mensal(id_usuario, ano, mes):
+    """
+    Busca o total gasto em cada categoria para um dado mês e ano.
+    Retorna uma lista de tuplas: (categoria, total_gasto).
+    """
+    conn = conectar_bd_original()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            
+            # ATENÇÃO: A coluna data_compra é 'AAAA-MM-DD'. 
+            # Usamos a função MONTH() e YEAR() do MySQL.
+            sql = """
+            SELECT local, SUM(valor_total) AS total_gasto
+            FROM despesas
+            WHERE id_usuario = %s 
+              AND YEAR(data_compra) = %s 
+              AND MONTH(data_compra) = %s
+            GROUP BY local
+            ORDER BY total_gasto DESC;
+            """
+            
+            cursor.execute(sql, (id_usuario, ano, mes))
+            resultados = cursor.fetchall()
+            return resultados
+            
+        except MySQLdb.Error as e:
+            print(f"Erro ao buscar despesas: {e}")
+            return []
+        finally:
+            if 'cursor' in locals() and cursor:
+                 cursor.close()
+            if conn:
+                 conn.close()
+    return []
+
+
+def pegar_gastos_previstos_proximo_mes(id_usuario):
+    """
+    Busca todas as despesas parceladas ou com dia de vencimento para calcular a previsão.
+    """
+    conn = conectar_bd_original()
+    if not conn:
+        return []
+
+    # 1. Determina o mês e ano da PREVISÃO (Mês Seguinte)
+    hoje = datetime.now()
+    if hoje.month == 12:
+        mes_previsto = 1
+        ano_previsto = hoje.year + 1
+    else:
+        mes_previsto = hoje.month + 1
+        ano_previsto = hoje.year
+
+    try:
+        cursor = conn.cursor()
+        
+        # 2. SQL busca despesas que podem gerar pagamentos futuros:
+        #    a) Despesas parceladas (id_cartao IS NOT NULL)
+        #    b) Despesas com dia_vencimento (boletos/contas a pagar)
+        sql = """
+        SELECT local, valor_total, parcelas, categoria, id_cc, dia_vencimento, data
+        FROM despesas
+        WHERE id_usuario = %s AND (parcelas > 1 OR dia_vencimento IS NOT NULL)
+        ORDER BY data DESC;
+        """
+        
+        cursor.execute(sql, (id_usuario,))
+        todas_despesas = cursor.fetchall()
+        
+        # 3. Lógica em Python para calcular o valor REAL a pagar no Mês Previsto
+        gastos_previstos = []
+        
+        for despesa in todas_despesas:
+            # Desempacota os dados da despesa
+            (local, valor_total, total_parcelas, categoria, id_cartao, dia_vencimento_str, data_compra) = despesa
+            
+            # Converte valores importantes
+            valor_total = float(valor_total)
+            total_parcelas = int(total_parcelas)
+            valor_parcela = valor_total / total_parcelas
+            
+            # Determina o mês e ano da PRIMEIRA parcela (sempre o mês seguinte à compra)
+            mes_compra = data_compra.month
+            ano_compra = data_compra.year
+            
+            if mes_compra == 12:
+                mes_inicio = 1
+                ano_inicio = ano_compra + 1
+            else:
+                mes_inicio = mes_compra + 1
+                ano_inicio = ano_compra
+                
+            # Calcula a qual parcela corresponde o Mês Previsto
+            delta_anos = ano_previsto - ano_inicio
+            delta_meses = mes_previsto - mes_inicio
+            
+            # Número de meses desde a primeira parcela
+            meses_passados = delta_anos * 12 + delta_meses
+            
+            parcela_atual = meses_passados + 1
+            
+            # Verifica se a despesa é devida no Mês Previsto
+            deve_pagar = False
+            
+            if id_cartao is not None and parcela_atual <= total_parcelas:
+                # É uma parcela de cartão e está dentro do limite de parcelas
+                deve_pagar = True
+            
+            elif id_cartao is None and dia_vencimento_str is not None:
+                # É um boleto/conta com dia de vencimento, deve pagar TODO mês
+                valor_parcela = valor_total # Se não é cartão e não tem parcela, o valor é o total
+                deve_pagar = True
+            
+            if deve_pagar:
+                # Adiciona o gasto à lista de previsão
+                gastos_previstos.append({
+                    'categoria': categoria,
+                    'valor': valor_parcela,
+                    'origem': local if id_cartao is None else f"Parcela {parcela_atual}/{total_parcelas} em {local}"
+                })
+        
+        return gastos_previstos
+        
+    except MySQLdb.Error as e:
+        print(f"Erro ao buscar gastos previstos: {e}")
+        return []
+    finally:
+        if 'cursor' in locals() and cursor:
+             cursor.close()
+        if conn:
+             conn.close()
+    return []
 
 
 
