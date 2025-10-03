@@ -410,43 +410,39 @@ def atualizar_divida(id_divida, valor_pago, conn=None):
             desconectar(conn)
 
 
-
-
-def pegar_despesas_por_local_mensal(id_usuario, ano, mes):
+def buscar_dia_vencimento_cartao(id_card, conn=None):
     """
-    Busca o total gasto em cada categoria para um dado mês e ano.
-    Retorna uma lista de tuplas: (categoria, total_gasto).
+    Função que retorna dia de vencimento do id do cartão fornecido
     """
-    conn = conectar_bd_original()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            
-            # ATENÇÃO: A coluna data_compra é 'AAAA-MM-DD'. 
-            # Usamos a função MONTH() e YEAR() do MySQL.
-            sql = """
-            SELECT local, SUM(valor_total) AS total_gasto
-            FROM despesas
-            WHERE id_usuario = %s 
-              AND YEAR(data_compra) = %s 
-              AND MONTH(data_compra) = %s
-            GROUP BY local
-            ORDER BY total_gasto DESC;
-            """
-            
-            cursor.execute(sql, (id_usuario, ano, mes))
-            resultados = cursor.fetchall()
-            return resultados
-            
-        except MySQLdb.Error as e:
-            print(f"Erro ao buscar despesas: {e}")
-            return []
-        finally:
-            if 'cursor' in locals() and cursor:
-                 cursor.close()
-            if conn:
-                 conn.close()
-    return []
+    gerenciar_conn = False
+
+    if conn is None:
+        conn= conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+        sql = "SELECT dia_vencimento FROM cartoes_credito WHERE id= %s"
+        cursor.execute(sql, (id_card, ))
+        dia_v = cursor.fetchone()
+
+        if dia_v:
+            return int(dia_v[0])
+        else:
+            return None
+        
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f'Erro no MySQL ao buscar dia vencimento: {e}')
+        raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
+
+    except Exception as e:
+        print(f'Erro inesperado ao buscar dia vencimento: {e}')
+
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
 
 
 def pegar_gastos_previstos_proximo_mes(id_usuario):
@@ -529,10 +525,12 @@ def pegar_gastos_previstos_proximo_mes(id_usuario):
             if deve_pagar:
                 # Adiciona o gasto à lista de previsão
                 gastos_previstos.append({
-                    'categoria': categoria,
-                    'valor': valor_parcela,
-                    'origem': local if id_cartao is None else f"Parcela {parcela_atual}/{total_parcelas} em {local}"
-                })
+                'categoria': categoria,
+                'valor': valor_parcela,
+                'origem': local if id_cartao is None else f"Parcela {parcela_atual}/{total_parcelas} em {local}",
+                'id_cartao': id_cartao,             
+                'dia_vencimento': dia_vencimento_str 
+            })
         
         return gastos_previstos
         

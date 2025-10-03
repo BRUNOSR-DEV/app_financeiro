@@ -1,12 +1,15 @@
 
 from models.conecte_bd import (
-     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_dividas, pegar_despesas_por_local_mensal, pegar_gastos_previstos_proximo_mes
+     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, buscar_dia_vencimento_cartao, pegar_gastos_previstos_proximo_mes
      )
 
 from time import sleep
 import customtkinter as ctk
+
+#Calendário e data e tempo
 from tkcalendar import Calendar
 from datetime import datetime
+import locale
 
 #gráficos
 import matplotlib.pyplot as plt
@@ -16,6 +19,9 @@ from collections import defaultdict
 
 #configura a aparência
 ctk.set_appearance_mode('light')
+
+#Configuração de lingua - PTBR
+locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 
 class Login(ctk.CTk):
@@ -184,6 +190,9 @@ class Main_app(ctk.CTk):
         self.user_id = pega_id(self.usuario_logado)
         self.nomeComp = dados_user(self.user_id)[0][1]
 
+        data_atual = datetime.now()
+        mes_ano_vigente = data_atual.strftime('%B/%Y').capitalize()
+
         self.grid_rowconfigure(0, weight=0) # Linha para o frame superior (usuário e add tarefa)
         self.grid_rowconfigure(1, weight=1) 
         self.grid_columnconfigure(0, weight=1)
@@ -203,10 +212,17 @@ class Main_app(ctk.CTk):
                                                text="Bem-vindo!",
                                                font=ctk.CTkFont(size=16, weight="bold"))
             
+        self.mes_vigente_label = ctk.CTkLabel(
+        self.top_section_frame, 
+        text=f"Mês Vigente: {mes_ano_vigente}", 
+        font=ctk.CTkFont(size=16, weight="bold")
+        )
+        self.mes_vigente_label.grid(row=0, column=1, padx=10, pady=10, sticky="w")
+            
         self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, width=80,
                                         fg_color="#FF0000", hover_color="#810000")
         
-        self.botao_sair.grid(row=0, column=1,sticky="e") #coluna 1 alinhado a direita
+        self.botao_sair.grid(row=0, column=2,sticky="e") #coluna 2 alinhado a direita
 
         #Primeira Label da janela   
         self.nomeusuario_label.grid(row=0, column=0, pady=(0, 10), sticky="w")
@@ -229,21 +245,45 @@ class Main_app(ctk.CTk):
         self.btn_cc = ctk.CTkButton(self.cadastro_frame, text="Cartão de Crédito", command=self.abrir_cc)
         self.btn_cc.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
         #---------------------------------------------------------------------------------------
-
-        # Frame principal para o conteúdo (Gráfico e Dados)
+        
+        # -------------------------------------------------------------------------
+        # 2. FRAME DE CONTEÚDO PRINCIPAL (Main Content) - DEVE SER DEFINIDO AQUI
+        # -------------------------------------------------------------------------
         self.main_content_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.main_content_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
-        self.main_content_frame.grid_columnconfigure(0, weight=1)
-        self.main_content_frame.grid_rowconfigure(0, weight=1) # Ocupa todo o espaço
 
-        # Frame para o Gráfico (dentro do main_content_frame)
+        # Configuração de expansão das colunas do conteúdo principal
+        self.main_content_frame.grid_columnconfigure(0, weight=2) # Tabela (Grande)
+        self.main_content_frame.grid_columnconfigure(1, weight=1) # Gráfico (Pequeno)
+        self.main_content_frame.grid_rowconfigure(0, weight=1)
+
+
+        # -------------------------------------------------------------------------
+        # 3. FRAME DA TABELA DETALHADA (AGORA PODE SER DEFINIDO, MESTRE EXISTE)
+        # -------------------------------------------------------------------------
+        self.tabela_frame = ctk.CTkScrollableFrame(
+        self.main_content_frame, 
+        label_text="Próximos Pagamentos Detalhados (Mês Seguinte)"
+        )
+        self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") # Coluna 0
+
+        # Chamar o método para preencher a tabela ao iniciar
+        self.preencher_tabela_pagamentos() 
+
+
+        # -------------------------------------------------------------------------
+        # 4. FRAME DO GRÁFICO (AGORA PODE SER DEFINIDO)
+        # -------------------------------------------------------------------------
         self.grafico_frame = ctk.CTkFrame(self.main_content_frame)
-        self.grafico_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.grafico_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew") # Coluna 1
         self.grafico_frame.grid_columnconfigure(0, weight=1)
         self.grafico_frame.grid_rowconfigure(0, weight=1)
 
         # Gerar o gráfico ao iniciar
-        self.gerar_grafico_mensal() 
+        self.gerar_grafico_mensal()
+
+
+
 
 
     def abrir_receitas(self):
@@ -265,7 +305,6 @@ class Main_app(ctk.CTk):
         register_window = Car_cred(self, self.user_id, login_instance=self)
 
         self.wait_window(register_window)
-
 
     def gerar_grafico_mensal(self):
         """
@@ -330,6 +369,93 @@ class Main_app(ctk.CTk):
         canvas_widget = canvas.get_tk_widget()
         canvas_widget.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         canvas.draw()
+
+
+    def preencher_tabela_pagamentos(self):
+        """
+        Busca os gastos previstos, agrupa-os por data de vencimento e exibe em uma lista.
+        """
+
+        # Limpar o frame anterior
+        for widget in self.tabela_frame.winfo_children():
+            widget.destroy()
+
+        # 1. Obter Dados
+        # Esta função já calcula a lógica de parcelas para o próximo mês
+        dados_previstos = pegar_gastos_previstos_proximo_mes(self.user_id)
+    
+        if not dados_previstos:
+            ctk.CTkLabel(self.tabela_frame, text="Nenhum pagamento futuro previsto.").grid(row=0, column=0, padx=10, pady=10)
+            return
+
+        # 2. Agrupamento por Data de Vencimento
+    
+        # Criamos um defaultdict para agrupar entradas que vencem no mesmo dia
+        pagamentos_agrupados = defaultdict(lambda: {'total': 0.0, 'detalhes': []})
+    
+        # Determinar Mês e Ano de Previsão para cálculo da data de vencimento completa
+        hoje = datetime.now()
+        mes_previsto = hoje.month % 12 + 1
+        ano_previsto = hoje.year + (1 if hoje.month == 12 else 0)
+
+        for item in dados_previstos:
+            # Tenta inferir o dia de vencimento
+            if item['id_cartao'] is not None:
+            # Se for cartão, precisamos do dia de vencimento do cartão.
+            # Você precisará de uma função no BD para buscar o dia de vencimento do CARTÃO
+                dia_venc_cartao = buscar_dia_vencimento_cartao(item['id_cartao'])
+            # Como essa função não existe, vamos assumir o dia 10 como padrão para cartão:
+        
+            elif item['dia_vencimento'] is not None:
+                # É uma despesa com dia de vencimento manual
+                try:
+                    dia_venc_cartao = int(item['dia_vencimento'])
+                except:
+                    continue # Pula se o dia for inválido
+            else:
+                continue # Pula se não for cartão nem tiver dia de vencimento
+
+            # Criar a chave de agrupamento (Dia/Mês/Ano)
+            try:
+                data_vencimento = datetime(ano_previsto, mes_previsto, dia_venc_cartao)
+            except ValueError:
+                # Lida com dias inválidos (ex: dia 31 em fevereiro)
+                continue 
+
+            chave = data_vencimento.strftime("%d/%m")
+        
+            # 3. Agrupar e somar
+            pagamentos_agrupados[chave]['total'] += item['valor']
+            pagamentos_agrupados[chave]['detalhes'].append(f"{item['origem']} (R$ {item['valor']:,.2f})")
+
+        # 4. Exibir na Tabela (Lista)
+    
+        # Cabeçalho
+        ctk.CTkLabel(self.tabela_frame, text="Data Venc.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.tabela_frame, text="Valor Total", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
+        ctk.CTkLabel(self.tabela_frame, text="Detalhes", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+    
+        linha = 1
+    
+        # Ordenar pela data de vencimento
+        datas_ordenadas = sorted(pagamentos_agrupados.keys(), key=lambda x: datetime.strptime(x, "%d/%m"))
+    
+        for data_venc, dados in pagamentos_agrupados.items():
+            if data_venc in datas_ordenadas:
+                # Coluna 1: Data de Vencimento
+                ctk.CTkLabel(self.tabela_frame, text=data_venc).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+            
+                # Coluna 2: Valor Total a Pagar na Data
+                ctk.CTkLabel(self.tabela_frame, text=f"R$ {dados['total']:,.2f}", text_color="red").grid(row=linha, column=1, padx=5, pady=2, sticky="e")
+            
+                # Coluna 3: Detalhes Agrupados
+                detalhes_texto = "\n".join(dados['detalhes'])
+                ctk.CTkLabel(self.tabela_frame, text=detalhes_texto, justify=ctk.LEFT).grid(row=linha, column=2, padx=5, pady=2, sticky="w")
+            
+                linha += 1
+            
+        # Ajuste as colunas para se expandirem conforme necessário
+        self.tabela_frame.grid_columnconfigure(2, weight=1)
 
 
 
