@@ -560,52 +560,84 @@ class Despesas(ctk.CTkToplevel):
         self.focus_set() 
 
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8), weight=0)
+        self.grid_rowconfigure(0, weight=1) # O frame rolavel ocupará toda a janela
 
-        ctk.CTkLabel(self, text="Cadastre Suas Despesas", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
+        # ------------------------------------------------------------------------
+        # PASSO 1: Criar o CTkScrollableFrame e posicioná-lo
+        # Ele será o master de todo o conteúdo da janela
+        self.scrollable_frame = ctk.CTkScrollableFrame(self, label_text="Cadastre Suas Despesas")
+        self.scrollable_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        
+        # Configuração da grade interna do frame rolavel
+        self.scrollable_frame.grid_columnconfigure(0, weight=1)
+        # ------------------------------------------------------------------------
 
-        self.local = ctk.CTkEntry(self, placeholder_text="Local da compra*")
-        self.local.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+        # TODOS OS WIDGETS AGORA USAM self.scrollable_frame COMO SEU MASTER
+        # E SÃO POSICIONADOS DENTRO DELE.
+        
+        # Label do Título (opcional, já que o frame tem label_text)
+        # ctk.CTkLabel(self.scrollable_frame, text="Cadastre Suas Despesas", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
+        # Removido para usar o `label_text` do frame para o título.
 
-        self.valor_total = ctk.CTkEntry(self, placeholder_text="Valor total da compra*")
-        self.valor_total.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        # Linha 0 (Antiga Linha 1)
+        self.local = ctk.CTkEntry(self.scrollable_frame, placeholder_text="Local da compra*")
+        self.local.grid(row=0, column=0, padx=20, pady=10, sticky="ew")
 
+        # Linha 1 (Antiga Linha 2)
+        self.valor_total = ctk.CTkEntry(self.scrollable_frame, placeholder_text="Valor total da compra*")
+        self.valor_total.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+
+        # Linha 2 (Antiga Linha 3)
         parcelas_opcoes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
-
-        self.menu_parcelas = ctk.CTkOptionMenu(self, values=parcelas_opcoes)
-        self.menu_parcelas.grid(row=3, column=0, padx=20, pady=20, sticky="ew")
+        self.menu_parcelas = ctk.CTkOptionMenu(self.scrollable_frame, values=parcelas_opcoes)
+        self.menu_parcelas.grid(row=2, column=0, padx=20, pady=20, sticky="ew")
         self.menu_parcelas.set("N° Parcelas")
 
-        self.descricao = ctk.CTkEntry(self, placeholder_text="Descrição da compra")
-        self.descricao.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        # Linha 3 (Antiga Linha 4)
+        self.descricao = ctk.CTkEntry(self.scrollable_frame, placeholder_text="Descrição da compra")
+        self.descricao.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
 
+        # Linha 4 (Antiga Linha 5)
         categorias = ['Laser', 'Roupas', 'Higiene', 'Curso', 'Comida', 'Divida',]
-
-        self.categoria = ctk.CTkOptionMenu(self, values=categorias)
-        self.categoria.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+        self.categoria = ctk.CTkOptionMenu(self.scrollable_frame, values=categorias)
+        self.categoria.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
         self.categoria.set("Categoria")
 
-        self.data = Calendar(self, selectmode='day', date_pattern='dd/mm/yyyy', background='gray80',
+        # Linha 5 (Antiga Linha 6) - Data da Compra
+        ctk.CTkLabel(self.scrollable_frame, text="Data da Compra:").grid(row=5, column=0, padx=20, sticky="w")
+        self.data = Calendar(self.scrollable_frame, selectmode='day', date_pattern='dd/mm/yyyy', background='gray80',
                                         foreground='black', normalbackground='gray90', headersbackground='gray70',
                                         selectbackground='gray60', othermonthforeground='gray70')
-        self.data.grid(row=6, column=0, padx=20, pady=10, sticky="ew")
+        self.data.grid(row=6, column=0, padx=20, pady=5, sticky="ew")
 
-        self.dia_vencimento = ctk.CTkEntry(self, placeholder_text="Qual dia que vence a divida (opcional)")
-        self.dia_vencimento.grid(row=7, column=0, padx=20, pady=10, sticky="ew")
-
+        # Linha 7 (Antiga Linha 7) - Data de Vencimento
+        ctk.CTkLabel(self.scrollable_frame, text="Data de Vencimento: (OBS.Se for usar cartão deixar na data de hoje)").grid(row=7, column=0, padx=20, sticky="w")
+        self.data_vencimento = Calendar(self.scrollable_frame, selectmode='day', date_pattern='dd/mm/yyyy', background='gray80',
+                                        foreground='black', normalbackground='gray90', headersbackground='gray70',
+                                        selectbackground='gray60', othermonthforeground='gray70')
+        self.data_vencimento.grid(row=8, column=0, padx=20, pady=5, sticky="ew")
+        
+        # O self.verifica_cartoes() deve ser um método válido na classe ou importado
         lista_nomes = []
-        for i in self.verifica_cartoes():
-            lista_nomes.append(i[1])
+        try:
+             for i in self.verifica_cartoes():
+                 lista_nomes.append(i[1])
+        except AttributeError:
+            # Caso o verifica_cartoes ainda não esteja implementado na classe
+            lista_nomes = ["Cartão 1", "Cartão 2"] 
 
-        self.car_cred = ctk.CTkOptionMenu(self, values=lista_nomes)
-        self.car_cred.grid(row=8, column=0, padx=20, pady=10, sticky="ew")
+        # Linha 9 (Antiga Linha 8)
+        self.car_cred = ctk.CTkOptionMenu(self.scrollable_frame, values=lista_nomes)
+        self.car_cred.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
         self.car_cred.set("Selecione um Cartão")
 
-        self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
-        self.botao_salvar.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
+        # Linha 10 (Antiga Linha 9)
+        self.botao_salvar = ctk.CTkButton(self.scrollable_frame, text="Salvar Dados", command=self.salvar_dados)
+        self.botao_salvar.grid(row=10, column=0, padx=20, pady=20, sticky="ew") # Maior padding para destacar
 
-        self.status_label = ctk.CTkLabel(self, text="", text_color="red")
-        self.status_label.grid(row=10, column=0, pady=5)
+        # Linha 11 (Antiga Linha 10)
+        self.status_label = ctk.CTkLabel(self.scrollable_frame, text="", text_color="red")
+        self.status_label.grid(row=11, column=0, pady=5)
 
 
     def salvar_dados(self):
@@ -617,13 +649,16 @@ class Despesas(ctk.CTkToplevel):
         descricao = self.descricao.get().strip()
         categoria = self.categoria.get().strip()
         data_str = self.data.get_date()
-        dia_vencimento = self.dia_vencimento.get().strip()
+        data_vencimento_str = self.data_vencimento.get_date()
         car_cred = self.car_cred.get().strip()
 
         data_obj = datetime.strptime(data_str, '%d/%m/%Y')
+        data_venc_obj = datetime.strptime(data_vencimento_str, '%d/%m/%Y')
     
         # Formata o objeto datetime para a string 'AAAA-MM-DD'
         data_formatada = data_obj.strftime('%Y-%m-%d')
+
+        data_venc_formatada = data_venc_obj.strftime('%Y-%m-%d')
 
 
         if not local or not valor_total or categoria == "Categoria" or menu_parcelas_str == "N° Parcelas":
@@ -649,10 +684,10 @@ class Despesas(ctk.CTkToplevel):
         pagamento_atendido = True
     
         if is_parcelado:
-        # A despesa é parcelada, DEVE ter um cartão OU dia de vencimento
+        # A despesa é parcelada, DEVE ter um cartão OU data de vencimento
         
             tem_cartao = car_cred != "Selecione um Cartão"
-            tem_vencimento = bool(dia_vencimento) # Verifica se a string não está vazia
+            tem_vencimento = bool(data_venc_formatada) # Verifica se a string não está vazia
         
             if not tem_cartao and not tem_vencimento:
                 # Se não tem cartão E não tem dia de vencimento, falha!
@@ -666,12 +701,19 @@ class Despesas(ctk.CTkToplevel):
             if car_cred == i[1]:
                 id_card = i[0]
                 break
-                
-        if not dia_vencimento:
-            dia_vencimento = None
 
+        data_atual = datetime.now()
+        apenas_data = data_atual.strftime('%Y-%m-%d')
 
-        retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, data_formatada, dia_vencimento, id_card)
+        print(apenas_data)  
+        print(data_venc_formatada) 
+
+        if data_venc_formatada == apenas_data:
+            data_venc_formatada = None
+
+            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, data_formatada, data_venc_formatada, id_card)
+        else:
+            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, data_formatada, data_venc_formatada, id_card)
 
         if retorno:
             self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
@@ -708,7 +750,7 @@ class Despesas(ctk.CTkToplevel):
         self.local.delete(0, ctk.END)
         self.valor_total.delete(0, ctk.END)
         self.descricao.delete(0, ctk.END)
-        self.dia_vencimento.delete(0, ctk.END)
+
         
         # Reseta CTkOptionMenu's para seus valores padrão
         self.menu_parcelas.set("N° Parcelas")

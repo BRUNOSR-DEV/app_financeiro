@@ -4,7 +4,7 @@ import configparser
 from calendar import monthrange
 from datetime import datetime
 
-
+#------------------Configuração banco de dados-------------------
 def ler_configuracao_bd():
     """Lê as credenciais do banco de dados do arquivo config.ini."""
     config = configparser.ConfigParser()
@@ -33,7 +33,6 @@ def ler_configuracao_bd():
         return None
 
 
-
 def conectar_bd_original():
     """
     Função para conectar ao servidor
@@ -57,7 +56,6 @@ def conectar_bd_original():
         print(f'Erro na conexão ao MySql Server: {e}')
 
 
-
 def desconectar(conn):
     """ 
     Função para desconectar do servidor.
@@ -65,8 +63,9 @@ def desconectar(conn):
     if conn:
         conn.close()
 
+#-------------------------------------------------------------------
 
-
+#-------------------- Pega dados (get) -----------------------------
 def pega_usuarios(conn=None):
     """
     Função que retorna lista de usuarios
@@ -200,216 +199,6 @@ def pega_id(usuario, conn=None):
             desconectar(conn)
 
 
-def inserir_usuario(nome_comp, nome_usu, senha, sal_fixo, conn=None):
-    """
-    Função para inserir um usuário novo completo
-    """  
-    gerenciar_conn = False
-
-    if conn is None:
-        conn= conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-    sucesso = False
-
-    try:
-
-        cursor.execute("INSERT INTO usuarios (nome_completo, nome_usuario, senha, salario_fixo) VALUES (%s, %s, %s, %s)",(nome_comp, nome_usu, senha, sal_fixo))
-        conn.commit()
-
-        if cursor.rowcount == 1: #retorna o número de linhas afetadas pela última operação executada.
-            print(f'Usuário inserido com sucesso! olá {nome_comp}')
-            sucesso = True
-            return sucesso 
-        else:
-            print('Não foi possível inserir usuário no banco de dados! ')
-            sucesso = False
-            return sucesso
-        
-    except MySQLdb.Error as e:
-        print(f'Erro MySQL ao inserir usuário: {e}')
-        conn.rollback()
-        return False     
-    
-    except Exception as e:
-        print(f'Erro em inserir usuário {e}')
-        conn.rollback()
-        return False
-        
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-      
-
-def inserir_receitas(id_usu, valor, descricao, data, conn=None):
-    """ Função que inseri a receita do usuário no BD e retorna o id da mesma"""
-    
-    gerenciar_conn = False
-    if conn is None:
-        conn = conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-    try:
-        sql = "INSERT INTO receitas (id_usuario, valor, descricao, data) VALUES (%s, %s, %s, %s)"
-        cursor.execute(sql, (id_usu, valor, descricao, data))
-        conn.commit()
-        return cursor.lastrowid # Retorna o ID da receita recém-inserida
-    
-    except MySQLdb.Error as e: # Captura erro específico do MySQL
-        print(f"Erro MySQL ao inserir receita: {e}")
-        conn.rollback()
-        return None # Retorna None para indicar falha
-    
-    except Exception as e:
-        print(f"Erro inesperado ao inserir receita: {e}")
-        conn.rollback()
-        return None
-        
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-
-    
-    ''' ------outra forma de se fazer---------
-    
-    def inserir_tarefas(descricao_tarefa, id_usuario, status_concluida):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("INSERT INTO tarefas (descricao, id_usuario, concluida) VALUES (?, ?, ?)",
-                       (descricao_tarefa, id_usuario, status_concluida))
-        conn.commit()
-        return cursor.lastrowid # Retorna o ID da última linha inserida
-    except sqlite3.Error as e:
-        print(f"Erro ao inserir tarefa: {e}")
-        conn.rollback()
-        return None
-    finally:
-        conn.close()'''
-
-
-def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, categoria, data, dia_venc=None, id_cc=None, conn=None):
-    """ Função que inseri as despesas do usuário no BD e retorna o id da mesma"""
-    
-    gerenciar_conn = False
-    if conn is None:
-        conn = conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-    try:
-        sql = "INSERT INTO despesas (id_usuario, local, valor_total, parcelas, descricao, categoria, data, dia_vencimento, id_cc) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(sql, (id_usu, local,valor_total, parcelas, descricao, categoria, data, dia_venc, id_cc))
-        conn.commit()
-        return cursor.lastrowid # Retorna o ID da despesa recém-inserida
-    
-    except MySQLdb.Error as e: # Captura erro específico do MySQL
-        print(f"Erro MySQL ao inserir despesa: {e}")
-        conn.rollback()
-        return None # Retorna None para indicar falha
-    
-    except Exception as e:
-        print(f"Erro inesperado ao inserir despesa: {e}")
-        conn.rollback()
-        return None
-        
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-
-
-def inserir_cc(id_usu, nome, limite, dia_f, dia_v, conn=None):
-    """ Função que inseri os cartões de crédito do usuário no BD e retorna o id do mesmo"""
-    
-    gerenciar_conn = False
-    if conn is None:
-        conn = conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-    try:
-        sql = "INSERT INTO cartoes_credito (id_usuario, nome, limite, dia_fechamento, dia_vencimento) VALUES (%s, %s, %s, %s, %s)"
-        cursor.execute(sql, (id_usu, nome, limite, dia_f, dia_v))
-        conn.commit()
-        return cursor.lastrowid # Retorna o ID do c.c. recém-inserida
-    
-    except MySQLdb.Error as e: # Captura erro específico do MySQL
-        print(f"Erro MySQL ao inserir cartão: {e}")
-        conn.rollback()
-        return None # Retorna None para indicar falha
-    
-    except Exception as e:
-        print(f"Erro inesperado ao inserir cartão: {e}")
-        conn.rollback()
-        return None
-        
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-
-
-def inserir_dividas(id_usu, valor_total, descricao, data_venc, conn=None):
-    """ Função que inseri as dividas do usuário no BD e retorna o id do mesmo"""
-    
-    gerenciar_conn = False
-    if conn is None:
-        conn = conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-    try:
-        sql = "INSERT INTO dividas (id_usuario, valor_total, valor_pago, descricao, data_vencimento, status) VALUES (%s, %s, %s, %s, %s)"
-        cursor.execute(sql, (id_usu, valor_total, 0, descricao, data_venc, 'Ativa'))
-        conn.commit()
-        return cursor.lastrowid # Retorna o ID do c.c. recém-inserida
-    
-    except MySQLdb.Error as e: # Captura erro específico do MySQL
-        print(f"Erro MySQL ao inserir cartão: {e}")
-        conn.rollback()
-        return None # Retorna None para indicar falha
-    
-    except Exception as e:
-        print(f"Erro inesperado ao inserir cartão: {e}")
-        conn.rollback()
-        return None
-        
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-
-
-def atualizar_divida(id_divida, valor_pago, conn=None):
-    """Atualiza a tabela 'dividas' no banco de dados"""
-
-    gerenciar_conn = False
-    if conn is None:
-        conn = conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-    try:
-        sql = "UPDATE dividas SET valor_pago = valor_pago + %s WHERE id = %s"
-        cursor.execute(sql, (valor_pago, id_divida))
-        conn.commit()
-        print(f"Dívida com ID {id_divida} atualizada com sucesso!")
-    
-    except MySQLdb.Error as e: # Captura erro específico do MySQL
-        print(f"Erro MySQL ao fazer atualização: {e}")
-        conn.rollback()
-        return None # Retorna None para indicar falha
-    
-    except Exception as e:
-        print(f"Erro inesperado ao inserir cartão: {e}")
-        conn.rollback()
-        return None
-        
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-
-
 def buscar_dia_vencimento_cartao(id_card, conn=None):
     """
     Função que retorna dia de vencimento do id do cartão fornecido
@@ -442,7 +231,6 @@ def buscar_dia_vencimento_cartao(id_card, conn=None):
     finally:
         if gerenciar_conn:
             desconectar(conn)
-
 
 
 def pegar_gastos_previstos_proximo_mes(id_usuario):
@@ -543,6 +331,225 @@ def pegar_gastos_previstos_proximo_mes(id_usuario):
         if conn:
              conn.close()
     return []
+
+#----------------------------------------------------------------------
+
+#------------------------- Inserir ------------------------------------
+def inserir_usuario(nome_comp, nome_usu, senha, sal_fixo, conn=None):
+    """
+    Função para inserir um usuário novo completo
+    """  
+    gerenciar_conn = False
+
+    if conn is None:
+        conn= conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    sucesso = False
+
+    try:
+
+        cursor.execute("INSERT INTO usuarios (nome_completo, nome_usuario, senha, salario_fixo) VALUES (%s, %s, %s, %s)",(nome_comp, nome_usu, senha, sal_fixo))
+        conn.commit()
+
+        if cursor.rowcount == 1: #retorna o número de linhas afetadas pela última operação executada.
+            print(f'Usuário inserido com sucesso! olá {nome_comp}')
+            sucesso = True
+            return sucesso 
+        else:
+            print('Não foi possível inserir usuário no banco de dados! ')
+            sucesso = False
+            return sucesso
+        
+    except MySQLdb.Error as e:
+        print(f'Erro MySQL ao inserir usuário: {e}')
+        conn.rollback()
+        return False     
+    
+    except Exception as e:
+        print(f'Erro em inserir usuário {e}')
+        conn.rollback()
+        return False
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+      
+
+def inserir_receitas(id_usu, valor, descricao, data, conn=None):
+    """ Função que inseri a receita do usuário no BD e retorna o id da mesma"""
+    
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    try:
+        sql = "INSERT INTO receitas (id_usuario, valor, descricao, data) VALUES (%s, %s, %s, %s)"
+        cursor.execute(sql, (id_usu, valor, descricao, data))
+        conn.commit()
+        return cursor.lastrowid # Retorna o ID da receita recém-inserida
+    
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f"Erro MySQL ao inserir receita: {e}")
+        conn.rollback()
+        return None # Retorna None para indicar falha
+    
+    except Exception as e:
+        print(f"Erro inesperado ao inserir receita: {e}")
+        conn.rollback()
+        return None
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+    
+    ''' ------outra forma de se fazer---------
+    
+    def inserir_tarefas(descricao_tarefa, id_usuario, status_concluida):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO tarefas (descricao, id_usuario, concluida) VALUES (?, ?, ?)",
+                       (descricao_tarefa, id_usuario, status_concluida))
+        conn.commit()
+        return cursor.lastrowid # Retorna o ID da última linha inserida
+    except sqlite3.Error as e:
+        print(f"Erro ao inserir tarefa: {e}")
+        conn.rollback()
+        return None
+    finally:
+        conn.close()'''
+
+
+def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, categoria, data, data_venc=None, id_cc=None, conn=None):
+    """ Função que inseri as despesas do usuário no BD e retorna o id da mesma"""
+    
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    try:
+        sql = "INSERT INTO despesas (id_usuario, local, valor_total, parcelas, descricao, categoria, data, data_vencimento, id_cc) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(sql, (id_usu, local,valor_total, parcelas, descricao, categoria, data, data_venc, id_cc))
+        conn.commit()
+        return cursor.lastrowid # Retorna o ID da despesa recém-inserida
+    
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f"Erro MySQL ao inserir despesa: {e}")
+        conn.rollback()
+        return None # Retorna None para indicar falha
+    
+    except Exception as e:
+        print(f"Erro inesperado ao inserir despesa: {e}")
+        conn.rollback()
+        return None
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
+def inserir_cc(id_usu, nome, limite, dia_f, dia_v, conn=None):
+    """ Função que inseri os cartões de crédito do usuário no BD e retorna o id do mesmo"""
+    
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    try:
+        sql = "INSERT INTO cartoes_credito (id_usuario, nome, limite, dia_fechamento, dia_vencimento) VALUES (%s, %s, %s, %s, %s)"
+        cursor.execute(sql, (id_usu, nome, limite, dia_f, dia_v))
+        conn.commit()
+        return cursor.lastrowid # Retorna o ID do c.c. recém-inserida
+    
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f"Erro MySQL ao inserir cartão: {e}")
+        conn.rollback()
+        return None # Retorna None para indicar falha
+    
+    except Exception as e:
+        print(f"Erro inesperado ao inserir cartão: {e}")
+        conn.rollback()
+        return None
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
+def inserir_dividas(id_usu, valor_total, descricao, data_venc, conn=None):
+    """ Função que inseri as dividas do usuário no BD e retorna o id do mesmo"""
+    
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    try:
+        sql = "INSERT INTO dividas (id_usuario, valor_total, valor_pago, descricao, data_vencimento, status) VALUES (%s, %s, %s, %s, %s)"
+        cursor.execute(sql, (id_usu, valor_total, 0, descricao, data_venc, 'Ativa'))
+        conn.commit()
+        return cursor.lastrowid # Retorna o ID do c.c. recém-inserida
+    
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f"Erro MySQL ao inserir cartão: {e}")
+        conn.rollback()
+        return None # Retorna None para indicar falha
+    
+    except Exception as e:
+        print(f"Erro inesperado ao inserir cartão: {e}")
+        conn.rollback()
+        return None
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+#------------------------------------------------------------------------------
+
+# ----------------------------- Atualizar ---------------------------------
+
+def atualizar_divida(id_divida, valor_pago, conn=None):
+    """Atualiza a tabela 'dividas' no banco de dados"""
+
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    try:
+        sql = "UPDATE dividas SET valor_pago = valor_pago + %s WHERE id = %s"
+        cursor.execute(sql, (valor_pago, id_divida))
+        conn.commit()
+        print(f"Dívida com ID {id_divida} atualizada com sucesso!")
+    
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f"Erro MySQL ao fazer atualização: {e}")
+        conn.rollback()
+        return None # Retorna None para indicar falha
+    
+    except Exception as e:
+        print(f"Erro inesperado ao inserir cartão: {e}")
+        conn.rollback()
+        return None
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
+
+
 
 
 
