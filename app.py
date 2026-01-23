@@ -4,6 +4,8 @@ from models.conecte_bd import (
      )
 
 from time import sleep
+
+#interface gráfica 
 import customtkinter as ctk
 
 #Calendário e data e tempo
@@ -48,7 +50,7 @@ class Login(ctk.CTk):
         self.botao_enter.grid(row=3, column=0, padx=20, pady=10)
         self.bind("<Return>", lambda event: self.botao_enter.invoke())
 
-        self.registrar = ctk.CTkButton(self, text="Registar", command=self.abrir_tela_registro,
+        self.registrar = ctk.CTkButton(self, text="Registrar", command=self.abrir_tela_registro,
                                        fg_color="#000200", hover_color="#FC0404")
         self.registrar.grid(row=4, column=0, padx=20, pady=10)
 
