@@ -1,0 +1,9 @@
+# Configurações sensíveis
+config.ini
+test_config.ini
+
+# Ambientes virtuais
+vir_gt/
+venv/
+__pycache__/
+*.pyc

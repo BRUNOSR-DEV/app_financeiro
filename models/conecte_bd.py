@@ -86,7 +86,6 @@ def pega_usuarios(conn=None):
             return usuarios
         else:
             return []
-            return 'Não tem usuários cadastrados'
         
     except MySQLdb.Error as e: # Captura erro específico do MySQL
         print(f'Erro no MySQL ao pegar dados: {e}')
@@ -233,7 +232,7 @@ def buscar_dia_vencimento_cartao(id_card, conn=None):
             desconectar(conn)
 
 
-def pegar_gastos_previstos_proximo_mes(id_usuario):
+def pegar_gastos_previstos_proximo_mes(id_usuario, conn=None):
     """
     Busca todas as despesas parceladas ou com dia de vencimento para calcular a previsão.
     """
@@ -330,7 +329,6 @@ def pegar_gastos_previstos_proximo_mes(id_usuario):
              cursor.close()
         if conn:
              conn.close()
-    return []
 
 #----------------------------------------------------------------------
 
