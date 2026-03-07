@@ -198,6 +198,107 @@ def pega_id(usuario, conn=None):
             desconectar(conn)
 
 
+
+# o que vamos trabalhar aqui
+
+def pega_despesas_cartao(id_user, id_card, conn=None):
+    """
+    Busca todas as despesas de um cartão específico, trazendo junto 
+    os dados do cartão em um único dicionário usando INNER JOIN.
+    """
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+        # A mágica acontece aqui: Juntamos as duas tabelas onde as chaves se encontram
+        query = """
+            SELECT 
+                d.id, 
+                d.local, 
+                d.valor_total, 
+                d.parcelas,
+                d.descricao,
+                d.categoria,
+                d.data,
+                c.nome,
+                c.limite, 
+                c.dia_fechamento, 
+                c.dia_vencimento
+            FROM despesas d
+            INNER JOIN cartoes_credito c ON d.id_cc = c.id
+            WHERE d.id_usuario = %s AND d.id_cc = %s
+        """
+        
+        cursor.execute(query, (id_user, id_card))
+        resultados = cursor.fetchall()
+        
+        # Mapeando as colunas. 
+        colunas = [
+            'despesa_id', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 
+            'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'
+        ]
+        
+        return [dict(zip(colunas, linha)) for linha in resultados]
+
+    except Exception as e:
+        print(f"Erro ao buscar despesas e cartão (JOIN): {e}")
+        return []
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
+def pega_despesas(id_user, conn= None):
+
+    """
+    Busca todas as despesas de um usuário que o retono do id_cc é None
+    """
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+
+        query = """
+            SELECT 
+                id, 
+                local, 
+                valor_total, 
+                parcelas,
+                descricao,
+                categoria,
+                data,
+                data_primeira_parc,
+                dia_vencimento
+            FROM despesas 
+            WHERE id_usuario = %s AND id_cc IS NULL
+        """
+        
+        cursor.execute(query, (id_user, ))
+        resultados = cursor.fetchall()
+        
+        # Mapeando as colunas. 
+        colunas = [
+            'despesa_id', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 'primeira_parc', 'dia_vencimento', 
+        ]
+        
+        return [dict(zip(colunas, linha)) for linha in resultados]
+
+    except Exception as e:
+        print(f"Erro ao buscar despesas: {e}")
+        return []
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
 def buscar_dia_vencimento_cartao(id_card, conn=None):
     """
     Função que retorna dia de vencimento do id do cartão fornecido

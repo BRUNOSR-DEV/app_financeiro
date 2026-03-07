@@ -1,7 +1,11 @@
 
 from models.conecte_bd import (
-     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, buscar_dia_vencimento_cartao, pegar_gastos_previstos_proximo_mes
+     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, buscar_dia_vencimento_cartao, pegar_gastos_previstos_proximo_mes, pega_despesas_cartao, pega_despesas
      )
+
+from utils.helper import(
+    ret_str_parcelas, str_para_data, mysql_para_obj, data_para_mysql, formatar_moeda, data_para_exibicao
+)
 
 from time import sleep
 
@@ -20,7 +24,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from collections import defaultdict 
 
 #configura a aparência
-ctk.set_appearance_mode('light')
+ctk.set_appearance_mode('dark')
 
 #Configuração de lingua - PTBR
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
@@ -234,18 +238,25 @@ class Main_app(ctk.CTk):
         # Frame para agrupar os botões de cadastro
         self.cadastro_frame = ctk.CTkFrame(self.top_section_frame, fg_color="transparent")
         self.cadastro_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="ew")
-        self.cadastro_frame.grid_columnconfigure((0, 1, 2), weight=1) # Distribui o espaço entre os botões
+        self.cadastro_frame.grid_columnconfigure((0, 1, 2, 3, 4), weight=1) # Distribui o espaço entre os botões
         #---------------------------------------------------------------------------------------
         #---------------------------------------------------------------------------------------
-        # Botões de cadastro
+
+        # Botões
         self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Receitas", command=self.abrir_receitas)
         self.btn_receitas.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
         self.btn_despesas = ctk.CTkButton(self.cadastro_frame, text="Despesas", command=self.abrir_despesas)
         self.btn_despesas.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
-        self.btn_cc = ctk.CTkButton(self.cadastro_frame, text="Cartão de Crédito", command=self.abrir_cc)
+        self.btn_cc = ctk.CTkButton(self.cadastro_frame, text="Cadastrar C.Crédito", command=self.abrir_cc)
         self.btn_cc.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar Despesas C.Crédito", command=self.abrir_det_cc)
+        self.det_despesas_cc.grid(row=0, column=3, padx=5, pady=5, sticky="ew")
+
+        self.det_despesas = ctk.CTkButton(self.cadastro_frame, text="Detalhar Despesas", command=self.abrir_det)
+        self.det_despesas.grid(row=0, column=4, padx=5, pady=5, sticky="ew")
         #---------------------------------------------------------------------------------------
         
         # -------------------------------------------------------------------------
@@ -270,7 +281,7 @@ class Main_app(ctk.CTk):
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") # Coluna 0
 
         # Chamar o método para preencher a tabela ao iniciar
-        self.preencher_tabela_pagamentos() 
+        self.preencher_total_dividas() 
 
 
         # -------------------------------------------------------------------------
@@ -307,6 +318,18 @@ class Main_app(ctk.CTk):
         register_window = Car_cred(self, self.user_id, login_instance=self)
 
         self.wait_window(register_window)
+
+
+    def abrir_det_cc(self):
+        register_window = Detalhar_despesas_cc(self, self.user_id, login_instance=self)
+
+        self.wait_window(register_window)
+
+    def abrir_det(self):
+        register_window = Detalhar_despesas(self, self.user_id, login_instance=self)
+
+        self.wait_window(register_window)
+
 
     def gerar_grafico_mensal(self):
         """
@@ -373,7 +396,65 @@ class Main_app(ctk.CTk):
         canvas.draw()
 
 
-    def preencher_tabela_pagamentos(self):
+    def preecher_total_dividas(self):
+        """
+        Busca os gastos previstos, agrupa-os por data de vencimento e exibe em uma lista.
+
+        Returns: colunas = [
+            'despesa_id', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 'primeira_parc', 'dia_vencimento',  ]
+        """
+
+        for widget in self.tabela_frame.winfo_children():
+            widget.destroy()
+
+        despesas = pega_despesas(self.id_user)
+
+        data_teste = mysql_para_obj('2026-06-02')
+
+        total_fatura = 0
+        data_atual = data_atual = datetime.now()
+
+        if despesas:
+
+            mes_fatura = None
+
+            for i, v in enumerate(despesas):
+                # 1. Pegamos os dados individuais DESTA despesa específica 'v'
+        
+                # Garante que a data é um objeto (use seu helper aqui se precisar)
+                data_compra = mysql_para_obj(v.get('data_compra'))
+        
+                # 2. Chamamos nossa super função!
+                str_parcela = ret_str_parcelas(data_compra, fechamento, v.get('parcelas'), data_teste)
+
+
+                if str_parcela[1]:
+                    valor_mensal = v.get('valor_total') / v.get('parcelas')
+                    total_fatura += valor_mensal
+
+                    # 3. Exibimos o resultado
+                    print(f"[{i+1}] - Local: {v.get('local')}")
+                    print(f"      Valor Mensal: {formatar_moeda(valor_mensal)}")
+                    print(f"      Andamento: {str_parcela[0]}")
+                    print("-" * 30)
+
+                dia_venc = int(v.get('vencimento_fatura'))
+
+                if str_parcela[2]:
+                    mes_fatura = str_parcela[2].replace(day=dia_venc)
+                else:
+                    data_atual = data_teste
+                    mes_fatura = data_atual.replace(day=dia_venc)
+
+            return (f'TOTAL DA FATURA: {formatar_moeda(total_fatura)} Vencimento: {data_para_exibicao(mes_fatura)}'), total_fatura
+        else:
+            print('Não tem despesas no cartão informado! ')
+
+
+
+
+
+    def preencher_total_dividas_outra(self):
         """
         Busca os gastos previstos, agrupa-os por data de vencimento e exibe em uma lista.
         """
@@ -461,6 +542,12 @@ class Main_app(ctk.CTk):
 
 
 
+
+
+
+
+
+
     def voltar_Plogin(self):
         """ Método para voltar para a tela de login (botão 'Sair')"""
 
@@ -476,6 +563,12 @@ class Main_app(ctk.CTk):
         login_app.mainloop()
 
 
+class Detalhar_despesas_cc(ctk.CTkToplevel):
+    pass
+
+
+class Detalhar_despesas(ctk.CTkToplevel):
+    pass
 
 class Receitas(ctk.CTkToplevel):
 
