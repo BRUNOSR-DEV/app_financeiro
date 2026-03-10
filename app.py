@@ -189,7 +189,7 @@ class Main_app(ctk.CTk):
     def __init__(self, logged_in_username=None):
         super().__init__()
         self.title("Controle Financeiro")
-        self.geometry("950x600")
+        self.geometry("1200x800")
 
         self.__dict__['usuario_logado'] = logged_in_username
         
@@ -197,7 +197,10 @@ class Main_app(ctk.CTk):
         self.nomeComp = dados_user(self.user_id)[0][1]
 
         data_atual = datetime.now()
-        mes_ano_vigente = data_atual.strftime('%B/%Y').capitalize()
+        mes_atual = data_atual.month
+
+        self.dados_cartoes = dados_card(self.user_id)
+        self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
 
         self.grid_rowconfigure(0, weight=0) # Linha para o frame superior (usuário e add tarefa)
         self.grid_rowconfigure(1, weight=1) 
@@ -220,7 +223,7 @@ class Main_app(ctk.CTk):
             
         self.mes_vigente_label = ctk.CTkLabel(
         self.top_section_frame, 
-        text=f"Mês Vigente: {mes_ano_vigente}", 
+        text=f"Mês Vigente: {gerar_opcoes_meses().get(mes_atual)} / {data_atual.year}", 
         font=ctk.CTkFont(size=16, weight="bold")
         )
         self.mes_vigente_label.grid(row=0, column=1, padx=10, pady=10, sticky="w")
@@ -252,11 +255,18 @@ class Main_app(ctk.CTk):
         self.btn_cc = ctk.CTkButton(self.cadastro_frame, text="Cadastrar C.Crédito", command=self.abrir_cc)
         self.btn_cc.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
 
-        self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar Despesas C.Crédito", command=self.abrir_det_cc)
-        self.det_despesas_cc.grid(row=0, column=3, padx=5, pady=5, sticky="ew")
+        self.label_cc = ctk.CTkLabel(self.cadastro_frame, text="Selecione o Cartão:")
+        self.label_cc.grid(row=0, column=3, padx=10, pady=5)
 
-        self.det_despesas = ctk.CTkButton(self.cadastro_frame, text="Detalhar Despesas", command=self.abrir_det)
-        self.det_despesas.grid(row=0, column=4, padx=5, pady=5, sticky="ew")
+        self.menu_cartoes = ctk.CTkOptionMenu(self.cadastro_frame, values=self.nomes_cartoes)
+        self.menu_cartoes.grid(row=1, column=3, padx=10, pady=5)
+
+        self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=self.abrir_det_cc)
+        self.det_despesas_cc.grid(row=1, column=4, padx=5, pady=5, sticky="ew")
+
+        """self.det_despesas = ctk.CTkButton(self.cadastro_frame, text="Detalhar Despesas85
+        ", command=self.abrir_det)
+        self.det_despesas.grid(row=0, column=4, padx=5, pady=5, sticky="ew")"""
         #---------------------------------------------------------------------------------------
         
         # -------------------------------------------------------------------------
@@ -276,7 +286,7 @@ class Main_app(ctk.CTk):
         # -------------------------------------------------------------------------
         self.tabela_frame = ctk.CTkScrollableFrame(
         self.main_content_frame, 
-        label_text="Próximos Pagamentos Detalhados (Mês Seguinte)"
+        label_text="Pagamentos Detalhados (Mês Vigênte)"
         )
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") # Coluna 0
 
@@ -321,14 +331,22 @@ class Main_app(ctk.CTk):
 
 
     def abrir_det_cc(self):
-        register_window = Detalhar_despesas_cc(self, self.user_id, login_instance=self)
 
-        self.wait_window(register_window)
+        nome_selecionado = self.menu_cartoes.get()
+        id_card = None
 
-    def abrir_det(self):
-        register_window = Detalhar_despesas(self, self.user_id, login_instance=self)
+        for i in self.dados_cartoes:
+            if i.get('nome_cartao') == nome_selecionado:
+                id_card = i.get('id_cartao')
 
-        self.wait_window(register_window)
+        if id_card:
+
+            register_window = Detalhar_despesas_cc(self, self.user_id, id_card, nome_card=nome_selecionado)
+
+            self.wait_window(register_window)
+        else:
+            print("Erro: Cartão não encontrado")
+
 
 
     def gerar_grafico_mensal(self):
@@ -438,7 +456,7 @@ class Main_app(ctk.CTk):
                 # 2. Chamamos nossa super função!
                 str_parcela = controle_data_parc(data_compra, primeira_parc, dados.get('parcelas'))[0] #retorna str com a parcela
                 control_parc = controle_data_parc(data_compra, primeira_parc, dados.get('parcelas'))[1] #retorna boll: True se tem parcela a pagar, False se quitado
-                control_mes = controle_data_parc(data_compra, primeira_parc, dados.get('parcelas'))[2] #retona uma
+                control_mes = controle_data_parc(data_compra, primeira_parc, dados.get('parcelas'))[2] #retona uma data ou False
 
                 dia_venc = int(primeira_parc.day)
 
@@ -457,7 +475,7 @@ class Main_app(ctk.CTk):
 
                     ctk.CTkLabel(self.tabela_frame, text=str_parcela).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
 
-                    ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor_mensal), text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                    ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor_mensal),justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
 
                     ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_fatura)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
@@ -588,13 +606,71 @@ class Main_app(ctk.CTk):
         login_app.mainloop()
 
 
+
 class Detalhar_despesas_cc(ctk.CTkToplevel):
-    pass
+    
+    def __init__(self, master, id_user, id_card, nome_card, *args, **kwargs):
+        super().__init__(master, *args, **kwargs)
+        self.title(f"Detalhes: {nome_card}")
+        self.geometry("1000x800")
+        
+        # Garante que a janela fique na frente
+        self.attributes("-topmost", True) 
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1) # Onde fica o frame principal das tabelas
+
+        self.label_titulo = ctk.CTkLabel(self, text=f"Fatura: {nome_card}", font=("Arial", 22, "bold"))
+        self.label_titulo.grid(row=0, column=0, pady=20)
+        
+
+        self.main_content_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.main_content_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+
+        # Configuração de expansão das colunas do conteúdo principal
+        self.main_content_frame.grid_columnconfigure(0, weight=1) # Tabela (Grande)
+        self.main_content_frame.grid_columnconfigure(1, weight=1) 
+        self.main_content_frame.grid_rowconfigure(0, weight=1)
+
+        self.tabela_frame = ctk.CTkScrollableFrame(
+        self.main_content_frame, 
+        label_text="Pagamentos Detalhados (Mês Vigênte)"
+        )
+        self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        
+        # Aqui você vai criar os dois frames (Mês Vigente e Próximo)
+        # e chamar seu método de busca detalhada (aquele do INNER JOIN!)
+        self.tabela_vigente(id_user, id_card)
+
+        self.tabela_frame_prox = ctk.CTkScrollableFrame(self.main_content_frame, label_text="Pagamentos Detalhados (Próximo Mês)" )
+        self.tabela_frame_prox.grid(row=0, column=1, padx=10, pady=10, sticky="nsew") # Coluna 1
+        self.tabela_frame_prox.grid_columnconfigure(0, weight=1)
+        self.tabela_frame_prox.grid_rowconfigure(0, weight=1)
+
+        self.tabela_prox(id_user, id_card)
 
 
-class Detalhar_despesas(ctk.CTkToplevel):
-    pass
 
+    def tabela_vigente(self, id_user, id_card):
+
+        for widget in self.tabela_frame.winfo_children():
+            widget.destroy()
+
+        dados_card = pega_despesas_cartao(id_user, id_card)
+
+        if dados_card:
+
+                        # Cabeçalho
+            ctk.CTkLabel(self.tabela_frame, text="Local.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
+            ctk.CTkLabel(self.tabela_frame, text="Mensalidade", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+
+        self.tabela_frame.grid_columnconfigure(2, weight=1)
+
+    def tabela_prox(self, id_user, id_card):
+
+        pass
 
 class Receitas(ctk.CTkToplevel):
 

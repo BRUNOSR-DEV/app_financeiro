@@ -147,12 +147,16 @@ def dados_card(id_user, conn=None):
     cursor = conn.cursor()
 
     try:
-        sql = "SELECT * FROM cartoes_credito WHERE id_usuario= %s"
-        cursor.execute(sql, (id_user, ))
+        query = "SELECT id, nome, limite, dia_fechamento, dia_vencimento FROM cartoes_credito WHERE id_usuario= %s"
+        cursor.execute(query, (id_user, ))
         cartoes = cursor.fetchall()
 
+        colunas = [
+            'id_cartao', 'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'
+        ]
+
         if cartoes:
-            return cartoes
+            return [dict(zip(colunas, linha)) for linha in cartoes]
         else:
             return []
         
@@ -183,6 +187,7 @@ def pega_id(usuario, conn=None):
         sql = "SELECT id FROM usuarios WHERE nome_usuario = %s" 
         cursor.execute(sql, (usuario,)) #obs. obrigatório passar uma tupla como parâmetro para cursor
         result = cursor.fetchone()
+        
 
         if result:
             return result[0]
@@ -297,6 +302,7 @@ def pega_despesas(id_user, conn= None):
     finally:
         if gerenciar_conn:
             desconectar(conn)
+
 
 
 def buscar_dia_vencimento_cartao(id_card, conn=None):
