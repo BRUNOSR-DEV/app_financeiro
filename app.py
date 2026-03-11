@@ -4,7 +4,7 @@ from models.conecte_bd import (
      )
 
 from utils.helper import(
-    gerar_opcoes_meses, controle_data_parc, mysql_para_obj, data_para_mysql, formatar_moeda, data_para_exibicao
+    gerar_opcoes_meses, controle_data_parc, mysql_para_obj, data_para_mysql, formatar_moeda, data_para_exibicao, controle_data_parc_cc
 )
 
 from time import sleep
@@ -414,8 +414,118 @@ class Main_app(ctk.CTk):
         canvas.draw()
 
 
-
+    
     def preencher_total_dividas(self, id_user):
+
+        for widget in self.tabela_frame.winfo_children():
+            widget.destroy()
+
+        despesas = pega_despesas(id_user) # Despesas avulsas (Vivo, Casas Bahia)
+        cartoes = dados_card(id_user)     # Lista de cartões
+
+        # ==========================================
+        # FASE 1: CALCULAR O RESUMO DOS CARTÕES
+            # ==========================================
+        lista_faturas_resumo = []
+
+        if cartoes:
+            for cartao in cartoes:
+                nome_cartao = cartao.get('nome_cartao')
+                id_cartao = cartao.get('id_cartao') # ATENÇÃO: verifique se no BD tem esse til mesmo!
+            
+                despesas_do_cartao = pega_despesas_cartao(id_user, id_cartao)
+            
+                total_deste_cartao = 0
+                data_vencimento_fatura = None
+
+                if despesas_do_cartao:
+
+                    for desp in despesas_do_cartao:
+                        # Usando 'desp' (despesa) e não 'cartao'
+                        data_compra = mysql_para_obj(desp.get('data_compra'))
+                        dia_venc = desp.get('vencimento_fatura')
+                        fechamento = desp.get('fechamento_fatura')
+                        parcelas = desp.get('parcelas')
+
+                        # Chama a função uma vez só, passando vigente=True
+                        resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, True)
+                        _, entra_na_fatura, controle_data = resultado
+
+                        if entra_na_fatura:
+                            valor_mensal = desp.get('valor_total') / parcelas
+                            total_deste_cartao += valor_mensal
+                            data_vencimento_fatura = controle_data 
+
+            # Se o cartão tem fatura para pagar, guardamos na lista!
+                if total_deste_cartao > 0:
+                    lista_faturas_resumo.append({
+                        'local': f"Fatura - {nome_cartao}",
+                        'valor': total_deste_cartao,
+                        'vencimento': data_vencimento_fatura
+                    })
+
+        # ==========================================
+        # FASE 2: DESENHAR A INTERFACE
+        # ==========================================
+    
+        # Se tiver despesas avulsas OU tiver faturas de cartão, a gente desenha a tabela
+        if despesas or lista_faturas_resumo:
+        
+        # Cabeçalho
+            ctk.CTkLabel(self.tabela_frame, text="Local", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
+            ctk.CTkLabel(self.tabela_frame, text="Mensalidade", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+
+            linha = 1
+
+        # 2.1 Desenha as Despesas Avulsas
+            if despesas:
+                for _, dados in enumerate(despesas):
+                    data_compra = mysql_para_obj(dados.get('data_compra'))
+                    primeira_parc = mysql_para_obj(dados.get('primeira_parc'))
+                
+                    resultado_avulso = controle_data_parc(data_compra, primeira_parc, dados.get('parcelas'))
+                    str_parcela, control_parc, control_mes = resultado_avulso
+
+                    dia_venc = int(primeira_parc.day)
+
+                    if control_mes:
+                        data_fatura = control_mes.replace(day=dia_venc)
+                    else:
+                        data_fatura = datetime.now().replace(day=dia_venc)
+
+                    if control_parc:
+                        valor_mensal = dados.get('valor_total') / dados.get('parcelas')
+                    
+                        ctk.CTkLabel(self.tabela_frame, text=dados.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=str_parcela).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor_mensal), justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                        ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_fatura)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+                    
+                        linha += 1
+
+            # 2.2 Desenha o Resumo das Faturas dos Cartões!
+            for fatura in lista_faturas_resumo:
+                ctk.CTkLabel(self.tabela_frame, text=fatura['local']).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.tabela_frame, text="-").grid(row=linha, column=1, padx=3, pady=1, sticky="w") # Fatura não tem "1/12"
+                ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(fatura['valor']), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+            
+                # Formata a data se ela não vier vazia
+                venc_str = data_para_exibicao(fatura['vencimento']) if fatura['vencimento'] else "N/A"
+                ctk.CTkLabel(self.tabela_frame, text=venc_str).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+            
+                linha += 1
+
+            self.tabela_frame.grid_columnconfigure(2, weight=1)
+
+        else:
+            ctk.CTkLabel(self.tabela_frame, text="Nenhum pagamento previsto.").grid(row=0, column=0, padx=10, pady=10)
+            self.tabela_frame.grid_columnconfigure(2, weight=1)
+
+
+
+    def preencher_total_dividas_outra(self, id_user):
         """
         Busca os gastos previstos, agrupa-os por data de vencimento e exibe em uma lista.
 
@@ -433,16 +543,46 @@ class Main_app(ctk.CTk):
         total_fatura = 0
         data_atual = data_atual = datetime.now()
 
+        cartoes =  dados_card(id_user)  #'id_cartao', 'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'
+
+        if cartoes:
+
+            for dado in cartoes:
+
+                dados_des_card = pega_despesas_cartao(id_user, dado.get('id_cartão'))
+                """'despesa_id', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 
+                    'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'"""
+                if dados_des_card:
+
+                    for desp in dados_des_card:
+
+                        dia_venc = desp.get('vencimento_fatura')
+
+                        control_parc = controle_data_parc_cc(desp.get('data_compra'), desp.get('fechamento_fatura'),dia_venc, desp.get('parcelas'),vigente=True)[1]
+                        controle_data = controle_data_parc_cc(desp.get('data_compra'), desp.get('fechamento_fatura'),dia_venc, desp.get('parcelas'), vigente=True)[2]
+
+                        if control_parc:
+                            valor_mensal = desp.get('valor_total') / desp.get('parcelas')
+                            total_fatura += valor_mensal
+
+                            valores = (desp.get('nome_cartao'), total_fatura, controle_data)
+
+        else:
+            print('Não foi achado cartões cadastrados ou com fatura pendente! ')
+                    
+
+
             
 
         if despesas:
 
-
+            
             # Cabeçalho
             ctk.CTkLabel(self.tabela_frame, text="Local.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
             ctk.CTkLabel(self.tabela_frame, text="Mensalidade", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.tabela_frame, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+
 
             linha = 1
 
@@ -479,7 +619,19 @@ class Main_app(ctk.CTk):
 
                     ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_fatura)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
-                    linha += 1
+                    
+
+                for i in cartoes:
+                    ctk.CTkLabel(self.tabela_frame, text=valores[0]).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+
+                    ctk.CTkLabel(self.tabela_frame, text="x").grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+
+                    ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valores[1]),justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+
+                    ctk.CTkLabel(self.tabela_frame, text=valores[2]).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+
+                linha += 1
+
 
 
             self.tabela_frame.grid_columnconfigure(2, weight=1)
@@ -491,103 +643,6 @@ class Main_app(ctk.CTk):
             self.tabela_frame.grid_columnconfigure(2, weight=1)
             return
         
-
-        
-
-
-
-
-    def preencher_total_dividas_outra(self):
-        """
-        Busca os gastos previstos, agrupa-os por data de vencimento e exibe em uma lista.
-        """
-
-        # Limpar o frame anterior
-        for widget in self.tabela_frame.winfo_children():
-            widget.destroy()
-
-        # 1. Obter Dados
-        # Esta função já calcula a lógica de parcelas para o próximo mês
-        dados_previstos = pegar_gastos_previstos_proximo_mes(self.user_id)
-    
-        if not dados_previstos:
-            ctk.CTkLabel(self.tabela_frame, text="Nenhum pagamento futuro previsto.").grid(row=0, column=0, padx=10, pady=10)
-            return
-
-        # 2. Agrupamento por Data de Vencimento
-    
-        # Criamos um defaultdict para agrupar entradas que vencem no mesmo dia
-        pagamentos_agrupados = defaultdict(lambda: {'total': 0.0, 'detalhes': []})
-    
-        # Determinar Mês e Ano de Previsão para cálculo da data de vencimento completa
-        hoje = datetime.now()
-        mes_previsto = hoje.month % 12 + 1
-        ano_previsto = hoje.year + (1 if hoje.month == 12 else 0)
-
-        for item in dados_previstos:
-            # Tenta inferir o dia de vencimento
-            if item['id_cartao'] is not None:
-            # Se for cartão, precisamos do dia de vencimento do cartão.
-            # Você precisará de uma função no BD para buscar o dia de vencimento do CARTÃO
-                dia_venc_cartao = buscar_dia_vencimento_cartao(item['id_cartao'])
-            # Como essa função não existe, vamos assumir o dia 10 como padrão para cartão:
-        
-            elif item['dia_vencimento'] is not None:
-                # É uma despesa com dia de vencimento manual
-                try:
-                    dia_venc_cartao = int(item['dia_vencimento'])
-                except:
-                    continue # Pula se o dia for inválido
-            else:
-                continue # Pula se não for cartão nem tiver dia de vencimento
-
-            # Criar a chave de agrupamento (Dia/Mês/Ano)
-            try:
-                data_vencimento = datetime(ano_previsto, mes_previsto, dia_venc_cartao)
-            except ValueError:
-                # Lida com dias inválidos (ex: dia 31 em fevereiro)
-                continue 
-
-            chave = data_vencimento.strftime("%d/%m")
-        
-            # 3. Agrupar e somar
-            pagamentos_agrupados[chave]['total'] += item['valor']
-            pagamentos_agrupados[chave]['detalhes'].append(f"{item['origem']} (R$ {item['valor']:,.2f})")
-
-        # 4. Exibir na Tabela (Lista)
-    
-        # Cabeçalho
-        ctk.CTkLabel(self.tabela_frame, text="Data Venc.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
-        ctk.CTkLabel(self.tabela_frame, text="Valor Total", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
-        ctk.CTkLabel(self.tabela_frame, text="Detalhes", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
-    
-        linha = 1
-    
-        # Ordenar pela data de vencimento
-        datas_ordenadas = sorted(pagamentos_agrupados.keys(), key=lambda x: datetime.strptime(x, "%d/%m"))
-    
-        for data_venc, dados in pagamentos_agrupados.items():
-            if data_venc in datas_ordenadas:
-                # Coluna 1: Data de Vencimento
-                ctk.CTkLabel(self.tabela_frame, text=data_venc).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
-            
-                # Coluna 2: Valor Total a Pagar na Data
-                ctk.CTkLabel(self.tabela_frame, text=f"R$ {dados['total']:,.2f}", text_color="red").grid(row=linha, column=1, padx=5, pady=2, sticky="e")
-            
-                # Coluna 3: Detalhes Agrupados
-                detalhes_texto = "\n".join(dados['detalhes'])
-                ctk.CTkLabel(self.tabela_frame, text=detalhes_texto, justify=ctk.LEFT).grid(row=linha, column=2, padx=5, pady=2, sticky="w")
-            
-                linha += 1
-            
-        # Ajuste as colunas para se expandirem conforme necessário
-        self.tabela_frame.grid_columnconfigure(2, weight=1)
-
-
-
-
-
-
 
 
 
@@ -653,24 +708,155 @@ class Detalhar_despesas_cc(ctk.CTkToplevel):
 
     def tabela_vigente(self, id_user, id_card):
 
+
         for widget in self.tabela_frame.winfo_children():
             widget.destroy()
 
-        dados_card = pega_despesas_cartao(id_user, id_card)
+        dados_desp_card = pega_despesas_cartao(id_user, id_card)
 
-        if dados_card:
+        data_teste = mysql_para_obj('2026-06-02')
+
+        total_fatura = 0
+
+        data_atual = data_atual = datetime.now()
+
+
+        
+
+        if dados_desp_card:
 
                         # Cabeçalho
             ctk.CTkLabel(self.tabela_frame, text="Local.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
-            ctk.CTkLabel(self.tabela_frame, text="Mensalidade", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame, text="Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.tabela_frame, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+
+            linha = 1
+
+            for _, dado  in enumerate(dados_desp_card):
+
+                """"'despesa_id', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 
+            'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'"""
+                
+                data_compra = mysql_para_obj(dado.get('data_compra'))
+                
+
+                dia_venc = dado.get('vencimento_fatura')
+
+                str_parc = controle_data_parc_cc(data_compra, dado.get('fechamento_fatura'),dia_venc, dado.get('parcelas'), True)[0]
+                control_parc = controle_data_parc_cc(dado.get('data_compra'), dado.get('fechamento_fatura'),dia_venc, dado.get('parcelas'), True)[1]
+                controle_data = controle_data_parc_cc(dado.get('data_compra'), dado.get('fechamento_fatura'),dia_venc, dado.get('parcelas'), True)[2]
+
+
+
+                if control_parc:
+                    
+                    valor_mensal = dado.get('valor_total') / dado.get('parcelas')
+                    total_fatura += valor_mensal
+
+                    ctk.CTkLabel(self.tabela_frame, text=dado.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+
+                    ctk.CTkLabel(self.tabela_frame, text=str_parc).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+
+                    ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor_mensal),justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+
+                    ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(controle_data)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+
+                    linha += 1
+            
+            ctk.CTkLabel(
+                self.tabela_frame, 
+                text="TOTAL DA FATURA:", 
+                font=ctk.CTkFont(weight="bold", size=14)
+            ).grid(row=linha, column=0, columnspan=2, padx=5, pady=(20, 5), sticky="e")
+
+            ctk.CTkLabel(
+                self.tabela_frame, 
+                text=formatar_moeda(total_fatura), 
+                font=ctk.CTkFont(weight="bold", size=14), 
+                text_color="red" 
+            ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
+            
+
+
 
         self.tabela_frame.grid_columnconfigure(2, weight=1)
 
+
+
     def tabela_prox(self, id_user, id_card):
 
-        pass
+        for widget in self.tabela_frame_prox.winfo_children():
+            widget.destroy()
+
+        dados_desp_card = pega_despesas_cartao(id_user, id_card)
+
+        data_teste = mysql_para_obj('2026-06-02')
+
+        total_fatura = 0
+
+        data_atual = data_atual = datetime.now()
+
+
+        
+
+        if dados_desp_card:
+
+                        # Cabeçalho
+            ctk.CTkLabel(self.tabela_frame_prox, text="Local.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame_prox, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
+            ctk.CTkLabel(self.tabela_frame_prox, text="Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame_prox, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+
+            linha = 1
+
+            for _, dado  in enumerate(dados_desp_card):
+
+                """"'despesa_id', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 
+            'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'"""
+                
+                data_compra = mysql_para_obj(dado.get('data_compra'))
+                
+
+                dia_venc = dado.get('vencimento_fatura')
+
+                str_parc = controle_data_parc_cc(data_compra, dado.get('fechamento_fatura'),dia_venc, dado.get('parcelas'), vigente=False)[0]
+                control_parc = controle_data_parc_cc(dado.get('data_compra'), dado.get('fechamento_fatura'),dia_venc, dado.get('parcelas'),vigente=False)[1]
+                controle_data = controle_data_parc_cc(dado.get('data_compra'), dado.get('fechamento_fatura'),dia_venc, dado.get('parcelas'), vigente=False)[2]
+
+
+
+                if control_parc:
+                    
+                    valor_mensal = dado.get('valor_total') / dado.get('parcelas')
+                    total_fatura += valor_mensal
+
+                    ctk.CTkLabel(self.tabela_frame_prox, text=dado.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+
+                    ctk.CTkLabel(self.tabela_frame_prox, text=str_parc).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+
+                    ctk.CTkLabel(self.tabela_frame_prox, text=formatar_moeda(valor_mensal),justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+
+                    ctk.CTkLabel(self.tabela_frame_prox, text=data_para_exibicao(controle_data)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+
+                    linha += 1
+
+            ctk.CTkLabel(
+                self.tabela_frame_prox, 
+                text="TOTAL DA FATURA:", 
+                font=ctk.CTkFont(weight="bold", size=14)
+            ).grid(row=linha, column=0, columnspan=2, padx=5, pady=(20, 5), sticky="e")
+            
+            ctk.CTkLabel(
+                self.tabela_frame_prox, 
+                text=formatar_moeda(total_fatura), 
+                font=ctk.CTkFont(weight="bold", size=14), 
+                text_color="red" 
+            ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
+
+        self.tabela_frame.grid_columnconfigure(2, weight=1)
+
+
 
 class Receitas(ctk.CTkToplevel):
 
