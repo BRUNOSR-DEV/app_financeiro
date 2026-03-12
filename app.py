@@ -423,6 +423,9 @@ class Main_app(ctk.CTk):
         despesas = pega_despesas(id_user) # Despesas avulsas (Vivo, Casas Bahia)
         cartoes = dados_card(id_user)     # Lista de cartões
 
+        total_avulsas = 0
+        total_cards = 0
+
         # ==========================================
         # FASE 1: CALCULAR O RESUMO DOS CARTÕES
             # ==========================================
@@ -456,6 +459,8 @@ class Main_app(ctk.CTk):
                             total_deste_cartao += valor_mensal
                             data_vencimento_fatura = controle_data 
 
+                        
+
             # Se o cartão tem fatura para pagar, guardamos na lista!
                 if total_deste_cartao > 0:
                     lista_faturas_resumo.append({
@@ -464,6 +469,8 @@ class Main_app(ctk.CTk):
                         'vencimento': data_vencimento_fatura
                     })
 
+                
+
         # ==========================================
         # FASE 2: DESENHAR A INTERFACE
         # ==========================================
@@ -471,7 +478,7 @@ class Main_app(ctk.CTk):
         # Se tiver despesas avulsas OU tiver faturas de cartão, a gente desenha a tabela
         if despesas or lista_faturas_resumo:
         
-        # Cabeçalho
+            # Cabeçalho
             ctk.CTkLabel(self.tabela_frame, text="Local", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
             ctk.CTkLabel(self.tabela_frame, text="Mensalidade", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
@@ -479,13 +486,14 @@ class Main_app(ctk.CTk):
 
             linha = 1
 
-        # 2.1 Desenha as Despesas Avulsas
+            # 2.1 Desenha as Despesas Avulsas
             if despesas:
                 for _, dados in enumerate(despesas):
                     data_compra = mysql_para_obj(dados.get('data_compra'))
                     primeira_parc = mysql_para_obj(dados.get('primeira_parc'))
+                    dia_venc = primeira_parc.day
                 
-                    resultado_avulso = controle_data_parc(data_compra, primeira_parc, dados.get('parcelas'))
+                    resultado_avulso = controle_data_parc(data_compra, primeira_parc, dia_venc, dados.get('parcelas'), vigente= True)
                     str_parcela, control_parc, control_mes = resultado_avulso
 
                     dia_venc = int(primeira_parc.day)
@@ -502,6 +510,8 @@ class Main_app(ctk.CTk):
                         ctk.CTkLabel(self.tabela_frame, text=str_parcela).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
                         ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor_mensal), justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
                         ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_fatura)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+
+                        total_avulsas += valor_mensal
                     
                         linha += 1
 
@@ -514,14 +524,31 @@ class Main_app(ctk.CTk):
                 # Formata a data se ela não vier vazia
                 venc_str = data_para_exibicao(fatura['vencimento']) if fatura['vencimento'] else "N/A"
                 ctk.CTkLabel(self.tabela_frame, text=venc_str).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
-            
+
+                total_cards += fatura['valor']
+
                 linha += 1
+
+            ctk.CTkLabel(
+                self.tabela_frame, 
+                text="TOTAL DA FATURA:", 
+                font=ctk.CTkFont(weight="bold", size=14)
+            ).grid(row=linha, column=0, columnspan=2, padx=5, pady=(20, 5), sticky="e")
+
+            ctk.CTkLabel(
+                self.tabela_frame, 
+                text=formatar_moeda((total_avulsas + total_cards)), 
+                font=ctk.CTkFont(weight="bold", size=14), 
+                text_color="red" 
+            ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
 
             self.tabela_frame.grid_columnconfigure(2, weight=1)
 
         else:
             ctk.CTkLabel(self.tabela_frame, text="Nenhum pagamento previsto.").grid(row=0, column=0, padx=10, pady=10)
             self.tabela_frame.grid_columnconfigure(2, weight=1)
+
+        
 
 
 

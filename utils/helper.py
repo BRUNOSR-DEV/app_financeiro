@@ -59,7 +59,7 @@ def formatar_moeda(valor):
 
 
 #rename - control_pags()
-def controle_data_parc(data_compra_obj, primeira_parc, total_parcelas, data_atual=None):
+def controle_data_parc(data_compra_obj, primeira_parc, dia_vencimento, total_parcelas, vigente=True, data_atual=None):
     """
     Calcula a parcela atual baseada na data de compra e no fechamento da fatura.
     Retorna uma string no formato 'Atual/Total' (ex: '3/12').
@@ -68,6 +68,11 @@ def controle_data_parc(data_compra_obj, primeira_parc, total_parcelas, data_atua
         data_atual = datetime.now()
     
     controle_mes =  None
+
+    if vigente:
+        data_alvo = data_atual
+    else:
+        data_alvo = data_atual + relativedelta(months=1)
         
     # 1. Descobre o mês da PRIMEIRA cobrança
     mes_primeira_cobranca = data_compra_obj.month
@@ -83,25 +88,29 @@ def controle_data_parc(data_compra_obj, primeira_parc, total_parcelas, data_atua
     diferenca_meses = data_atual.month - mes_primeira_cobranca
     meses_passados = (diferenca_anos * 12) + diferenca_meses
 
-    #Se ainda não chegou o dia do fechamento neste mês, 
-    # não viramos a parcela ainda!
-    if data_atual.day <= primeira_parc.day:
-        meses_passados -= 1
-        controle_mes = False
-    else:
-        meses_passados += 1
-        controle_mes = data_atual + relativedelta(months=1)
     
     # A parcela atual é os meses que passaram + 1 (a parcela inicial)
     parcela_atual = meses_passados + 1
     
+    try:
+        data_pagamento = data_alvo.replace(day=dia_vencimento)
+    except ValueError:
+        # Prevenção de erro: Se o vencimento for dia 31 e o mês alvo for Fevereiro (28)
+        ultimo_dia = calendar.monthrange(data_alvo.year, data_alvo.month)[1]
+        data_pagamento = data_alvo.replace(day=ultimo_dia)
+
     # 3. Validações de segurança
     if parcela_atual < 1:
-        return f"0/{total_parcelas}", True, controle_mes   #str (A vencer)
+        # Se for menor que 1, a cobrança ainda não chegou neste mês alvo
+        return f"0/{total_parcelas}", False, data_pagamento #a vencer
+        
     elif parcela_atual > total_parcelas:
-        return f"{total_parcelas}/{total_parcelas}", False, controle_mes  # str  (Quitado)
+        # Já acabou de pagar antes deste mês alvo
+        return f"{total_parcelas}/{total_parcelas}", False, data_pagamento #quitado
+        
     else:
-        return f"{parcela_atual}/{total_parcelas}", True, controle_mes
+        # Está na janela de pagamento! Vai pra tabela!
+        return f"{parcela_atual}/{total_parcelas}", True, data_pagamento
     
 
 
