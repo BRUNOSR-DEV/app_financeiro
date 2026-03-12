@@ -121,18 +121,18 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
     if data_atual is None:
         data_atual = datetime.now()
         
-    # 1. Define qual é a FATURA ALVO (Mês Atual ou Próximo Mês)
+    # Define qual é a FATURA ALVO (Mês Atual ou Próximo Mês)
     if vigente:
         data_alvo = data_atual
     else:
         data_alvo = data_atual + relativedelta(months=1)
         
-    # 2. Descobre a Fatura da PRIMEIRA cobrança (com base no fechamento)
+    # Descobre a Fatura da PRIMEIRA cobrança (com base no fechamento)
     primeira_cobranca = data_compra_obj
     if data_compra_obj.day >= dia_fechamento: # Se comprou no dia do fechamento ou depois, vai pro outro mês
         primeira_cobranca += relativedelta(months=1)
 
-    # 3. Matemática pura: Quantos meses se passaram entre a 1ª Cobrança e a Fatura Alvo?
+    # Quantos meses se passaram entre a 1ª Cobrança e a Fatura Alvo?
     diferenca_anos = data_alvo.year - primeira_cobranca.year
     diferenca_meses = data_alvo.month - primeira_cobranca.month
     meses_passados = (diferenca_anos * 12) + diferenca_meses
@@ -140,7 +140,7 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
     # A parcela atual nesta fatura alvo
     parcela_atual = meses_passados + 1
     
-    # 4. Monta a data de vencimento exata desta fatura
+    # Monta a data de vencimento exata desta fatura
     try:
         data_pagamento = data_alvo.replace(day=dia_vencimento)
     except ValueError:
@@ -148,7 +148,7 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
         ultimo_dia = calendar.monthrange(data_alvo.year, data_alvo.month)[1]
         data_pagamento = data_alvo.replace(day=ultimo_dia)
 
-    # 5. Filtros para saber se a despesa entra na tabela
+    # Filtros para saber se a despesa entra na tabela
     if parcela_atual < 1:
         # Se for menor que 1, a cobrança ainda não chegou neste mês alvo
         return f"0/{total_parcelas} (A vencer)", False, data_pagamento
