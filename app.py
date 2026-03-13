@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, buscar_dia_vencimento_cartao, pegar_gastos_previstos_proximo_mes, pega_despesas_cartao, pega_despesas
+     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, pega_despesas_cartao, pega_despesas
      )
 
 from utils.helper import(
@@ -270,7 +270,7 @@ class Main_app(ctk.CTk):
         #---------------------------------------------------------------------------------------
         
         # -------------------------------------------------------------------------
-        # 2. FRAME DE CONTEÚDO PRINCIPAL (Main Content) - DEVE SER DEFINIDO AQUI
+        # FRAME DE CONTEÚDO PRINCIPAL (Main Content) - DEVE SER DEFINIDO AQUI
         # -------------------------------------------------------------------------
         self.main_content_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.main_content_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
@@ -282,7 +282,7 @@ class Main_app(ctk.CTk):
 
 
         # -------------------------------------------------------------------------
-        # 3. FRAME DA TABELA DETALHADA (AGORA PODE SER DEFINIDO, MESTRE EXISTE)
+        # FRAME DA TABELA DETALHADA (AGORA PODE SER DEFINIDO
         # -------------------------------------------------------------------------
         self.tabela_frame = ctk.CTkScrollableFrame(
         self.main_content_frame, 
@@ -295,7 +295,7 @@ class Main_app(ctk.CTk):
 
 
         # -------------------------------------------------------------------------
-        # 4. FRAME DO GRÁFICO (AGORA PODE SER DEFINIDO)
+        # FRAME DO GRÁFICO (AGORA PODE SER DEFINIDO)
         # -------------------------------------------------------------------------
         self.grafico_frame = ctk.CTkFrame(self.main_content_frame)
         self.grafico_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew") # Coluna 1
@@ -350,102 +350,14 @@ class Main_app(ctk.CTk):
             print("Erro: Cartão não encontrado")
 
 
-    """    def gerar_grafico_mensal(self):
-        Busca as despesas, mostra o valor total e um gráfico com gatos por categória
-        for widget in self.grafico_frame.winfo_children():
-            widget.destroy()
-
-        id_cartoes = [d.get('id_cartao') for d in self.dados_cartoes]
-        desp_avulsas = pega_despesas(self.user_id)
-        
-        categorias = []
-        totais = []
-
-        for id in id_cartoes:
-
-            desp_cc = pega_despesas_cartao(self.user_id, id)
-
-            for desp in desp_cc:
-
-                data_compra = mysql_para_obj(desp.get('data_compra'))
-                dia_venc = desp.get('vencimento_fatura')
-                fechamento = desp.get('fechamento_fatura')
-                parcelas = desp.get('parcelas')
-
-
-                resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, vigente=True)
-                _, entra_na_fatura,_ = resultado
-
-                if entra_na_fatura:
-                    valor_mensal = desp.get('valor_total') / parcelas
-                    total_deste_cartao += valor_mensal
-
-                    gastos_por_categoria = defaultdict(float)
-                    total_previsto = 0.0
-
-                    for item in desp:
-                        gastos_por_categoria[item['categoria']] += (item['valor_total'] / item['parcelas'])
-                        total_previsto += item['valor']
-            
-                    categorias = list(gastos_por_categoria.keys())
-                    totais = list(gastos_por_categoria.values())
-
-        for desp in desp_avulsas:
-
-            primeira_parc = mysql_para_obj(desp.get('primeira_parc'))
-            resultado = controle_data_parc_cc(data_compra, primeira_parc, dia_venc, parcelas, vigente=True)
-            _, entra_na_fatura,_ = resultado
-
-            if entra_na_fatura:
-                valor_mensal = desp.get('valor_total') / parcelas
-                total_deste_cartao += valor_mensal
-
-                gastos_por_categoria = defaultdict(float)
-                total_previsto = 0.0
-
-                for item in desp:
-                    gastos_por_categoria[item['categoria']] += (item['valor_total'] / item['parcelas'])
-                    total_previsto += item['valor']
-            
-                categorias = list(gastos_por_categoria.keys())
-                totais = list(gastos_por_categoria.values())
-
-        
-        if not id_cartoes and not desp_avulsas:
-            ctk.CTkLabel(self.grafico_frame, 
-                         text="Nenhuma despesa parcelada encontrada.", 
-                         text_color="gray").grid(row=0, column=0, padx=20, pady=20)
-            return
-        
-        fig, ax = plt.subplots(figsize=(5, 5))
-        
-        # Configurações do gráfico de pizza
-        ax.pie(
-            totais, 
-            labels=categorias, 
-            autopct='%1.1f%%', 
-            startangle=90,
-            textprops={'fontsize': 8}
-        )
-        ax.axis('equal') # Garante que o gráfico de pizza seja desenhado como um círculo
-        
-        # Título do Gráfico
-        titulo = f"Previsão de Gastos para {gerar_opcoes_meses.get(self.mes_atual)}/{self.data_atual.year}\nTotal: R$ {total_previsto:,.2f}"
-        ax.set_title(titulo, fontsize=12)
-
-        # 6. Integração com CustomTkinter
-        canvas = FigureCanvasTkAgg(fig, master=self.grafico_frame)
-        canvas_widget = canvas.get_tk_widget()
-        canvas_widget.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        canvas.draw()"""
 
 
     def gerar_grafico_mensal(self):
-        # 1. Limpa o frame
+
         for widget in self.grafico_frame.winfo_children():
             widget.destroy()
 
-        # 2. Inicializa os acumuladores lá no topo (Fora dos loops!)
+
         gastos_por_categoria = defaultdict(float)
         total_previsto = 0.0
     
@@ -453,7 +365,7 @@ class Main_app(ctk.CTk):
         id_cartoes = [d.get('id_cartao') for d in self.dados_cartoes]
         desp_avulsas = pega_despesas(self.user_id)
 
-        # --- PARTE A: DESPESAS DE CARTÃO ---
+        #DESPESAS DE CARTÃO
         for id_cc in id_cartoes:
             desp_cc = pega_despesas_cartao(self.user_id, id_cc)
         
@@ -474,14 +386,15 @@ class Main_app(ctk.CTk):
                     gastos_por_categoria[categoria] += float(valor_mensal)
                     total_previsto += float(valor_mensal)
 
-        # --- PARTE B: DESPESAS AVULSAS ---
+        # parte avulsas
         for desp in desp_avulsas:
             primeira_parc = mysql_para_obj(desp.get('primeira_parc'))
             data_compra = mysql_para_obj(desp.get('data_compra'))
             parcelas = desp.get('parcelas')
+            dia_venc = desp.get('dia_vencimento')
         
             # Usando sua função de controle para avulsas
-            resultado = controle_data_parc(data_compra, primeira_parc, desp.get('dia_vencimento'), parcelas)
+            resultado = controle_data_parc(data_compra, primeira_parc, dia_venc , parcelas)
             _, entra_no_mes, _ = resultado
 
             if entra_no_mes:
@@ -490,12 +403,12 @@ class Main_app(ctk.CTk):
                 gastos_por_categoria[categoria] += float(valor_mensal)
                 total_previsto += float(valor_mensal)
 
-        # 3. Verifica se tem algo para mostrar
+        #Verifica se tem algo para mostrar
         if total_previsto == 0:
             ctk.CTkLabel(self.grafico_frame, text="Nenhum gasto para este mês.").grid(row=0, column=0, padx=20, pady=20)
             return
 
-        # 4. Prepara os dados para o Matplotlib
+        # Prepara os dados para o Matplotlib
         categorias = list(gastos_por_categoria.keys())
         totais = list(gastos_por_categoria.values())
 
@@ -519,70 +432,6 @@ class Main_app(ctk.CTk):
         canvas_widget.grid(row=0, column=0, sticky="nsew")
         canvas.draw()
 
-
-    def gerar_grafico_mensal_outra(self):
-        """
-        Busca gastos previstos do BD para o próximo mês e gera um gráfico de pizza.
-        """
-        
-        # 1. Limpar o frame anterior
-        for widget in self.grafico_frame.winfo_children():
-            widget.destroy()
-
-        # 2. Buscar Dados de Previsão
-        # Não precisa mais de ano e mês como parâmetros, a função do BD calcula isso
-        dados_previstos = pegar_gastos_previstos_proximo_mes(self.user_id)
-
-        # Se não houver dados, exibe uma mensagem
-        if not dados_previstos:
-            ctk.CTkLabel(self.grafico_frame, 
-                         text="Nenhuma despesa futura ou parcelada encontrada.", 
-                         text_color="gray").grid(row=0, column=0, padx=20, pady=20)
-            return
-
-        # 3. Agrupar os dados por Categoria
-        # A função do BD retorna a lista detalhada. Precisamos totalizar por categoria.
-        gastos_por_categoria = defaultdict(float)
-        total_previsto = 0.0
-
-        for item in dados_previstos:
-            gastos_por_categoria[item['categoria']] += item['valor']
-            total_previsto += item['valor']
-            
-        categorias = list(gastos_por_categoria.keys())
-        totais = list(gastos_por_categoria.values())
-        
-        # 4. Determinar o Mês de Previsão para o Título
-        hoje = datetime.now()
-        mes_previsto = hoje.month % 12 + 1
-        ano_previsto = hoje.year + (1 if hoje.month == 12 else 0)
-        
-        mes_nome = datetime(ano_previsto, mes_previsto, 1).strftime('%B').capitalize()
-        
-        # 5. Criação do Gráfico de Pizza
-        
-        # Cria a figura e o eixo
-        fig, ax = plt.subplots(figsize=(5, 5))
-        
-        # Configurações do gráfico de pizza
-        ax.pie(
-            totais, 
-            labels=categorias, 
-            autopct='%1.1f%%', 
-            startangle=90,
-            textprops={'fontsize': 8}
-        )
-        ax.axis('equal') # Garante que o gráfico de pizza seja desenhado como um círculo
-        
-        # Título do Gráfico
-        titulo = f"Previsão de Gastos para {mes_nome}/{ano_previsto}\nTotal: R$ {total_previsto:,.2f}"
-        ax.set_title(titulo, fontsize=12)
-
-        # 6. Integração com CustomTkinter
-        canvas = FigureCanvasTkAgg(fig, master=self.grafico_frame)
-        canvas_widget = canvas.get_tk_widget()
-        canvas_widget.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        canvas.draw()
 
     
     def preencher_total_dividas(self, id_user):
