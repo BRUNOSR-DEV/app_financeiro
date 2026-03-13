@@ -196,8 +196,8 @@ class Main_app(ctk.CTk):
         self.user_id = pega_id(self.usuario_logado)
         self.nomeComp = dados_user(self.user_id)[0][1]
 
-        data_atual = datetime.now()
-        mes_atual = data_atual.month
+        self.data_atual = datetime.now()
+        self.mes_atual = self.data_atual.month
 
         self.dados_cartoes = dados_card(self.user_id)
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
@@ -223,7 +223,7 @@ class Main_app(ctk.CTk):
             
         self.mes_vigente_label = ctk.CTkLabel(
         self.top_section_frame, 
-        text=f"Mês Vigente: {gerar_opcoes_meses().get(mes_atual)} / {data_atual.year}", 
+        text=f"Mês Vigente: {gerar_opcoes_meses().get(self.mes_atual)} / {self.data_atual.year}", 
         font=ctk.CTkFont(size=16, weight="bold")
         )
         self.mes_vigente_label.grid(row=0, column=1, padx=10, pady=10, sticky="w")
@@ -286,7 +286,7 @@ class Main_app(ctk.CTk):
         # -------------------------------------------------------------------------
         self.tabela_frame = ctk.CTkScrollableFrame(
         self.main_content_frame, 
-        label_text=f"Pagamentos Detalhados Mês Vigente: {gerar_opcoes_meses().get(mes_atual)} / {data_atual.year}"
+        label_text=f"Pagamentos Detalhados Mês Vigente: {gerar_opcoes_meses().get(self.mes_atual)} / {self.data_atual.year}"
         )
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") # Coluna 0
 
@@ -319,10 +319,12 @@ class Main_app(ctk.CTk):
         # A mainloop() não é chamada para toplevels, elas são gerenciadas pelo master.
         self.wait_window(register_window) #Pausa a janela de login até a popup fechar
 
+
     def abrir_despesas(self):
         register_window = Despesas(self, self.user_id, login_instance=self)
 
         self.wait_window(register_window)
+
 
     def abrir_cc(self):
         register_window = Car_cred(self, self.user_id, login_instance=self)
@@ -348,8 +350,177 @@ class Main_app(ctk.CTk):
             print("Erro: Cartão não encontrado")
 
 
+    """    def gerar_grafico_mensal(self):
+        Busca as despesas, mostra o valor total e um gráfico com gatos por categória
+        for widget in self.grafico_frame.winfo_children():
+            widget.destroy()
+
+        id_cartoes = [d.get('id_cartao') for d in self.dados_cartoes]
+        desp_avulsas = pega_despesas(self.user_id)
+        
+        categorias = []
+        totais = []
+
+        for id in id_cartoes:
+
+            desp_cc = pega_despesas_cartao(self.user_id, id)
+
+            for desp in desp_cc:
+
+                data_compra = mysql_para_obj(desp.get('data_compra'))
+                dia_venc = desp.get('vencimento_fatura')
+                fechamento = desp.get('fechamento_fatura')
+                parcelas = desp.get('parcelas')
+
+
+                resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, vigente=True)
+                _, entra_na_fatura,_ = resultado
+
+                if entra_na_fatura:
+                    valor_mensal = desp.get('valor_total') / parcelas
+                    total_deste_cartao += valor_mensal
+
+                    gastos_por_categoria = defaultdict(float)
+                    total_previsto = 0.0
+
+                    for item in desp:
+                        gastos_por_categoria[item['categoria']] += (item['valor_total'] / item['parcelas'])
+                        total_previsto += item['valor']
+            
+                    categorias = list(gastos_por_categoria.keys())
+                    totais = list(gastos_por_categoria.values())
+
+        for desp in desp_avulsas:
+
+            primeira_parc = mysql_para_obj(desp.get('primeira_parc'))
+            resultado = controle_data_parc_cc(data_compra, primeira_parc, dia_venc, parcelas, vigente=True)
+            _, entra_na_fatura,_ = resultado
+
+            if entra_na_fatura:
+                valor_mensal = desp.get('valor_total') / parcelas
+                total_deste_cartao += valor_mensal
+
+                gastos_por_categoria = defaultdict(float)
+                total_previsto = 0.0
+
+                for item in desp:
+                    gastos_por_categoria[item['categoria']] += (item['valor_total'] / item['parcelas'])
+                    total_previsto += item['valor']
+            
+                categorias = list(gastos_por_categoria.keys())
+                totais = list(gastos_por_categoria.values())
+
+        
+        if not id_cartoes and not desp_avulsas:
+            ctk.CTkLabel(self.grafico_frame, 
+                         text="Nenhuma despesa parcelada encontrada.", 
+                         text_color="gray").grid(row=0, column=0, padx=20, pady=20)
+            return
+        
+        fig, ax = plt.subplots(figsize=(5, 5))
+        
+        # Configurações do gráfico de pizza
+        ax.pie(
+            totais, 
+            labels=categorias, 
+            autopct='%1.1f%%', 
+            startangle=90,
+            textprops={'fontsize': 8}
+        )
+        ax.axis('equal') # Garante que o gráfico de pizza seja desenhado como um círculo
+        
+        # Título do Gráfico
+        titulo = f"Previsão de Gastos para {gerar_opcoes_meses.get(self.mes_atual)}/{self.data_atual.year}\nTotal: R$ {total_previsto:,.2f}"
+        ax.set_title(titulo, fontsize=12)
+
+        # 6. Integração com CustomTkinter
+        canvas = FigureCanvasTkAgg(fig, master=self.grafico_frame)
+        canvas_widget = canvas.get_tk_widget()
+        canvas_widget.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        canvas.draw()"""
+
 
     def gerar_grafico_mensal(self):
+        # 1. Limpa o frame
+        for widget in self.grafico_frame.winfo_children():
+            widget.destroy()
+
+        # 2. Inicializa os acumuladores lá no topo (Fora dos loops!)
+        gastos_por_categoria = defaultdict(float)
+        total_previsto = 0.0
+    
+        # Pegamos os dados necessários
+        id_cartoes = [d.get('id_cartao') for d in self.dados_cartoes]
+        desp_avulsas = pega_despesas(self.user_id)
+
+        # --- PARTE A: DESPESAS DE CARTÃO ---
+        for id_cc in id_cartoes:
+            desp_cc = pega_despesas_cartao(self.user_id, id_cc)
+        
+            for desp in desp_cc:
+                data_compra = mysql_para_obj(desp.get('data_compra'))
+                dia_venc = desp.get('vencimento_fatura')
+                fechamento = desp.get('fechamento_fatura')
+                parcelas = desp.get('parcelas')
+
+                # Verifica se entra na fatura atual
+                resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, vigente=True)
+                _, entra_na_fatura, _ = resultado
+
+                if entra_na_fatura:
+                    valor_mensal = desp.get('valor_total') / parcelas
+                    # SOMA NO DICIONÁRIO USANDO A CATEGORIA
+                    categoria = desp.get('categoria', 'Outros')
+                    gastos_por_categoria[categoria] += float(valor_mensal)
+                    total_previsto += float(valor_mensal)
+
+        # --- PARTE B: DESPESAS AVULSAS ---
+        for desp in desp_avulsas:
+            primeira_parc = mysql_para_obj(desp.get('primeira_parc'))
+            data_compra = mysql_para_obj(desp.get('data_compra'))
+            parcelas = desp.get('parcelas')
+        
+            # Usando sua função de controle para avulsas
+            resultado = controle_data_parc(data_compra, primeira_parc, desp.get('dia_vencimento'), parcelas)
+            _, entra_no_mes, _ = resultado
+
+            if entra_no_mes:
+                valor_mensal = desp.get('valor_total') / parcelas
+                categoria = desp.get('categoria', 'Outros')
+                gastos_por_categoria[categoria] += float(valor_mensal)
+                total_previsto += float(valor_mensal)
+
+        # 3. Verifica se tem algo para mostrar
+        if total_previsto == 0:
+            ctk.CTkLabel(self.grafico_frame, text="Nenhum gasto para este mês.").grid(row=0, column=0, padx=20, pady=20)
+            return
+
+        # 4. Prepara os dados para o Matplotlib
+        categorias = list(gastos_por_categoria.keys())
+        totais = list(gastos_por_categoria.values())
+
+        # 5. Criação do Gráfico
+        fig, ax = plt.subplots(figsize=(5, 5), facecolor='#2b2b2b') # Cor de fundo igual ao CTk
+        ax.pie(
+            totais, 
+            labels=categorias, 
+            autopct='%1.1f%%', 
+            startangle=90,
+            textprops={'fontsize': 8, 'color': 'white'}
+        )
+        ax.axis('equal')
+    
+        # Título (Ajuste o gerar_opcoes_meses conforme sua estrutura)
+        ax.set_title(f"Distribuição de Gastos\nTotal: R$ {total_previsto:,.2f}", color='white', fontsize=12)
+
+        # 6. Renderização no CustomTkinter
+        canvas = FigureCanvasTkAgg(fig, master=self.grafico_frame)
+        canvas_widget = canvas.get_tk_widget()
+        canvas_widget.grid(row=0, column=0, sticky="nsew")
+        canvas.draw()
+
+
+    def gerar_grafico_mensal_outra(self):
         """
         Busca gastos previstos do BD para o próximo mês e gera um gráfico de pizza.
         """
@@ -412,8 +583,6 @@ class Main_app(ctk.CTk):
         canvas_widget = canvas.get_tk_widget()
         canvas_widget.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         canvas.draw()
-
-
 
     
     def preencher_total_dividas(self, id_user):
@@ -544,9 +713,6 @@ class Main_app(ctk.CTk):
         else:
             ctk.CTkLabel(self.tabela_frame, text="Nenhum pagamento previsto.").grid(row=0, column=0, padx=10, pady=10)
             self.tabela_frame.grid_columnconfigure(2, weight=1)
-
-        
-        
 
 
     def voltar_Plogin(self):
@@ -1125,6 +1291,27 @@ class Car_cred(ctk.CTkToplevel):
 
 
 
+
+
+def encerrar_sistema():
+    # 1. Para o loop principal
+    login_app.quit()
+    
+    # 2. Destrói a janela e limpa os widgets da memória
+    login_app.destroy()
+    
+    # 3. Força a saída do processo Python para liberar o terminal
+    import sys
+    sys.exit()
+
+# Garante que tanto o "X" quanto qualquer botão de fechar chamem a função
+    login_app.protocol("WM_DELETE_WINDOW", encerrar_sistema)
+
+# Se tiver um botão de sair, use:
+# btn_sair = ctk.CTkButton(master, text="Sair", command=encerrar_sistema)
+
+login_app = ctk.CTk()
+login_app.protocol("WM_DELETE_WINDOW", encerrar_sistema)
 
 if __name__ == "__main__":
     # Inicia a primeira tela (tela de login)
