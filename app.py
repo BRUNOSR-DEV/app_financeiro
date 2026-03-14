@@ -221,6 +221,10 @@ class Main_app(ctk.CTk):
                                                text="Bem-vindo!",
                                                font=ctk.CTkFont(size=16, weight="bold"))
             
+        self.btn_att_app = ctk.CTkButton(self.top_section_frame, text="Atualizar", command=self.att_app, width=80,
+                                        fg_color="#0400FF", hover_color="#7D0081")
+        
+
         self.mes_vigente_label = ctk.CTkLabel(
         self.top_section_frame, 
         text=f"Mês Vigente: {gerar_opcoes_meses().get(self.mes_atual)} / {self.data_atual.year}", 
@@ -236,6 +240,7 @@ class Main_app(ctk.CTk):
         #Primeira Label da janela   
         self.nomeusuario_label.grid(row=0, column=0, pady=(0, 10), sticky="w")
 
+        self.btn_att_app.grid(row=0, column=1,sticky="e")
 
         #-------------------------------------------------------------------------------------
         # Frame para agrupar os botões de cadastro
@@ -248,6 +253,9 @@ class Main_app(ctk.CTk):
         # Botões
         self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Receitas", command=self.abrir_receitas)
         self.btn_receitas.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+
+        self.btn_troca_mes = ctk.CTkButton(self.cadastro_frame, text="Próximo mês", command=self.trocar_mes)
+        self.btn_troca_mes.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
         self.btn_despesas = ctk.CTkButton(self.cadastro_frame, text="Despesas", command=self.abrir_despesas)
         self.btn_despesas.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
@@ -303,6 +311,7 @@ class Main_app(ctk.CTk):
         self.grafico_frame.grid_rowconfigure(0, weight=1)
 
         # Gerar o gráfico ao iniciar
+        
         self.gerar_grafico_mensal()
 
 
@@ -350,9 +359,29 @@ class Main_app(ctk.CTk):
             print("Erro: Cartão não encontrado")
 
 
+    def trocar_mes(self):
+
+        print("Botão clicado! Chamando com vigente False")
+
+        for widget in self.tabela_frame.winfo_children():
+            widget.destroy()
+
+        for widget in self.grafico_frame.winfo_children():
+            widget.destroy()
+        
+        self.preencher_total_dividas(self.user_id, vigente=False)
+
+        self.gerar_grafico_mensal(vigente=False)
 
 
-    def gerar_grafico_mensal(self):
+    def att_app(self):
+
+        login_app.mainloop()
+
+
+    def gerar_grafico_mensal(self, vigente= True):
+
+        print(f"Calculando dados : Está {vigente}")
 
         for widget in self.grafico_frame.winfo_children():
             widget.destroy()
@@ -376,7 +405,7 @@ class Main_app(ctk.CTk):
                 parcelas = desp.get('parcelas')
 
                 # Verifica se entra na fatura atual
-                resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, vigente=True)
+                resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, vigente=vigente)
                 _, entra_na_fatura, _ = resultado
 
                 if entra_na_fatura:
@@ -394,7 +423,7 @@ class Main_app(ctk.CTk):
             dia_venc = desp.get('dia_vencimento')
         
             # Usando sua função de controle para avulsas
-            resultado = controle_data_parc(data_compra, primeira_parc, dia_venc , parcelas)
+            resultado = controle_data_parc(data_compra, primeira_parc, dia_venc , parcelas, vigente= vigente)
             _, entra_no_mes, _ = resultado
 
             if entra_no_mes:
@@ -434,7 +463,9 @@ class Main_app(ctk.CTk):
 
 
     
-    def preencher_total_dividas(self, id_user):
+    def preencher_total_dividas(self, id_user, vigente= True):
+
+        print(f"Calculando dados: Está {vigente}")
 
         for widget in self.tabela_frame.winfo_children():
             widget.destroy()
@@ -468,7 +499,7 @@ class Main_app(ctk.CTk):
                         parcelas = desp.get('parcelas')
 
 
-                        resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, True)
+                        resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, vigente= vigente)
                         _, entra_na_fatura, controle_data = resultado
 
                         if entra_na_fatura:
@@ -508,7 +539,7 @@ class Main_app(ctk.CTk):
                     primeira_parc = mysql_para_obj(dados.get('primeira_parc'))
                     dia_venc = primeira_parc.day
                 
-                    resultado_avulso = controle_data_parc(data_compra, primeira_parc, dia_venc, dados.get('parcelas'), vigente= True)
+                    resultado_avulso = controle_data_parc(data_compra, primeira_parc, dia_venc, dados.get('parcelas'), vigente=vigente)
                     str_parcela, control_parc, control_mes = resultado_avulso
 
                     dia_venc = int(primeira_parc.day)

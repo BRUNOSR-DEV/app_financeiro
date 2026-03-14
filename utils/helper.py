@@ -59,7 +59,7 @@ def formatar_moeda(valor):
 
 
 #rename - control_pags()
-def controle_data_parc(data_compra_obj, primeira_parc, dia_vencimento, total_parcelas, vigente=True, data_atual=None):
+def controle_data_parc(data_compra_obj, primeira_parc, dia_vencimento, total_parcelas, vigente=None, data_atual=None):
     """
     Calcula a parcela atual baseada na data de compra e no fechamento da fatura.
     Retorna uma string no formato 'Atual/Total' (ex: '3/12').
@@ -84,8 +84,8 @@ def controle_data_parc(data_compra_obj, primeira_parc, dia_vencimento, total_par
     ano_primeira_cobranca = primeira_parc.year
             
     # 2. Calcula a diferença de meses entre o mês atual e o mês da 1ª cobrança
-    diferenca_anos = data_atual.year - ano_primeira_cobranca
-    diferenca_meses = data_atual.month - mes_primeira_cobranca
+    diferenca_anos = data_alvo.year - ano_primeira_cobranca
+    diferenca_meses = data_alvo.month - mes_primeira_cobranca
     meses_passados = (diferenca_anos * 12) + diferenca_meses
 
     
@@ -114,7 +114,7 @@ def controle_data_parc(data_compra_obj, primeira_parc, dia_vencimento, total_par
     
 
 
-def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total_parcelas, vigente=True, data_atual=None):
+def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total_parcelas, vigente=None, data_atual=None):
     """
     Retorna: (string_parcela, deve_aparecer_na_tabela, data_pagamento_exata)
     """
