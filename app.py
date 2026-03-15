@@ -307,16 +307,11 @@ class Main_app(ctk.CTk):
         # -------------------------------------------------------------------------
         
 
-        if self.menu_mes.get().strip == self.mes_atual_str:
-            self.tabela_frame = ctk.CTkScrollableFrame(
-            self.main_content_frame, 
-            label_text=f"Pagamentos Detalhados Mês: {self.mes_atual_str} / {self.data_atual.year}"
-            )
-        else:
-            self.tabela_frame = ctk.CTkScrollableFrame(
-            self.main_content_frame, 
-            label_text=f"Pagamentos Detalhados Mês: {self.prox_mes_str} / {self.data_atual.year}"
-            )
+
+        self.tabela_frame = ctk.CTkScrollableFrame(
+        self.main_content_frame, 
+        label_text=f"Pagamentos Detalhados: {self.mes_atual_str} / {self.data_atual.year}"
+        )
 
 
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") # Coluna 0
@@ -396,11 +391,16 @@ class Main_app(ctk.CTk):
             self.preencher_total_dividas(self.user_id)
 
             self.gerar_grafico_mensal()
-            
+
+
         else:
             self.preencher_total_dividas(self.user_id, vigente=False)
 
             self.gerar_grafico_mensal(vigente=False)
+
+            
+
+        self.tabela_frame._label.configure(text=f"Pagamentos Detalhados: {escolha} / {self.data_atual.year}")
 
 
     def att_app(self):
