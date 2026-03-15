@@ -11,6 +11,7 @@ def gerar_opcoes_meses():
     return meses_nome
 
 
+
 def str_para_data(data_str):
     """Converte 'DD/MM/AAAA' para objeto datetime."""
     try:

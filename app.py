@@ -15,6 +15,7 @@ import customtkinter as ctk
 #Calendário e data e tempo
 from tkcalendar import Calendar
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import locale
 
 #gráficos
@@ -198,6 +199,16 @@ class Main_app(ctk.CTk):
 
         self.data_atual = datetime.now()
         self.mes_atual = self.data_atual.month
+        self.prox_mes =  (self.data_atual + relativedelta(months=1)).month
+
+        opcoes = gerar_opcoes_meses()
+        self.nomes_datas = [
+            opcoes.get(self.mes_atual, 'Mês inválido'),
+            opcoes.get(self.prox_mes, 'Mês inválido'),
+            
+        ]
+        self.mes_atual_str = opcoes.get(self.mes_atual)
+        self.prox_mes_str = opcoes.get(self.prox_mes)
 
         self.dados_cartoes = dados_card(self.user_id)
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
@@ -221,26 +232,31 @@ class Main_app(ctk.CTk):
                                                text="Bem-vindo!",
                                                font=ctk.CTkFont(size=16, weight="bold"))
             
+        self.nomeusuario_label.grid(row=0, column=0, pady=(0, 10), sticky="w")
+            
         self.btn_att_app = ctk.CTkButton(self.top_section_frame, text="Atualizar", command=self.att_app, width=80,
                                         fg_color="#0400FF", hover_color="#7D0081")
         
+        self.btn_att_app.grid(row=0, column=1,sticky="e")
+        
 
-        self.mes_vigente_label = ctk.CTkLabel(
-        self.top_section_frame, 
-        text=f"Mês Vigente: {gerar_opcoes_meses().get(self.mes_atual)} / {self.data_atual.year}", 
-        font=ctk.CTkFont(size=16, weight="bold")
-        )
-        self.mes_vigente_label.grid(row=0, column=1, padx=10, pady=10, sticky="w")
+        self.mes_vigente_label = ctk.CTkLabel(self.top_section_frame, text=f"Mês : ", font=ctk.CTkFont(size=16, weight="bold"))
+
+        self.mes_vigente_label.grid(row=0, column=2, padx=10, pady=10, sticky="w")
+
+        self.menu_mes = ctk.CTkOptionMenu(self.top_section_frame, values=self.nomes_datas, command=self.trocar_mes)
+
+        self.menu_mes.grid(row=0, column=3, padx=10, pady=5)
             
         self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, width=80,
                                         fg_color="#FF0000", hover_color="#810000")
         
-        self.botao_sair.grid(row=0, column=2,sticky="e") #coluna 2 alinhado a direita
+        self.botao_sair.grid(row=0, column=4,sticky="e") #coluna 2 alinhado a direita
 
         #Primeira Label da janela   
-        self.nomeusuario_label.grid(row=0, column=0, pady=(0, 10), sticky="w")
+        
 
-        self.btn_att_app.grid(row=0, column=1,sticky="e")
+        
 
         #-------------------------------------------------------------------------------------
         # Frame para agrupar os botões de cadastro
@@ -253,9 +269,6 @@ class Main_app(ctk.CTk):
         # Botões
         self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Receitas", command=self.abrir_receitas)
         self.btn_receitas.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-
-        self.btn_troca_mes = ctk.CTkButton(self.cadastro_frame, text="Próximo mês", command=self.trocar_mes)
-        self.btn_troca_mes.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
         self.btn_despesas = ctk.CTkButton(self.cadastro_frame, text="Despesas", command=self.abrir_despesas)
         self.btn_despesas.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
@@ -292,10 +305,20 @@ class Main_app(ctk.CTk):
         # -------------------------------------------------------------------------
         # FRAME DA TABELA DETALHADA (AGORA PODE SER DEFINIDO
         # -------------------------------------------------------------------------
-        self.tabela_frame = ctk.CTkScrollableFrame(
-        self.main_content_frame, 
-        label_text=f"Pagamentos Detalhados Mês Vigente: {gerar_opcoes_meses().get(self.mes_atual)} / {self.data_atual.year}"
-        )
+        
+
+        if self.menu_mes.get().strip == self.mes_atual_str:
+            self.tabela_frame = ctk.CTkScrollableFrame(
+            self.main_content_frame, 
+            label_text=f"Pagamentos Detalhados Mês: {self.mes_atual_str} / {self.data_atual.year}"
+            )
+        else:
+            self.tabela_frame = ctk.CTkScrollableFrame(
+            self.main_content_frame, 
+            label_text=f"Pagamentos Detalhados Mês: {self.prox_mes_str} / {self.data_atual.year}"
+            )
+
+
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") # Coluna 0
 
         # Chamar o método para preencher a tabela ao iniciar
@@ -359,7 +382,7 @@ class Main_app(ctk.CTk):
             print("Erro: Cartão não encontrado")
 
 
-    def trocar_mes(self):
+    def trocar_mes(self, escolha=None):
 
         print("Botão clicado! Chamando com vigente False")
 
@@ -369,14 +392,28 @@ class Main_app(ctk.CTk):
         for widget in self.grafico_frame.winfo_children():
             widget.destroy()
         
-        self.preencher_total_dividas(self.user_id, vigente=False)
+        if self.mes_atual_str == escolha:
+            self.preencher_total_dividas(self.user_id)
 
-        self.gerar_grafico_mensal(vigente=False)
+            self.gerar_grafico_mensal()
+            
+        else:
+            self.preencher_total_dividas(self.user_id, vigente=False)
+
+            self.gerar_grafico_mensal(vigente=False)
 
 
     def att_app(self):
 
-        login_app.mainloop()
+        self.config(cursor="watch")
+        self.update() 
+
+        self.preencher_total_dividas(self.user_id)
+        self.gerar_grafico_mensal()
+    
+
+        self.config(cursor="")
+        print("Dashboard atualizado com sucesso! 🚀")
 
 
     def gerar_grafico_mensal(self, vigente= True):
