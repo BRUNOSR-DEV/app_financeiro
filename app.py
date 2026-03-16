@@ -934,6 +934,8 @@ class Despesas(ctk.CTkToplevel):
         self.dados_cartoes = dados_card(self.user_id)
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
 
+        self.data_atual = datetime.now().date()
+
         # ------------------------------------------------------------------------
         # PASSO 1: Criar o CTkScrollableFrame e posicioná-lo
         # Ele será o master de todo o conteúdo da janela
@@ -980,7 +982,7 @@ class Despesas(ctk.CTkToplevel):
         self.campo_data_compra.grid(row=6, column=0, padx=10, pady=10)
 
         # data primeira parcela - se não for no cartão
-        self.label_primeira_dc = ctk.CTkLabel(self.scrollable_frame, text="Data da primeira parcela: [não preencher se a compra for no c. crédito]", font=ctk.CTkFont(size=16, weight="bold"))
+        self.label_primeira_dc = ctk.CTkLabel(self.scrollable_frame, text="Data do primeiro pagamento: [não preencher se a compra for no c. crédito]", font=ctk.CTkFont(size=16, weight="bold"))
         self.label_primeira_dc.grid(row=7, column=0)
 
         self.campo_primeira_dc = DateEntry(self.scrollable_frame, width=12, background='darkblue',
@@ -1011,83 +1013,79 @@ class Despesas(ctk.CTkToplevel):
     def salvar_dados(self):
         """ Verifica e salva os dados no BD """
 
+        dia_venc = None
+        id_card = None
+        verifica_pri_dc = False
+
         local = self.local.get().strip()
         valor_total = self.valor_total.get().strip()
-        menu_parcelas_str = self.menu_parcelas.get().strip()
+        menu_parcelas_str = self.menu_parcelas.get()
         descricao = self.descricao.get().strip()
-        categoria = self.categoria.get().strip()
-        data_str = self.data.get_date()
-        data_vencimento_str = self.data_vencimento.get_date()
-        car_cred = self.car_cred.get().strip()
+        categoria = self.categoria.get()
+        dc_select = self.campo_data_compra.get_date()
+        prim_dc_select = self.campo_primeira_dc.get_date()
 
-        data_obj = datetime.strptime(data_str, '%d/%m/%Y')
-        data_venc_obj = datetime.strptime(data_vencimento_str, '%d/%m/%Y')
-    
-        # Formata o objeto datetime para a string 'AAAA-MM-DD'
-        data_formatada = data_obj.strftime('%Y-%m-%d')
+        if prim_dc_select != self.data_atual:
+            dia_venc = prim_dc_select.day
+            verifica_pri_dc = True
+            prim_dc_select_mysql = data_para_mysql(prim_dc_select)
 
-        data_venc_formatada = data_venc_obj.strftime('%Y-%m-%d')
+        car_cred = self.car_cred.get()
+
+        # Formata o objeto datetime para a string 'AAAA-MM-DD' para mandar para o db
+        dc_select_mysql = data_para_mysql(dc_select)
+        
 
 
         if not local or not valor_total or categoria == "Categoria" or menu_parcelas_str == "N° Parcelas":
-            self.status_label.configure(text='Preencha Local, Valor, Categoria e N° Parcelas!', text_color='red')
+            self.status_label.configure(text='Preencha Local, Valor Total, Categoria , N° Parcelas e Data da compra', text_color='red')
             self.after(2000, lambda: self.status_label.configure(text='')) # Usa after() para não travar
             return
     
         try:
             parcelas = int(menu_parcelas_str)
              # Tenta converter o valor para float
-            float(valor_total.replace(',', '.'))
+            formatar_moeda((valor_total))
         except ValueError:
-            self.status_label.configure(text='Valor ou Parcelas devem ser números válidos!', text_color='red')
+            self.status_label.configure(text='Valor Total ou Parcelas devem ser números válidos!', text_color='red')
             self.after(2000, lambda: self.status_label.configure(text=''))
             return
         
         # 2. VALIDAÇÃO CONDICIONAL PRINCIPAL
     
-        # Verifica se a despesa é parcelada (se for mais de 1 parcela)
-        is_parcelado = parcelas > 1
-    
         # Flag para saber se o requisito de pagamento foi atendido
         pagamento_atendido = True
     
-        if is_parcelado:
         # A despesa é parcelada, DEVE ter um cartão OU data de vencimento
         
-            tem_cartao = car_cred != "Selecione um Cartão"
-            tem_vencimento = bool(data_venc_formatada) # Verifica se a string não está vazia
+        tem_cartao = car_cred != "Selecione um Cartão"
+
         
-            if not tem_cartao and not tem_vencimento:
-                # Se não tem cartão E não tem dia de vencimento, falha!
-                self.status_label.configure(text='Se parcelado, informe o Cartão OU Dia de Vencimento.', text_color='red')
-                self.after(4000, lambda: self.status_label.configure(text=''))
-                return # Sai do método
+        if not tem_cartao and not verifica_pri_dc:
+            # Se não tem cartão E não tem dia de vencimento, falha!
+            self.status_label.configure(text='Informe um Cartão OU Data do primeiro pagamento', text_color='red')
+            self.after(4000, lambda: self.status_label.configure(text=''))
+            return # Sai do método
+
+        
+        if tem_cartao:
+            for dado in self.dados_cartoes:
+                if dado.get('nome_cartao') == car_cred:
+                    id_card = dado.get('id_cartao')
 
 
-        id_card = None
-        for i in self.verifica_cartoes():
-            if car_cred == i[1]:
-                id_card = i[0]
-                break
+        if not verifica_pri_dc and tem_cartao:
+            prim_dc_select_mysql = None
 
-        data_atual = datetime.now()
-        apenas_data = data_atual.strftime('%Y-%m-%d')
-
-        print(apenas_data)  
-        print(data_venc_formatada) 
-
-        if data_venc_formatada == apenas_data:
-            data_venc_formatada = None
-
-            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, data_formatada, data_venc_formatada, id_card)
+            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
         else:
-            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, data_formatada, data_venc_formatada, id_card)
+            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
 
         if retorno:
             self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
             self.update_idletasks()
-            sleep(3)
-            self.limpar_campos()
+            self.after(3000, self.limpar_campos)
+            self.update_idletasks()
 
             #self.destroy()
                 
@@ -1096,19 +1094,6 @@ class Despesas(ctk.CTkToplevel):
             self.update_idletasks()
 
 
-    def verifica_cartoes(self):
-
-        cartoes = dados_card(self.user_id)
-        lista_cartoes = []
-        if cartoes:
-            for cartao in cartoes:
-                # Assumindo que a tupla do cartão é algo como (id, id_usuario, nome, limite, etc.)
-                # O nome seria o terceiro elemento, por isso o índice [2]
-                lista_cartoes.append((cartao[0], cartao[2]))
-        else:
-            return [("0", "Nenhum Cartão")]
-        
-        return lista_cartoes
     
 
     def limpar_campos(self):
@@ -1173,6 +1158,10 @@ class Car_cred(ctk.CTkToplevel):
 
     def salvar_dados(self):
         """ Verifica e salva os dados no BD """
+
+
+        """VERIFICAR SE O USUÁRIO NÃO ESTÁ COLOCANDO UM NOME DE CARTÃO REPETIDO"""
+
 
         nome_cc = self.nome_cc.get().strip()
         limite = self.limite.get().strip()

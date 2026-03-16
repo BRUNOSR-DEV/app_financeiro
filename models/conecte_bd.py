@@ -397,7 +397,7 @@ def inserir_receitas(id_usu, valor, descricao, data, conn=None):
 
 
 
-def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, categoria, data, data_venc=None, id_cc=None, conn=None):
+def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, categoria, data, dc_prim_parc=None, dia_vencimento = None, id_cc= None, conn= None):
     """ Função que inseri as despesas do usuário no BD e retorna o id da mesma"""
     
     gerenciar_conn = False
@@ -407,8 +407,8 @@ def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, categoria,
 
     cursor = conn.cursor()
     try:
-        sql = "INSERT INTO despesas (id_usuario, local, valor_total, parcelas, descricao, categoria, data, data_vencimento, id_cc) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(sql, (id_usu, local,valor_total, parcelas, descricao, categoria, data, data_venc, id_cc))
+        sql = "INSERT INTO despesas (id_usuario, local, valor_total, parcelas, descricao, categoria, data, data_primeira_parc, dia_vencimento, id_cc) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s)"
+        cursor.execute(sql, (id_usu, local,valor_total, parcelas, descricao, categoria, data, dc_prim_parc, dia_vencimento, id_cc))
         conn.commit()
         return cursor.lastrowid # Retorna o ID da despesa recém-inserida
     
