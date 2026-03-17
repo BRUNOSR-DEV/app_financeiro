@@ -1045,7 +1045,7 @@ class Despesas(ctk.CTkToplevel):
         try:
             parcelas = int(menu_parcelas_str)
              # Tenta converter o valor para float
-            formatar_moeda((valor_total))
+            valor_total = float(valor_total.replace(",", "."))
         except ValueError:
             self.status_label.configure(text='Valor Total ou Parcelas devem ser números válidos!', text_color='red')
             self.after(2000, lambda: self.status_label.configure(text=''))
@@ -1084,10 +1084,14 @@ class Despesas(ctk.CTkToplevel):
         if retorno:
             self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
             self.update_idletasks()
-            self.after(3000, self.limpar_campos)
-            self.update_idletasks()
 
-            #self.destroy()
+            if hasattr(self.master, 'trocar_mes'): 
+                self.master.trocar_mes()
+
+            self.limpar_campos()
+            
+            self.after(3000, lambda: self.status_label.configure(text=''))
+
                 
         else:
             self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
@@ -1109,6 +1113,9 @@ class Despesas(ctk.CTkToplevel):
         self.menu_parcelas.set("N° Parcelas")
         self.categoria.set("Categoria")
         self.car_cred.set("Selecione um Cartão")
+
+        self.campo_data_compra.set_date(self.data_atual)
+        self.campo_primeira_dc.set_date(self.data_atual)
         
         """
         # Reseta o menu de Cartões (para o primeiro item da lista)
