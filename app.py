@@ -200,15 +200,18 @@ class Main_app(ctk.CTk):
         self.data_atual = datetime.now()
         self.mes_atual = self.data_atual.month
         self.prox_mes =  (self.data_atual + relativedelta(months=1)).month
+        self.seg_prox_mes =  (self.data_atual + relativedelta(months=2)).month
 
         opcoes = gerar_opcoes_meses()
         self.nomes_datas = [
             opcoes.get(self.mes_atual, 'Mês inválido'),
             opcoes.get(self.prox_mes, 'Mês inválido'),
+            opcoes.get(self.seg_prox_mes, 'Mês inválido'),
             
         ]
         self.mes_atual_str = opcoes.get(self.mes_atual)
         self.prox_mes_str = opcoes.get(self.prox_mes)
+        self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
 
         self.dados_cartoes = dados_card(self.user_id)
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
@@ -388,15 +391,22 @@ class Main_app(ctk.CTk):
             widget.destroy()
         
         if self.mes_atual_str == escolha:
-            self.preencher_total_dividas(self.user_id)
 
+            self.preencher_total_dividas(self.user_id)
             self.gerar_grafico_mensal()
 
+        elif self.prox_mes_str == escolha:
 
-        else:
-            self.preencher_total_dividas(self.user_id, vigente=False)
+            self.preencher_total_dividas(self.user_id, controle_mes=2)
+            self.gerar_grafico_mensal(controle_mes=2)
 
-            self.gerar_grafico_mensal(vigente=False)
+        elif self.seg_prox_mes_str == escolha:
+        
+            self.preencher_total_dividas(self.user_id, controle_mes=3)
+            self.gerar_grafico_mensal(controle_mes=3)
+
+        
+            
 
             
 
@@ -416,9 +426,9 @@ class Main_app(ctk.CTk):
         print("Dashboard atualizado com sucesso! 🚀")
 
 
-    def gerar_grafico_mensal(self, vigente= True):
+    def gerar_grafico_mensal(self, controle_mes= 1):
 
-        print(f"Calculando dados : Está {vigente}")
+        print(f"Calculando dados : Está {controle_mes}")
 
         for widget in self.grafico_frame.winfo_children():
             widget.destroy()
@@ -442,7 +452,7 @@ class Main_app(ctk.CTk):
                 parcelas = desp.get('parcelas')
 
                 # Verifica se entra na fatura atual
-                resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, vigente=vigente)
+                resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes= controle_mes)
                 _, entra_na_fatura, _ = resultado
 
                 if entra_na_fatura:
@@ -460,7 +470,7 @@ class Main_app(ctk.CTk):
             dia_venc = desp.get('dia_vencimento')
         
             # Usando sua função de controle para avulsas
-            resultado = controle_data_parc(data_compra, primeira_parc, dia_venc , parcelas, vigente= vigente)
+            resultado = controle_data_parc(data_compra, primeira_parc, dia_venc , parcelas, controle_mes = controle_mes)
             _, entra_no_mes, _ = resultado
 
             if entra_no_mes:
@@ -498,11 +508,10 @@ class Main_app(ctk.CTk):
         canvas_widget.grid(row=0, column=0, sticky="nsew")
         canvas.draw()
 
-
     
-    def preencher_total_dividas(self, id_user, vigente= True):
+    def preencher_total_dividas(self, id_user, controle_mes = 1):
 
-        print(f"Calculando dados: Está {vigente}")
+        print(f"Calculando dados: Está {controle_mes}")
 
         for widget in self.tabela_frame.winfo_children():
             widget.destroy()
@@ -536,7 +545,7 @@ class Main_app(ctk.CTk):
                         parcelas = desp.get('parcelas')
 
 
-                        resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, vigente= vigente)
+                        resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes= controle_mes)
                         _, entra_na_fatura, controle_data = resultado
 
                         if entra_na_fatura:
@@ -576,7 +585,7 @@ class Main_app(ctk.CTk):
                     primeira_parc = mysql_para_obj(dados.get('primeira_parc'))
                     dia_venc = primeira_parc.day
                 
-                    resultado_avulso = controle_data_parc(data_compra, primeira_parc, dia_venc, dados.get('parcelas'), vigente=vigente)
+                    resultado_avulso = controle_data_parc(data_compra, primeira_parc, dia_venc, dados.get('parcelas'), controle_mes= controle_mes)
                     str_parcela, control_parc, control_mes = resultado_avulso
 
                     dia_venc = int(primeira_parc.day)

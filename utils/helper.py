@@ -60,7 +60,7 @@ def formatar_moeda(valor):
 
 
 #rename - control_pags()
-def controle_data_parc(data_compra_obj, primeira_parc, dia_vencimento, total_parcelas, vigente=None, data_atual=None):
+def controle_data_parc(data_compra_obj, primeira_parc, dia_vencimento, total_parcelas, controle_mes=None, data_atual=None):
     """
     Calcula a parcela atual baseada na data de compra e no fechamento da fatura.
     Retorna uma string no formato 'Atual/Total' (ex: '3/12').
@@ -68,12 +68,14 @@ def controle_data_parc(data_compra_obj, primeira_parc, dia_vencimento, total_par
     if data_atual is None:
         data_atual = datetime.now()
     
-    controle_mes =  None
 
-    if vigente:
+    if controle_mes == 1:
         data_alvo = data_atual
-    else:
+
+    elif controle_mes == 2:
         data_alvo = data_atual + relativedelta(months=1)
+    elif controle_mes == 3:
+        data_alvo = data_atual + relativedelta(months=2)
         
     # 1. Descobre o mês da PRIMEIRA cobrança
     mes_primeira_cobranca = data_compra_obj.month
@@ -115,7 +117,7 @@ def controle_data_parc(data_compra_obj, primeira_parc, dia_vencimento, total_par
     
 
 
-def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total_parcelas, vigente=None, data_atual=None):
+def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total_parcelas, controle_mes=None, data_atual=None):
     """
     Retorna: (string_parcela, deve_aparecer_na_tabela, data_pagamento_exata)
     """
@@ -123,10 +125,14 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
         data_atual = datetime.now()
         
     # Define qual é a FATURA ALVO (Mês Atual ou Próximo Mês)
-    if vigente:
+    if controle_mes == 1:
         data_alvo = data_atual
-    else:
+
+    elif controle_mes == 2:
         data_alvo = data_atual + relativedelta(months=1)
+        
+    elif controle_mes == 3:
+        data_alvo = data_atual + relativedelta(months=2)
         
     # Descobre a Fatura da PRIMEIRA cobrança (com base no fechamento)
     primeira_cobranca = data_compra_obj
