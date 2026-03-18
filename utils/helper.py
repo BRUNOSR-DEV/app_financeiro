@@ -157,7 +157,7 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
 
     # Filtros para saber se a despesa entra na tabela
     if parcela_atual < 1:
-        # Se for menor que 1, a cobrança ainda não chegou neste mês alvo
+        # Se for menor que 1, a cobrança ainda não chegou neste mês alvo, o segundo retorno é um bool de controle
         return f"0/{total_parcelas} (A vencer)", False, data_pagamento
         
     elif parcela_atual > total_parcelas:

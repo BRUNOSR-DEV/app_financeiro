@@ -667,6 +667,22 @@ class Detalhar_despesas_cc(ctk.CTkToplevel):
         # Garante que a janela fique na frente
         self.attributes("-topmost", True) 
 
+        self.data_atual = datetime.now()
+        self.mes_atual = self.data_atual.month
+        self.prox_mes =  (self.data_atual + relativedelta(months=1)).month
+        self.seg_prox_mes =  (self.data_atual + relativedelta(months=2)).month
+
+        opcoes = gerar_opcoes_meses()
+        self.nomes_datas = [
+            opcoes.get(self.mes_atual, 'Mês inválido'),
+            opcoes.get(self.prox_mes, 'Mês inválido'),
+            opcoes.get(self.seg_prox_mes, 'Mês inválido'),
+            
+        ]
+        self.mes_atual_str = opcoes.get(self.mes_atual)
+        self.prox_mes_str = opcoes.get(self.prox_mes)
+        self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
+
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1) # Onde fica o frame principal das tabelas
 
@@ -682,9 +698,10 @@ class Detalhar_despesas_cc(ctk.CTkToplevel):
         self.main_content_frame.grid_columnconfigure(1, weight=1) 
         self.main_content_frame.grid_rowconfigure(0, weight=1)
 
+        # mês vigente
         self.tabela_frame = ctk.CTkScrollableFrame(
         self.main_content_frame, 
-        label_text="Pagamentos Detalhados (Mês Vigênte)"
+        label_text=f"Pagamentos Detalhados: {self.mes_atual_str} / {self.data_atual.year}"
         )
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         
@@ -692,7 +709,8 @@ class Detalhar_despesas_cc(ctk.CTkToplevel):
         # e chamar seu método de busca detalhada (aquele do INNER JOIN!)
         self.tabela_vigente(id_user, id_card)
 
-        self.tabela_frame_prox = ctk.CTkScrollableFrame(self.main_content_frame, label_text="Pagamentos Detalhados (Próximo Mês)" )
+        #Próximo mês
+        self.tabela_frame_prox = ctk.CTkScrollableFrame(self.main_content_frame, label_text=f"Pagamentos Detalhados: {self.prox_mes_str} / {self.data_atual.year}" )
         self.tabela_frame_prox.grid(row=0, column=1, padx=10, pady=10, sticky="nsew") # Coluna 1
         self.tabela_frame_prox.grid_columnconfigure(0, weight=1)
         self.tabela_frame_prox.grid_rowconfigure(0, weight=1)
@@ -701,7 +719,7 @@ class Detalhar_despesas_cc(ctk.CTkToplevel):
 
 
 
-    def tabela_vigente(self, id_user, id_card):
+    def tabela_vigente(self, id_user, id_card, controle_mes = 1):
 
 
         for widget in self.tabela_frame.winfo_children():
@@ -731,17 +749,17 @@ class Detalhar_despesas_cc(ctk.CTkToplevel):
             for _, dado  in enumerate(dados_desp_card):
 
                 """"'despesa_id', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 
-            'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'"""
+                        'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'"""
                 
                 data_compra = mysql_para_obj(dado.get('data_compra'))
-                
-
+                fecha_fatura = dado.get('fechamento_fatura')
                 dia_venc = dado.get('vencimento_fatura')
+                parcelas = dado.get('parcelas')
 
-                str_parc = controle_data_parc_cc(data_compra, dado.get('fechamento_fatura'),dia_venc, dado.get('parcelas'), True)[0]
-                control_parc = controle_data_parc_cc(dado.get('data_compra'), dado.get('fechamento_fatura'),dia_venc, dado.get('parcelas'), True)[1]
-                controle_data = controle_data_parc_cc(dado.get('data_compra'), dado.get('fechamento_fatura'),dia_venc, dado.get('parcelas'), True)[2]
 
+                resultado = controle_data_parc_cc(data_compra, fecha_fatura ,dia_venc, parcelas, controle_mes=controle_mes)
+
+                str_parc, control_parc, controle_data = resultado
 
 
                 if control_parc:
@@ -779,7 +797,7 @@ class Detalhar_despesas_cc(ctk.CTkToplevel):
 
 
 
-    def tabela_prox(self, id_user, id_card):
+    def tabela_prox(self, id_user, id_card, controle_mes = 2):
 
         for widget in self.tabela_frame_prox.winfo_children():
             widget.destroy()
@@ -811,15 +829,13 @@ class Detalhar_despesas_cc(ctk.CTkToplevel):
             'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'"""
                 
                 data_compra = mysql_para_obj(dado.get('data_compra'))
-                
-
+                fecha_fatura = dado.get('fechamento_fatura')
+                parcelas = dado.get('parcelas')
                 dia_venc = dado.get('vencimento_fatura')
 
-                str_parc = controle_data_parc_cc(data_compra, dado.get('fechamento_fatura'),dia_venc, dado.get('parcelas'), vigente=False)[0]
-                control_parc = controle_data_parc_cc(dado.get('data_compra'), dado.get('fechamento_fatura'),dia_venc, dado.get('parcelas'),vigente=False)[1]
-                controle_data = controle_data_parc_cc(dado.get('data_compra'), dado.get('fechamento_fatura'),dia_venc, dado.get('parcelas'), vigente=False)[2]
+                resultado = controle_data_parc_cc(data_compra, fecha_fatura, dia_venc, parcelas, controle_mes= controle_mes)
 
-
+                str_parc, control_parc, controle_data = resultado
 
                 if control_parc:
                     
@@ -877,46 +893,45 @@ class Receitas(ctk.CTkToplevel):
         self.descricao = ctk.CTkEntry(self, placeholder_text="Descrição")
         self.descricao.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
-
+        self.label_data_compra = ctk.CTkLabel(self, text="Data de recebimento:", font=ctk.CTkFont(size=16, weight="bold"))
+        self.label_data_compra.grid(row=3, column=0)
             
-        self.data_calendario = Calendar(self, selectmode='day', date_pattern='dd/mm/yyyy', background='gray80',
-                                        foreground='black', normalbackground='gray90', headersbackground='gray70',
-                                        selectbackground='gray60', othermonthforeground='gray70')
-        self.data_calendario.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        self.data_recebimento = DateEntry(self, width=12, background='darkblue',
+                            foreground='white', borderwidth=2, year=2026, 
+                            locale='pt_BR', date_pattern='dd/mm/yyyy')
+        self.data_recebimento.grid(row=4, column=0, padx=10, pady=10)
 
         self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
-        self.botao_salvar.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        self.botao_salvar.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
 
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
-        self.status_label.grid(row=5, column=0, pady=5)
+        self.status_label.grid(row=6, column=0, pady=5)
+
 
 
     def salvar_dados(self):
-        """ Verifica e salva os dados no BD """
+        """ Verifica e salva os dados no db """
 
         valor = self.valor.get().strip()
         descricao = self.descricao.get().strip()
-        data_str = self.data_calendario.get_date()
+        data_obj = self.data_recebimento.get_date()
 
-        data_obj = datetime.strptime(data_str, '%d/%m/%Y')
-    
         # Formata o objeto datetime para a string 'AAAA-MM-DD'
-        data_formatada = data_obj.strftime('%Y-%m-%d')
+        data_mysql = data_para_mysql(data_obj)
+        
 
-        if not valor or not descricao or not data_str:
+        if not valor or not descricao or not data_obj:
             self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
             self.update_idletasks()
             sleep(1)
             return
         else:
-            retorno = inserir_receitas(self.user_id, valor, descricao, data_formatada)
+            retorno = inserir_receitas(self.user_id, valor, descricao, data_mysql)
 
         if retorno:
             self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
             self.update_idletasks()
             sleep(2)
-
-            #self.destroy()
                 
         else:
             self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
