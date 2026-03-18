@@ -1,7 +1,6 @@
 import MySQLdb
 
 import configparser
-from calendar import monthrange
 from datetime import datetime
 
 #------------------Configuração banco de dados-------------------
@@ -116,18 +115,62 @@ def dados_user(id_user, conn=None):
         cursor.execute(sql, (id_user, ))
         usuario = cursor.fetchall()
 
-        if usuario:
-            return usuario
-        else:
-            return []
-            return 'Não tem usuários cadastrados'
+        colunas = [
+            'id_user', 'nome_completo', 'nome_user', 'senha', 'sal_fixo'
+        ]
+        resultado = [dict(zip(colunas, valor)) for valor in usuario]
+
+        for dado in resultado:
+
+            if dado:
+                return dado
+            else:
+                return []
         
     except MySQLdb.Error as e: # Captura erro específico do MySQL
-        print(f'Erro no MySQL ao buscar usuário: {e}')
+        print(f'Erro no MySQL ao buscar dados do usuário: {e}')
         raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
 
     except Exception as e:
-        print(f'Erro inesperado ao buscar usuário: {e}')
+        print(f'Erro inesperado ao buscar dados do usuário: {e}')
+
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
+def dados_receita(id_user, conn=None):
+    """
+    Função que retorna os dados do  usuario
+    """
+    gerenciar_conn = False
+
+    if conn is None:
+        conn= conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+        query = "SELECT id, valor, descricao, data FROM receitas WHERE id= %s"
+        cursor.execute(query, (id_user, ))
+        receitas = cursor.fetchall()
+
+        colunas = [
+            'id_receita', 'valor_recebido', 'descricao', 'data'
+        ]
+
+        if receitas:
+            return [dict(zip(colunas, valor)) for valor in receitas]
+        else:
+            return []
+        
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f'Erro no MySQL ao buscar dados de receitas: {e}')
+        raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
+
+    except Exception as e:
+        print(f'Erro inesperado ao buscar dados de receitas: {e}')
 
     finally:
         if gerenciar_conn:

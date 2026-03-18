@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, pega_despesas_cartao, pega_despesas
+     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, pega_despesas_cartao, pega_despesas, dados_receita
      )
 
 from utils.helper import(
@@ -195,7 +195,7 @@ class Main_app(ctk.CTk):
         self.__dict__['usuario_logado'] = logged_in_username
         
         self.user_id = pega_id(self.usuario_logado)
-        self.nomeComp = dados_user(self.user_id)[0][1]
+        self.dados_usuario = dados_user(self.user_id)
 
         self.data_atual = datetime.now()
         self.mes_atual = self.data_atual.month
@@ -227,7 +227,7 @@ class Main_app(ctk.CTk):
 
         if self.usuario_logado: 
             self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame,
-                                               text=f"Bem-vindo, {self.nomeComp}!",
+                                               text=f"Bem-vindo, {self.dados_usuario.get('nome_completo')}!",
                                                font=ctk.CTkFont(size=16, weight="bold"))
             
         else:
@@ -288,10 +288,31 @@ class Main_app(ctk.CTk):
         self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=self.abrir_det_cc)
         self.det_despesas_cc.grid(row=1, column=4, padx=5, pady=5, sticky="ew")
 
-        """self.det_despesas = ctk.CTkButton(self.cadastro_frame, text="Detalhar Despesas85
-        ", command=self.abrir_det)
-        self.det_despesas.grid(row=0, column=4, padx=5, pady=5, sticky="ew")"""
-        #---------------------------------------------------------------------------------------
+
+
+        #-------------------------------------------------------------------------------------
+        # Frame para agrupar card saldo do mês
+
+        self.frame_resumo = ctk.CTkFrame(self.top_section_frame, width=250, height=100, corner_radius=15, # Bordas arredondadas (estil card moderno)
+        border_width=2    # Espessura da borda que vai mudar de cor
+        )
+        self.frame_resumo.grid(row=0, column=1, padx=20, pady=10, sticky="n")
+
+        self.label_titulo_resumo = ctk.CTkLabel(
+        self.frame_resumo, 
+        text="SALDO DO MÊS", 
+        font=ctk.CTkFont(size=12, weight="bold")
+        )
+        self.label_titulo_resumo.pack(pady=(10, 0))
+
+        self.label_valor_saldo = ctk.CTkLabel(
+        self.frame_resumo, 
+        text="R$ 0,00", 
+        font=ctk.CTkFont(size=24, weight="bold")
+        )
+        self.label_valor_saldo.pack(pady=(0, 10), padx=20)
+
+        self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'))
         
         # -------------------------------------------------------------------------
         # FRAME DE CONTEÚDO PRINCIPAL (Main Content) - DEVE SER DEFINIDO AQUI
@@ -338,7 +359,7 @@ class Main_app(ctk.CTk):
 
 
 
-
+    #Chama as classes
     def abrir_receitas(self):
         """ Direciona o usuário para fazer o cadastro de suas receitas, chamando a classe receitas"""
         
@@ -349,18 +370,15 @@ class Main_app(ctk.CTk):
         # A mainloop() não é chamada para toplevels, elas são gerenciadas pelo master.
         self.wait_window(register_window) #Pausa a janela de login até a popup fechar
 
-
     def abrir_despesas(self):
         register_window = Despesas(self, self.user_id, login_instance=self)
 
         self.wait_window(register_window)
 
-
     def abrir_cc(self):
         register_window = Car_cred(self, self.user_id, login_instance=self)
 
         self.wait_window(register_window)
-
 
     def abrir_det_cc(self):
 
@@ -380,6 +398,7 @@ class Main_app(ctk.CTk):
             print("Erro: Cartão não encontrado")
 
 
+    #Lógica do sistema
     def trocar_mes(self, escolha=None):
 
         print("Botão clicado! Chamando com vigente False")
@@ -424,6 +443,32 @@ class Main_app(ctk.CTk):
 
         self.config(cursor="")
         print("Dashboard atualizado com sucesso! 🚀")
+
+
+    def atualizar_cores_saldo(self, receita, despesa=1500.00):
+
+        receitas = dados_receita(self.user_id)
+        receitas_fornecidas = 0
+
+        for dado in receitas:
+            data_obj = mysql_para_obj(dado.get('data'))
+
+            if self.data_atual.month == data_obj.month and self.data_atual.year == data_obj.year:
+                receitas_fornecidas += float(dado.get('valor_recebido'))
+
+        receita_total = (float(receita) + receitas_fornecidas)
+        saldo =  receita_total - float(despesa)
+
+        if saldo > (receita_total * 0.03):
+            cor_status = "#2ecc71" # Verde (Sucesso)
+        elif saldo >= 0:
+            cor_status = "#f1c40f" # Amarelo (No limite)
+        else:
+            cor_status = "#e74c3c" # Vermelho (Prejuízo)
+
+        # Aplica a cor na borda do Frame e no texto do Saldo
+        self.frame_resumo.configure(border_color=cor_status)
+        self.label_valor_saldo.configure(text=f"{formatar_moeda(saldo)}", text_color=cor_status)
 
 
     def gerar_grafico_mensal(self, controle_mes= 1):
@@ -636,9 +681,13 @@ class Main_app(ctk.CTk):
 
             self.tabela_frame.grid_columnconfigure(2, weight=1)
 
+            self.valor_total_fatura = total_avulsas + total_cards
+
         else:
             ctk.CTkLabel(self.tabela_frame, text="Nenhum pagamento previsto.").grid(row=0, column=0, padx=10, pady=10)
             self.tabela_frame.grid_columnconfigure(2, weight=1)
+
+        
 
 
     def voltar_Plogin(self):
@@ -919,6 +968,11 @@ class Receitas(ctk.CTkToplevel):
         # Formata o objeto datetime para a string 'AAAA-MM-DD'
         data_mysql = data_para_mysql(data_obj)
         
+        try:
+            valor = float(valor.replace(',', '.'))
+        except ValueError:
+            print('Valor precisa ser número valido, decimal!')
+
 
         if not valor or not descricao or not data_obj:
             self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
