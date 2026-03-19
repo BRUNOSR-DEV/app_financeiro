@@ -152,7 +152,7 @@ def dados_receita(id_user, conn=None):
     cursor = conn.cursor()
 
     try:
-        query = "SELECT id, valor, descricao, data FROM receitas WHERE id= %s"
+        query = "SELECT id, valor, descricao, data FROM receitas WHERE id_usuario= %s"
         cursor.execute(query, (id_user, ))
         receitas = cursor.fetchall()
 

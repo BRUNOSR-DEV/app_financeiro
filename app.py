@@ -289,30 +289,6 @@ class Main_app(ctk.CTk):
         self.det_despesas_cc.grid(row=1, column=4, padx=5, pady=5, sticky="ew")
 
 
-
-        #-------------------------------------------------------------------------------------
-        # Frame para agrupar card saldo do mês
-
-        self.frame_resumo = ctk.CTkFrame(self.top_section_frame, width=250, height=100, corner_radius=15, # Bordas arredondadas (estil card moderno)
-        border_width=2    # Espessura da borda que vai mudar de cor
-        )
-        self.frame_resumo.grid(row=0, column=1, padx=20, pady=10, sticky="n")
-
-        self.label_titulo_resumo = ctk.CTkLabel(
-        self.frame_resumo, 
-        text="SALDO DO MÊS", 
-        font=ctk.CTkFont(size=12, weight="bold")
-        )
-        self.label_titulo_resumo.pack(pady=(10, 0))
-
-        self.label_valor_saldo = ctk.CTkLabel(
-        self.frame_resumo, 
-        text="R$ 0,00", 
-        font=ctk.CTkFont(size=24, weight="bold")
-        )
-        self.label_valor_saldo.pack(pady=(0, 10), padx=20)
-
-        self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'))
         
         # -------------------------------------------------------------------------
         # FRAME DE CONTEÚDO PRINCIPAL (Main Content) - DEVE SER DEFINIDO AQUI
@@ -329,8 +305,6 @@ class Main_app(ctk.CTk):
         # -------------------------------------------------------------------------
         # FRAME DA TABELA DETALHADA (AGORA PODE SER DEFINIDO
         # -------------------------------------------------------------------------
-        
-
 
         self.tabela_frame = ctk.CTkScrollableFrame(
         self.main_content_frame, 
@@ -355,6 +329,31 @@ class Main_app(ctk.CTk):
         # Gerar o gráfico ao iniciar
         
         self.gerar_grafico_mensal()
+
+
+        #-------------------------------------------------------------------------------------
+        # Frame para agrupar card saldo do mês
+
+        self.frame_resumo = ctk.CTkFrame(self.top_section_frame, width=250, height=100, corner_radius=15, # Bordas arredondadas (estil card moderno)
+        border_width=2    # Espessura da borda que vai mudar de cor
+        )
+        self.frame_resumo.grid(row=1, column=6, padx=20, pady=10, sticky="n")
+
+        self.label_titulo_resumo = ctk.CTkLabel(
+        self.frame_resumo, 
+        text="SALDO DO MÊS", 
+        font=ctk.CTkFont(size=12, weight="bold")
+        )
+        self.label_titulo_resumo.pack(pady=(10, 0))
+
+        self.label_valor_saldo = ctk.CTkLabel(
+        self.frame_resumo, 
+        text="R$ 0,00", 
+        font=ctk.CTkFont(size=24, weight="bold")
+        )
+        self.label_valor_saldo.pack(pady=(0, 10), padx=20)
+
+        self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), self.preencher_total_dividas(self.user_id))
 
 
 
@@ -410,19 +409,21 @@ class Main_app(ctk.CTk):
             widget.destroy()
         
         if self.mes_atual_str == escolha:
-
-            self.preencher_total_dividas(self.user_id)
+            controle_mes = 1
+            att_mes = self.preencher_total_dividas(self.user_id)
             self.gerar_grafico_mensal()
 
         elif self.prox_mes_str == escolha:
-
-            self.preencher_total_dividas(self.user_id, controle_mes=2)
+            controle_mes = 2
+            att_mes = self.preencher_total_dividas(self.user_id, controle_mes)
             self.gerar_grafico_mensal(controle_mes=2)
 
         elif self.seg_prox_mes_str == escolha:
-        
-            self.preencher_total_dividas(self.user_id, controle_mes=3)
+            controle_mes = 3
+            att_mes = self.preencher_total_dividas(self.user_id, controle_mes)
             self.gerar_grafico_mensal(controle_mes=3)
+
+        self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), att_mes, controle_mes)
 
         
             
@@ -445,19 +446,38 @@ class Main_app(ctk.CTk):
         print("Dashboard atualizado com sucesso! 🚀")
 
 
-    def atualizar_cores_saldo(self, receita, despesa=1500.00):
+    def atualizar_cores_saldo(self, sal_fixo, despesa, controle_mes=1):
 
         receitas = dados_receita(self.user_id)
-        receitas_fornecidas = 0
+        receitas_fornecidas = 0.0
+
+        prox_mes =  (self.data_atual + relativedelta(months=1))
+        seg_prox_mes =  (self.data_atual + relativedelta(months=2))
+        
 
         for dado in receitas:
             data_obj = mysql_para_obj(dado.get('data'))
+            valor = float(dado.get('valor_recebido'))
 
-            if self.data_atual.month == data_obj.month and self.data_atual.year == data_obj.year:
-                receitas_fornecidas += float(dado.get('valor_recebido'))
+            if controle_mes == 1: #mes_atual
+                if self.data_atual.month == data_obj.month and self.data_atual.year == data_obj.year:
+                    receitas_fornecidas = receitas_fornecidas +  valor
+                    print(f"Soma Mes 1: + {valor}") # Print de Debug
 
-        receita_total = (float(receita) + receitas_fornecidas)
+            elif controle_mes == 2: #prox_mes
+                if prox_mes.month == data_obj.month and prox_mes.year == data_obj.year:
+                    receitas_fornecidas = valor
+                    print(f"Soma Mes 2: + {valor}") # Print de Debug
+
+            elif controle_mes == 3: #seg_prox_mes
+                if seg_prox_mes.month == data_obj.month and seg_prox_mes.year == data_obj.year:
+                    receitas_fornecidas += valor
+                    print(f"Soma Mes 3: + {valor}") # Print de Debug
+
+
+        receita_total = (float(sal_fixo) + receitas_fornecidas)
         saldo =  receita_total - float(despesa)
+
 
         if saldo > (receita_total * 0.03):
             cor_status = "#2ecc71" # Verde (Sucesso)
@@ -681,7 +701,7 @@ class Main_app(ctk.CTk):
 
             self.tabela_frame.grid_columnconfigure(2, weight=1)
 
-            self.valor_total_fatura = total_avulsas + total_cards
+            return (total_avulsas + total_cards)
 
         else:
             ctk.CTkLabel(self.tabela_frame, text="Nenhum pagamento previsto.").grid(row=0, column=0, padx=10, pady=10)
@@ -696,7 +716,7 @@ class Main_app(ctk.CTk):
         self.nomeusuario_label.configure(text=f'Até a próxima {self.usuario_logado} !', text_color='red')
         self.update_idletasks()
 
-        sleep(3)
+        sleep(1)
 
         self.destroy()
         from app import Login
@@ -971,7 +991,7 @@ class Receitas(ctk.CTkToplevel):
         try:
             valor = float(valor.replace(',', '.'))
         except ValueError:
-            print('Valor precisa ser número valido, decimal!')
+            print('Valor precisa ser um número valido, decimal!')
 
 
         if not valor or not descricao or not data_obj:
