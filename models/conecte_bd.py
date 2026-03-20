@@ -439,6 +439,26 @@ def inserir_receitas(id_usu, valor, descricao, data, conn=None):
         conn.close()'''
 
 
+def inserir_assinatura(id_user, nome, valor, descricao, data_aq, dia_venc, categoria, id_cc):
+    conn = conectar_bd_original()
+    cursor = conn.cursor()
+    try:
+        query = """
+            INSERT INTO assinaturas 
+            (id_usuario, nome, valor, descricao, data_aquisicao, dia_vencimento, categoria, id_cc) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        valores = (id_user, nome, valor, descricao, data_aq, dia_venc, categoria, id_cc)
+        cursor.execute(query, valores)
+        conn.commit()
+        return cursor.lastrowid
+    
+    except Exception as e:
+        print(f"Erro ao salvar assinatura: {e}")
+        return False
+    finally:
+        desconectar(conn)
+
 
 def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, categoria, data, dc_prim_parc=None, dia_vencimento = None, id_cc= None, conn= None):
     """ Função que inseri as despesas do usuário no BD e retorna o id da mesma"""
@@ -468,7 +488,6 @@ def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, categoria,
     finally:
         if gerenciar_conn:
             desconectar(conn)
-
 
 
 def inserir_cc(id_usu, nome, limite, dia_f, dia_v, conn=None):

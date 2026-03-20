@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, pega_despesas_cartao, pega_despesas, dados_receita
+     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, pega_despesas_cartao, pega_despesas, dados_receita, inserir_assinatura
      )
 
 from utils.helper import(
@@ -190,7 +190,7 @@ class Main_app(ctk.CTk):
     def __init__(self, logged_in_username=None):
         super().__init__()
         self.title("Controle Financeiro")
-        self.geometry("1200x800")
+        self.geometry("1500x800")
 
         self.__dict__['usuario_logado'] = logged_in_username
         
@@ -270,23 +270,26 @@ class Main_app(ctk.CTk):
         #---------------------------------------------------------------------------------------
 
         # Botões
-        self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Receitas", command=self.abrir_receitas)
+        self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Cadastar Receitas", command=self.abrir_receitas)
         self.btn_receitas.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
-        self.btn_despesas = ctk.CTkButton(self.cadastro_frame, text="Despesas", command=self.abrir_despesas)
+        self.btn_despesas = ctk.CTkButton(self.cadastro_frame, text="Cadastrar Despesas", command=self.abrir_despesas)
         self.btn_despesas.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
         self.btn_cc = ctk.CTkButton(self.cadastro_frame, text="Cadastrar C.Crédito", command=self.abrir_cc)
         self.btn_cc.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
 
+        self.btn_assin = ctk.CTkButton(self.cadastro_frame, text="Cadastrar Assinaturas", command=self.abrir_assinaturas)
+        self.btn_assin.grid(row=0, column=3, padx=5, pady=5, sticky="ew")
+
         self.label_cc = ctk.CTkLabel(self.cadastro_frame, text="Selecione o Cartão:")
-        self.label_cc.grid(row=0, column=3, padx=10, pady=5)
+        self.label_cc.grid(row=0, column=4, padx=10, pady=5)
 
         self.menu_cartoes = ctk.CTkOptionMenu(self.cadastro_frame, values=self.nomes_cartoes)
-        self.menu_cartoes.grid(row=1, column=3, padx=10, pady=5)
+        self.menu_cartoes.grid(row=1, column=4, padx=10, pady=5)
 
         self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=self.abrir_det_cc)
-        self.det_despesas_cc.grid(row=1, column=4, padx=5, pady=5, sticky="ew")
+        self.det_despesas_cc.grid(row=1, column=5, padx=5, pady=5, sticky="ew")
 
 
         
@@ -358,26 +361,26 @@ class Main_app(ctk.CTk):
 
 
 
-    #Chama as classes
+    #------ Chamada das classes ---------
+
     def abrir_receitas(self):
-        """ Direciona o usuário para fazer o cadastro de suas receitas, chamando a classe receitas"""
         
-        # Passa a própria instância da tela de login para a tela de registro
-        register_window = Receitas(self, self.user_id, login_instance=self)
-        #self.status_label.configure(text='Abrindo tela de registro...', text_color='blue')
-        
-        # A mainloop() não é chamada para toplevels, elas são gerenciadas pelo master.
-        self.wait_window(register_window) #Pausa a janela de login até a popup fechar
+        register_window = Cadastrar_receitas(self, self.user_id, login_instance=self)
+
+        self.wait_window(register_window) 
+
 
     def abrir_despesas(self):
-        register_window = Despesas(self, self.user_id, login_instance=self)
+        register_window = Cadastrar_despesas(self, self.user_id, self.dados_cartoes, login_instance=self)
 
         self.wait_window(register_window)
+
 
     def abrir_cc(self):
-        register_window = Car_cred(self, self.user_id, login_instance=self)
+        register_window = Cadastrar_car_cred(self, self.user_id, login_instance=self)
 
         self.wait_window(register_window)
+
 
     def abrir_det_cc(self):
 
@@ -390,14 +393,22 @@ class Main_app(ctk.CTk):
 
         if id_card:
 
-            register_window = Detalhar_despesas_cc(self, self.user_id, id_card, nome_card=nome_selecionado)
+            register_window = Despesas_cc(self, self.user_id, id_card, nome_card=nome_selecionado)
 
             self.wait_window(register_window)
         else:
             print("Erro: Cartão não encontrado")
+    
+
+    def abrir_assinaturas(self):
+
+        register_window = Cadastrar_assinaturas(self, self.user_id, self.dados_cartoes)
+
+        self.wait_window(register_window)
 
 
-    #Lógica do sistema
+    # --------- Lógica do sistema ------------
+
     def trocar_mes(self, escolha=None):
 
         print("Botão clicado! Chamando com vigente False")
@@ -707,8 +718,6 @@ class Main_app(ctk.CTk):
             ctk.CTkLabel(self.tabela_frame, text="Nenhum pagamento previsto.").grid(row=0, column=0, padx=10, pady=10)
             self.tabela_frame.grid_columnconfigure(2, weight=1)
 
-        
-
 
     def voltar_Plogin(self):
         """ Método para voltar para a tela de login (botão 'Sair')"""
@@ -726,12 +735,424 @@ class Main_app(ctk.CTk):
 
 
 
-class Detalhar_despesas_cc(ctk.CTkToplevel):
+
+
+# -------- Classes de Cadastro --------------  
+
+class Cadastrar_receitas(ctk.CTkToplevel):
+
+    def __init__(self,  parent=None, user_id=None, login_instance=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.user_id = user_id
+
+        self.title("Registrar Novas Receitas")
+        self.geometry("400x600")
+        self.transient(parent) # Faz a popup aparecer sobre a janela principal e fechar com ela
+        self.grab_set() # Bloqueia interações com a janela principal enquanto a popup está aberta
+        self.focus_set() # Define o foco para esta janela
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=0)
+
+        ctk.CTkLabel(self, text="Cadastre Seus Ganhos", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
+
+        self.valor = ctk.CTkEntry(self, placeholder_text="Valor Ganho")
+        self.valor.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+
+        self.descricao = ctk.CTkEntry(self, placeholder_text="Descrição")
+        self.descricao.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+        self.label_data_compra = ctk.CTkLabel(self, text="Data de recebimento:", font=ctk.CTkFont(size=16, weight="bold"))
+        self.label_data_compra.grid(row=3, column=0)
+            
+        self.data_recebimento = DateEntry(self, width=12, background='darkblue',
+                            foreground='white', borderwidth=2, year=2026, 
+                            locale='pt_BR', date_pattern='dd/mm/yyyy')
+        self.data_recebimento.grid(row=4, column=0, padx=10, pady=10)
+
+        self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
+        self.botao_salvar.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+
+        self.status_label = ctk.CTkLabel(self, text="", text_color="red")
+        self.status_label.grid(row=6, column=0, pady=5)
+
+
+
+    def salvar_dados(self):
+        """ Verifica e salva os dados no db """
+
+        valor = self.valor.get().strip()
+        descricao = self.descricao.get().strip()
+        data_obj = self.data_recebimento.get_date()
+
+        # Formata o objeto datetime para a string 'AAAA-MM-DD'
+        data_mysql = data_para_mysql(data_obj)
+        
+        try:
+            valor = float(valor.replace(',', '.'))
+        except ValueError:
+            print('Valor precisa ser um número valido, decimal!')
+
+
+        if not valor or not descricao or not data_obj:
+            self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
+            self.update_idletasks()
+            sleep(1)
+            return
+        else:
+            retorno = inserir_receitas(self.user_id, valor, descricao, data_mysql)
+
+        if retorno:
+            self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+            self.update_idletasks()
+            sleep(2)
+                
+        else:
+            self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
+            self.update_idletasks()
+
+ 
+class Cadastrar_despesas(ctk.CTkToplevel):
+
+    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, login_instance=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.user_id = user_id
+        self.dados_cartoes = dados_cartoes
+
+        self.title("Registrar Novas Despesas")
+        self.geometry("800x900")
+        self.transient(parent)
+        self.grab_set() 
+        self.focus_set() 
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1) # O frame rolavel ocupará toda a janela
+
+        self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
+
+        self.data_atual = datetime.now().date()
+
+        # ------------------------------------------------------------------------
+        # PASSO 1: Criar o CTkScrollableFrame e posicioná-lo
+        # Ele será o master de todo o conteúdo da janela
+        self.scrollable_frame = ctk.CTkScrollableFrame(self, label_text="Cadastre Suas Despesas")
+        self.scrollable_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        
+        # Configuração da grade interna do frame rolavel
+        self.scrollable_frame.grid_columnconfigure(0, weight=1)
+        # ------------------------------------------------------------------------
+
+        # TODOS OS WIDGETS USAM self.scrollable_frame COMO SEU MASTER
+
+        # LOCAL DA COMPRA
+        self.local = ctk.CTkEntry(self.scrollable_frame, placeholder_text="Local da compra*")
+        self.local.grid(row=0, column=0, padx=20, pady=10, sticky="ew")
+
+        # TOTAL DA COMPRA
+        self.valor_total = ctk.CTkEntry(self.scrollable_frame, placeholder_text="Valor total da compra*")
+        self.valor_total.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+
+        # PARCELAS
+        parcelas_opcoes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+        self.menu_parcelas = ctk.CTkOptionMenu(self.scrollable_frame, values=parcelas_opcoes)
+        self.menu_parcelas.grid(row=2, column=0, padx=20, pady=20, sticky="ew")
+        self.menu_parcelas.set("N° Parcelas")
+
+        # DESCRIÇÃO DA COMPRA
+        self.descricao = ctk.CTkEntry(self.scrollable_frame, placeholder_text="Descrição da compra")
+        self.descricao.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+
+        # CATEGORIA
+        categorias = ['Lazer', 'Roupas', 'Essencial', 'Estudos', 'Saúde', 'Empréstimo', ' Hobby', 'Trabalho']
+        self.categoria = ctk.CTkOptionMenu(self.scrollable_frame, values=categorias)
+        self.categoria.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        self.categoria.set("Categoria")
+
+        # DATA DA COMPRA
+        self.label_data_compra = ctk.CTkLabel(self.scrollable_frame, text="Data da Compra:", font=ctk.CTkFont(size=16, weight="bold"))
+        self.label_data_compra.grid(row=5, column=0)
+
+        self.campo_data_compra = DateEntry(self.scrollable_frame, width=12, background='darkblue',
+                            foreground='white', borderwidth=2, year=2026, 
+                            locale='pt_BR', date_pattern='dd/mm/yyyy')
+        self.campo_data_compra.grid(row=6, column=0, padx=10, pady=10)
+
+        # data primeira parcela - se não for no cartão
+        self.label_primeira_dc = ctk.CTkLabel(self.scrollable_frame, text="Data do primeiro pagamento: [não preencher se a compra for no c. crédito]", font=ctk.CTkFont(size=16, weight="bold"))
+        self.label_primeira_dc.grid(row=7, column=0)
+
+        self.campo_primeira_dc = DateEntry(self.scrollable_frame, width=12, background='darkblue',
+                            foreground='white', borderwidth=2, year=2026, 
+                            locale='pt_BR', date_pattern='dd/mm/yyyy')
+        self.campo_primeira_dc.grid(row=8, column=0, padx=10, pady=10)
+        
+        #Seleção de cartão de crédito
+        if self.nomes_cartoes:
+            
+            self.car_cred = ctk.CTkOptionMenu(self.scrollable_frame, values=self.nomes_cartoes)
+            self.car_cred.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
+            self.car_cred.set("Cartão de Cobrança")
+        else:
+            self.car_cred = ctk.CTkOptionMenu(self.scrollable_frame, values=[' ', ' ',])
+            self.car_cred.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
+            self.car_cred.set("Cadastre cartões na área destinada")
+
+        # Linha 10 (Antiga Linha 9)
+        self.botao_salvar = ctk.CTkButton(self.scrollable_frame, text="Salvar Dados", command=self.salvar_dados)
+        self.botao_salvar.grid(row=10, column=0, padx=20, pady=20, sticky="ew") # Maior padding para destacar
+
+        # Linha 11 (Antiga Linha 10)
+        self.status_label = ctk.CTkLabel(self.scrollable_frame, text="", text_color="red")
+        self.status_label.grid(row=11, column=0, pady=5)
+
+
+    def salvar_dados(self):
+        """ Verifica e salva os dados no BD """
+
+        dia_venc = None
+        id_card = None
+        verifica_pri_dc = False
+
+        local = self.local.get().strip()
+        valor_total = self.valor_total.get().strip()
+        menu_parcelas_str = self.menu_parcelas.get()
+        descricao = self.descricao.get().strip()
+        categoria = self.categoria.get()
+        dc_select = self.campo_data_compra.get_date()
+        prim_dc_select = self.campo_primeira_dc.get_date()
+
+        if prim_dc_select != self.data_atual:
+            dia_venc = prim_dc_select.day
+            verifica_pri_dc = True
+            prim_dc_select_mysql = data_para_mysql(prim_dc_select)
+
+        car_cred = self.car_cred.get()
+
+        # Formata o objeto datetime para a string 'AAAA-MM-DD' para mandar para o db
+        dc_select_mysql = data_para_mysql(dc_select)
+        
+
+
+        if not local or not valor_total or categoria == "Categoria" or menu_parcelas_str == "N° Parcelas":
+            self.status_label.configure(text='Preencha Local, Valor Total, Categoria , N° Parcelas e Data da compra', text_color='red')
+            self.after(2000, lambda: self.status_label.configure(text='')) # Usa after() para não travar
+            return
     
-    def __init__(self, master, id_user, id_card, nome_card, *args, **kwargs):
-        super().__init__(master, *args, **kwargs)
+        try:
+            parcelas = int(menu_parcelas_str)
+             # Tenta converter o valor para float
+            valor_total = float(valor_total.replace(",", "."))
+        except ValueError:
+            self.status_label.configure(text='Valor Total ou Parcelas devem ser números válidos!', text_color='red')
+            self.after(2000, lambda: self.status_label.configure(text=''))
+            return
+        
+        # 2. VALIDAÇÃO CONDICIONAL PRINCIPAL
+    
+        # Flag para saber se o requisito de pagamento foi atendido
+        pagamento_atendido = True
+    
+        # A despesa é parcelada, DEVE ter um cartão OU data de vencimento
+        
+        tem_cartao = car_cred != "Selecione um Cartão"
+
+        
+        if not tem_cartao and not verifica_pri_dc:
+            # Se não tem cartão E não tem dia de vencimento, falha!
+            self.status_label.configure(text='Informe um Cartão OU Data do primeiro pagamento', text_color='red')
+            self.after(4000, lambda: self.status_label.configure(text=''))
+            return # Sai do método
+
+        
+        if tem_cartao:
+            for dado in self.dados_cartoes:
+                if dado.get('nome_cartao') == car_cred:
+                    id_card = dado.get('id_cartao')
+
+
+        if not verifica_pri_dc and tem_cartao:
+            prim_dc_select_mysql = None
+
+            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+        else:
+            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+
+        if retorno:
+            self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+            self.update_idletasks()
+
+            if hasattr(self.master, 'trocar_mes'): 
+                self.master.trocar_mes()
+
+            self.limpar_campos()
+            
+            self.after(3000, lambda: self.status_label.configure(text=''))
+
+                
+        else:
+            self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
+            self.update_idletasks()
+
+
+    
+
+    def limpar_campos(self):
+        """Limpa todos os campos de entrada do formulário de despesas."""
+        
+        # Limpa CTkEntry's
+        self.local.delete(0, ctk.END)
+        self.valor_total.delete(0, ctk.END)
+        self.descricao.delete(0, ctk.END)
+
+        
+        # Reseta CTkOptionMenu's para seus valores padrão
+        self.menu_parcelas.set("N° Parcelas")
+        self.categoria.set("Categoria")
+        self.car_cred.set("Selecione um Cartão")
+
+        self.campo_data_compra.set_date(self.data_atual)
+        self.campo_primeira_dc.set_date(self.data_atual)
+        
+        """
+        # Reseta o menu de Cartões (para o primeiro item da lista)
+        lista_nomes = [cartao[1] for cartao in self.lista_cartoes_id_nome] 
+        if lista_nomes:
+            self.car_cred.set(lista_nomes[0])
+        """
+                
+
+class Cadastrar_car_cred(ctk.CTkToplevel):
+
+    def __init__(self,  parent=None, user_id=None, login_instance=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.user_id = user_id
+
+        self.title("Registrar Novos Cartões de Crédito")
+        self.geometry("400x600")
+        self.transient(parent)
+        self.grab_set() 
+        self.focus_set()
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6), weight=0)
+
+        ctk.CTkLabel(self, text="Cadastre Seus Cartões de Crédito", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
+
+        self.nome_cc = ctk.CTkEntry(self, placeholder_text="Nome do Cartão*")
+        self.nome_cc.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+
+        self.limite = ctk.CTkEntry(self, placeholder_text="Limite do Cartão*")
+        self.limite.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+        self.dia_fechamento = ctk.CTkEntry(self, placeholder_text="Dia do fechamento*")
+        self.dia_fechamento.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+
+        self.dia_vencimento = ctk.CTkEntry(self, placeholder_text="Dia do vencimento*")
+        self.dia_vencimento.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+
+        self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
+        self.botao_salvar.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+
+        self.status_label = ctk.CTkLabel(self, text="", text_color="red")
+        self.status_label.grid(row=6, column=0, pady=5)
+
+
+    def salvar_dados(self):
+        """ Verifica e salva os dados no BD """
+
+
+        """VERIFICAR SE O USUÁRIO NÃO ESTÁ COLOCANDO UM NOME DE CARTÃO REPETIDO"""
+
+
+        nome_cc = self.nome_cc.get().strip()
+        limite = self.limite.get().strip()
+        dia_f = self.dia_fechamento.get().strip()
+        dia_v = self.dia_vencimento.get().strip()
+                
+
+        if not nome_cc or not limite or not dia_f or not dia_v:
+            self.status_label.configure(text='Por favor, preencha todos os campos obrigarórios', text_color='red')
+            self.update_idletasks()
+            sleep(1)
+            return
+        else:
+            retorno = inserir_cc(self.user_id, nome_cc, limite, dia_f, dia_v)
+
+        if retorno:
+            self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+            self.update_idletasks()
+            sleep(2)
+
+            #self.destroy()
+                
+        else:
+            self.status_label.configure(text='Não foi possível salvar os dados, contate o adm do sistema...', text_color='red')
+            self.update_idletasks()
+
+
+class Cadastrar_assinaturas(ctk.CTkToplevel):
+
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None):
+        super().__init__(parent)
+        self.title("Gerenciar Assinaturas")
+        self.geometry("400x600")
+        self.grab_set() 
+        self.focus_set()
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6), weight=0)
+
+        self.user_id = user_id
+        self.dados_cartoes = dados_cartoes 
+
+        # --- UI - Título ---
+        self.label_titulo = ctk.CTkLabel(self, text="Nova Assinatura Mensal", font=("Arial", 20, "bold"))
+        self.label_titulo.grid(row=0, column=0, pady=15)
+
+        # --- UI - Campos de Entrada ---
+        self.entry_nome = ctk.CTkEntry(self, placeholder_text="Nome (Ex: Netflix, Academia)", width=300)
+        self.entry_nome.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+
+        self.entry_valor = ctk.CTkEntry(self, placeholder_text="Valor Mensal (R$)", width=300)
+        self.entry_valor.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+        self.entry_desc = ctk.CTkEntry(self, placeholder_text="Descrição (Opcional)", width=300)
+        self.entry_desc.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+
+        # Menu de Categorias
+        categorias = ['Lazer', 'Essencial', 'Estudos', 'Saúde', ' Hobby',]
+        self.menu_cat = ctk.CTkOptionMenu(self, values=categorias, width=300)
+        self.menu_cat.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        self.menu_cat.set("Selecione a Categoria")
+
+        # Menu de Cartões utilizando de dados_cartos - list(dict)
+        nomes_cartoes = [c['nome_cartao'] for c in self.dados_cartoes]
+        self.menu_cc = ctk.CTkOptionMenu(self, values=nomes_cartoes, width=300)
+        self.menu_cc.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+        self.menu_cc.set("Cartão de Cobrança")
+
+        # --- Botão Salvar ---
+        self.btn_salvar = ctk.CTkButton(self, text="Confirmar Assinatura", command=self.salvar_dados, fg_color="#2c3e50", hover_color="#34495e")
+        self.btn_salvar.grid(row=6, column=0, padx=20, pady=10, sticky="ew")
+
+    def salvar_dados(self):
+       
+        pass
+
+
+#------------  Classe(s) de Detalhe(s) -----------
+
+class Despesas_cc(ctk.CTkToplevel):
+    
+    def __init__(self, parent, id_user, id_card, nome_card, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
         self.title(f"Detalhes: {nome_card}")
         self.geometry("1000x800")
+        self.transient(parent)
         
         # Garante que a janela fique na frente
         self.attributes("-topmost", True) 
@@ -938,360 +1359,6 @@ class Detalhar_despesas_cc(ctk.CTkToplevel):
 
 
 
-class Receitas(ctk.CTkToplevel):
-
-    def __init__(self,  master=None, user_id=None, login_instance=None):
-        super().__init__(master)
-
-        self.user_id = user_id
-
-        self.title("Registrar Novas Receitas")
-        self.geometry("450x600")
-        self.transient(master) # Faz a popup aparecer sobre a janela principal e fechar com ela
-        self.grab_set() # Bloqueia interações com a janela principal enquanto a popup está aberta
-        self.focus_set() # Define o foco para esta janela
-
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=0)
-
-        ctk.CTkLabel(self, text="Cadastre Seus Ganhos", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
-
-        self.valor = ctk.CTkEntry(self, placeholder_text="Valor Ganho")
-        self.valor.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
-
-        self.descricao = ctk.CTkEntry(self, placeholder_text="Descrição")
-        self.descricao.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
-
-        self.label_data_compra = ctk.CTkLabel(self, text="Data de recebimento:", font=ctk.CTkFont(size=16, weight="bold"))
-        self.label_data_compra.grid(row=3, column=0)
-            
-        self.data_recebimento = DateEntry(self, width=12, background='darkblue',
-                            foreground='white', borderwidth=2, year=2026, 
-                            locale='pt_BR', date_pattern='dd/mm/yyyy')
-        self.data_recebimento.grid(row=4, column=0, padx=10, pady=10)
-
-        self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
-        self.botao_salvar.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
-
-        self.status_label = ctk.CTkLabel(self, text="", text_color="red")
-        self.status_label.grid(row=6, column=0, pady=5)
-
-
-
-    def salvar_dados(self):
-        """ Verifica e salva os dados no db """
-
-        valor = self.valor.get().strip()
-        descricao = self.descricao.get().strip()
-        data_obj = self.data_recebimento.get_date()
-
-        # Formata o objeto datetime para a string 'AAAA-MM-DD'
-        data_mysql = data_para_mysql(data_obj)
-        
-        try:
-            valor = float(valor.replace(',', '.'))
-        except ValueError:
-            print('Valor precisa ser um número valido, decimal!')
-
-
-        if not valor or not descricao or not data_obj:
-            self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
-            self.update_idletasks()
-            sleep(1)
-            return
-        else:
-            retorno = inserir_receitas(self.user_id, valor, descricao, data_mysql)
-
-        if retorno:
-            self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
-            self.update_idletasks()
-            sleep(2)
-                
-        else:
-            self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
-            self.update_idletasks()
-
-
- 
-class Despesas(ctk.CTkToplevel):
-
-    def __init__(self,  master=None, user_id=None, login_instance=None):
-        super().__init__(master)
-
-        self.user_id = user_id
-
-        self.title("Registrar Novas Receitas")
-        self.geometry("800x900")
-        self.transient(master)
-        self.grab_set() 
-        self.focus_set() 
-
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1) # O frame rolavel ocupará toda a janela
-
-        self.dados_cartoes = dados_card(self.user_id)
-        self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
-
-        self.data_atual = datetime.now().date()
-
-        # ------------------------------------------------------------------------
-        # PASSO 1: Criar o CTkScrollableFrame e posicioná-lo
-        # Ele será o master de todo o conteúdo da janela
-        self.scrollable_frame = ctk.CTkScrollableFrame(self, label_text="Cadastre Suas Despesas")
-        self.scrollable_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        
-        # Configuração da grade interna do frame rolavel
-        self.scrollable_frame.grid_columnconfigure(0, weight=1)
-        # ------------------------------------------------------------------------
-
-        # TODOS OS WIDGETS USAM self.scrollable_frame COMO SEU MASTER
-
-        # LOCAL DA COMPRA
-        self.local = ctk.CTkEntry(self.scrollable_frame, placeholder_text="Local da compra*")
-        self.local.grid(row=0, column=0, padx=20, pady=10, sticky="ew")
-
-        # TOTAL DA COMPRA
-        self.valor_total = ctk.CTkEntry(self.scrollable_frame, placeholder_text="Valor total da compra*")
-        self.valor_total.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
-
-        # PARCELAS
-        parcelas_opcoes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
-        self.menu_parcelas = ctk.CTkOptionMenu(self.scrollable_frame, values=parcelas_opcoes)
-        self.menu_parcelas.grid(row=2, column=0, padx=20, pady=20, sticky="ew")
-        self.menu_parcelas.set("N° Parcelas")
-
-        # DESCRIÇÃO DA COMPRA
-        self.descricao = ctk.CTkEntry(self.scrollable_frame, placeholder_text="Descrição da compra")
-        self.descricao.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
-
-        # CATEGORIA
-        categorias = ['Laser', 'Roupas', 'Essencial', 'Estudos', 'Saúde', 'Dividas',]
-        self.categoria = ctk.CTkOptionMenu(self.scrollable_frame, values=categorias)
-        self.categoria.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
-        self.categoria.set("Categoria")
-
-        # DATA DA COMPRA
-        self.label_data_compra = ctk.CTkLabel(self.scrollable_frame, text="Data da Compra:", font=ctk.CTkFont(size=16, weight="bold"))
-        self.label_data_compra.grid(row=5, column=0)
-
-        self.campo_data_compra = DateEntry(self.scrollable_frame, width=12, background='darkblue',
-                            foreground='white', borderwidth=2, year=2026, 
-                            locale='pt_BR', date_pattern='dd/mm/yyyy')
-        self.campo_data_compra.grid(row=6, column=0, padx=10, pady=10)
-
-        # data primeira parcela - se não for no cartão
-        self.label_primeira_dc = ctk.CTkLabel(self.scrollable_frame, text="Data do primeiro pagamento: [não preencher se a compra for no c. crédito]", font=ctk.CTkFont(size=16, weight="bold"))
-        self.label_primeira_dc.grid(row=7, column=0)
-
-        self.campo_primeira_dc = DateEntry(self.scrollable_frame, width=12, background='darkblue',
-                            foreground='white', borderwidth=2, year=2026, 
-                            locale='pt_BR', date_pattern='dd/mm/yyyy')
-        self.campo_primeira_dc.grid(row=8, column=0, padx=10, pady=10)
-        
-        #Seleção de cartão de crédito
-        if self.nomes_cartoes:
-            
-            self.car_cred = ctk.CTkOptionMenu(self.scrollable_frame, values=self.nomes_cartoes)
-            self.car_cred.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
-            self.car_cred.set("Selecione um Cartão")
-        else:
-            self.car_cred = ctk.CTkOptionMenu(self.scrollable_frame, values=[' ', ' ',])
-            self.car_cred.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
-            self.car_cred.set("Cadastre cartões na área destinada")
-
-        # Linha 10 (Antiga Linha 9)
-        self.botao_salvar = ctk.CTkButton(self.scrollable_frame, text="Salvar Dados", command=self.salvar_dados)
-        self.botao_salvar.grid(row=10, column=0, padx=20, pady=20, sticky="ew") # Maior padding para destacar
-
-        # Linha 11 (Antiga Linha 10)
-        self.status_label = ctk.CTkLabel(self.scrollable_frame, text="", text_color="red")
-        self.status_label.grid(row=11, column=0, pady=5)
-
-
-    def salvar_dados(self):
-        """ Verifica e salva os dados no BD """
-
-        dia_venc = None
-        id_card = None
-        verifica_pri_dc = False
-
-        local = self.local.get().strip()
-        valor_total = self.valor_total.get().strip()
-        menu_parcelas_str = self.menu_parcelas.get()
-        descricao = self.descricao.get().strip()
-        categoria = self.categoria.get()
-        dc_select = self.campo_data_compra.get_date()
-        prim_dc_select = self.campo_primeira_dc.get_date()
-
-        if prim_dc_select != self.data_atual:
-            dia_venc = prim_dc_select.day
-            verifica_pri_dc = True
-            prim_dc_select_mysql = data_para_mysql(prim_dc_select)
-
-        car_cred = self.car_cred.get()
-
-        # Formata o objeto datetime para a string 'AAAA-MM-DD' para mandar para o db
-        dc_select_mysql = data_para_mysql(dc_select)
-        
-
-
-        if not local or not valor_total or categoria == "Categoria" or menu_parcelas_str == "N° Parcelas":
-            self.status_label.configure(text='Preencha Local, Valor Total, Categoria , N° Parcelas e Data da compra', text_color='red')
-            self.after(2000, lambda: self.status_label.configure(text='')) # Usa after() para não travar
-            return
-    
-        try:
-            parcelas = int(menu_parcelas_str)
-             # Tenta converter o valor para float
-            valor_total = float(valor_total.replace(",", "."))
-        except ValueError:
-            self.status_label.configure(text='Valor Total ou Parcelas devem ser números válidos!', text_color='red')
-            self.after(2000, lambda: self.status_label.configure(text=''))
-            return
-        
-        # 2. VALIDAÇÃO CONDICIONAL PRINCIPAL
-    
-        # Flag para saber se o requisito de pagamento foi atendido
-        pagamento_atendido = True
-    
-        # A despesa é parcelada, DEVE ter um cartão OU data de vencimento
-        
-        tem_cartao = car_cred != "Selecione um Cartão"
-
-        
-        if not tem_cartao and not verifica_pri_dc:
-            # Se não tem cartão E não tem dia de vencimento, falha!
-            self.status_label.configure(text='Informe um Cartão OU Data do primeiro pagamento', text_color='red')
-            self.after(4000, lambda: self.status_label.configure(text=''))
-            return # Sai do método
-
-        
-        if tem_cartao:
-            for dado in self.dados_cartoes:
-                if dado.get('nome_cartao') == car_cred:
-                    id_card = dado.get('id_cartao')
-
-
-        if not verifica_pri_dc and tem_cartao:
-            prim_dc_select_mysql = None
-
-            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
-        else:
-            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
-
-        if retorno:
-            self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
-            self.update_idletasks()
-
-            if hasattr(self.master, 'trocar_mes'): 
-                self.master.trocar_mes()
-
-            self.limpar_campos()
-            
-            self.after(3000, lambda: self.status_label.configure(text=''))
-
-                
-        else:
-            self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
-            self.update_idletasks()
-
-
-    
-
-    def limpar_campos(self):
-        """Limpa todos os campos de entrada do formulário de despesas."""
-        
-        # Limpa CTkEntry's
-        self.local.delete(0, ctk.END)
-        self.valor_total.delete(0, ctk.END)
-        self.descricao.delete(0, ctk.END)
-
-        
-        # Reseta CTkOptionMenu's para seus valores padrão
-        self.menu_parcelas.set("N° Parcelas")
-        self.categoria.set("Categoria")
-        self.car_cred.set("Selecione um Cartão")
-
-        self.campo_data_compra.set_date(self.data_atual)
-        self.campo_primeira_dc.set_date(self.data_atual)
-        
-        """
-        # Reseta o menu de Cartões (para o primeiro item da lista)
-        lista_nomes = [cartao[1] for cartao in self.lista_cartoes_id_nome] 
-        if lista_nomes:
-            self.car_cred.set(lista_nomes[0])
-        """
-                
-        
-
-class Car_cred(ctk.CTkToplevel):
-
-    def __init__(self,  master=None, user_id=None, login_instance=None):
-        super().__init__(master)
-
-        self.user_id = user_id
-
-        self.title("Registrar Novas Receitas")
-        self.geometry("450x600")
-        self.transient(master)
-        self.grab_set() 
-        self.focus_set()
-
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6), weight=0)
-
-        ctk.CTkLabel(self, text="Cadastre Seus Cartões de Crédito", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
-
-        self.nome_cc = ctk.CTkEntry(self, placeholder_text="Nome do Cartão*")
-        self.nome_cc.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
-
-        self.limite = ctk.CTkEntry(self, placeholder_text="Limite do Cartão*")
-        self.limite.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
-
-        self.dia_fechamento = ctk.CTkEntry(self, placeholder_text="Dia do fechamento*")
-        self.dia_fechamento.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
-
-        self.dia_vencimento = ctk.CTkEntry(self, placeholder_text="Dia do vencimento*")
-        self.dia_vencimento.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
-
-        self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
-        self.botao_salvar.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
-
-        self.status_label = ctk.CTkLabel(self, text="", text_color="red")
-        self.status_label.grid(row=6, column=0, pady=5)
-
-
-    def salvar_dados(self):
-        """ Verifica e salva os dados no BD """
-
-
-        """VERIFICAR SE O USUÁRIO NÃO ESTÁ COLOCANDO UM NOME DE CARTÃO REPETIDO"""
-
-
-        nome_cc = self.nome_cc.get().strip()
-        limite = self.limite.get().strip()
-        dia_f = self.dia_fechamento.get().strip()
-        dia_v = self.dia_vencimento.get().strip()
-                
-
-        if not nome_cc or not limite or not dia_f or not dia_v:
-            self.status_label.configure(text='Por favor, preencha todos os campos obrigarórios', text_color='red')
-            self.update_idletasks()
-            sleep(1)
-            return
-        else:
-            retorno = inserir_cc(self.user_id, nome_cc, limite, dia_f, dia_v)
-
-        if retorno:
-            self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
-            self.update_idletasks()
-            sleep(2)
-
-            #self.destroy()
-                
-        else:
-            self.status_label.configure(text='Não foi possível salvar os dados, contate o adm do sistema...', text_color='red')
-            self.update_idletasks()
 
 
 
