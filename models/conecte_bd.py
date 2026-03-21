@@ -439,16 +439,16 @@ def inserir_receitas(id_usu, valor, descricao, data, conn=None):
         conn.close()'''
 
 
-def inserir_assinatura(id_user, nome, valor, descricao, data_aq, dia_venc, categoria, id_cc):
+def inserir_assinatura(id_user, nome, valor, descricao, data_aq, data_prim_parc, dia_venc, categoria, id_cc):
     conn = conectar_bd_original()
     cursor = conn.cursor()
     try:
         query = """
             INSERT INTO assinaturas 
-            (id_usuario, nome, valor, descricao, data_aquisicao, dia_vencimento, categoria, id_cc) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            (id_usuario, nome, valor, descricao, data_aquisicao, data_prim_parc, dia_vencimento, categoria, id_cc) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
-        valores = (id_user, nome, valor, descricao, data_aq, dia_venc, categoria, id_cc)
+        valores = (id_user, nome, valor, descricao, data_aq, data_prim_parc, dia_venc, categoria, id_cc)
         cursor.execute(query, valores)
         conn.commit()
         return cursor.lastrowid
