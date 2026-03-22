@@ -1008,8 +1008,6 @@ class Cadastrar_despesas(ctk.CTkToplevel):
         self.campo_primeira_dc.set_date(self.data_atual)
         
 
-                
-
 class Cadastrar_car_cred(ctk.CTkToplevel):
 
     def __init__(self,  parent=None, user_id=None, login_instance=None, *args, **kwargs):
@@ -1096,6 +1094,7 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
         self.dados_cartoes = dados_cartoes 
 
         self.data_atual = datetime.now()
+        self.data_futuro = (self.data_atual + relativedelta(years=73)).replace(day=1, month=1).date() #set de data no futuro ddistante, para lógica
         
         # --- UI scrollable Com Título ---
         self.scrollable_frame = ctk.CTkScrollableFrame(self, label_text="Cadastre Suas Assinaturas")
@@ -1125,7 +1124,7 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
         self.label_primeira_dc.grid(row=5, column=0)
 
         self.campo_prim_dp = DateEntry(self.scrollable_frame, width=12, background='darkblue',
-                            foreground='white', borderwidth=2, year=2026, 
+                            foreground='white', borderwidth=2, day=1, month=1, year=2099, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
         self.campo_prim_dp.grid(row=6, column=0, padx=10, pady=10)
 
@@ -1179,14 +1178,19 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
 
         data_pp_mysql = None
 
-        if data_pp != so_data:
+        if data_pp != self.data_futuro:
             dia_venc = data_pp.day
             verifica_data_pp = True
             data_pp_mysql = data_para_mysql(data_pp)
 
+            if data_pp.year == self.data_futuro.year:
+                self.status_label.configure(text='Mude o ano da data de primeiro pagemento', text_color='red')
+                self.after(3000, lambda: self.status_label.configure(text='')) 
+                return
+
         if not nome or not valor or categoria == "Selecione a Categoria":
             self.status_label.configure(text='Preencha Nome, Valor, Categoria ,', text_color='red')
-            self.after(2000, lambda: self.status_label.configure(text='')) 
+            self.after(3000, lambda: self.status_label.configure(text='')) 
             return
 
         try:
@@ -1194,7 +1198,7 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
             valor = float(valor.replace(",", "."))
         except ValueError:
             self.status_label.configure(text=" 'Valor' deve ser números válidos!", text_color='red')
-            self.after(2000, lambda: self.status_label.configure(text=''))
+            self.after(3000, lambda: self.status_label.configure(text=''))
             return
         
         #Verifica de o usuário selecionou um cartão
@@ -1207,7 +1211,7 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
         #Verifica se data_pp ou seleção do cartão não foi alterado 
         if not verifica_data_pp and cartao == "Cartão de Cobrança - Sem Cartão":
             self.status_label.configure(text='Selecione uma data de primeiro pagamento ou um cartão de crédito ', text_color='red')
-            self.after(2000, lambda: self.status_label.configure(text='')) 
+            self.after(3000, lambda: self.status_label.configure(text='')) 
             return
         
         #chama o método para inserir os dados no db e retorna se bem sucedido
@@ -1244,7 +1248,7 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
         self.menu_cc.set("Cartão de Cobrança - Sem Cartão")
 
         self.data_aquisicao.set_date(self.data_atual)
-        self.campo_prim_dp.set_date(self.data_atual)
+        self.campo_prim_dp.set_date(self.data_futuro)
         
 
         

@@ -344,6 +344,41 @@ def pega_despesas(id_user, conn= None):
             desconectar(conn)
 
 
+def dados_assinaturas(id_user, conn=None):
+    """
+    Busca todas as assinaturas de um usuário específico.
+    """
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+        query = """
+            SELECT id, nome, valor, descricao, data_aquisicao, data_prim_parc, dia_vencimento, categoria, id_cc
+            FROM assinaturas 
+            WHERE id_usuario = %s 
+        """
+        
+        cursor.execute(query, (id_user,))
+        resultados = cursor.fetchall()
+        
+        # Mapeando as colunas. 
+        colunas = [
+            'id_assinatura', 'nome', 'valor', 'descricao', 'data_aquisicao','data_prim_parc', 'categoria', 'id_cc', 
+        ]
+        
+        return [dict(zip(colunas, linha)) for linha in resultados]
+
+    except Exception as e:
+        print(f"Erro ao buscar Assinaturas: {e}")
+        return []
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
 
 
 #----------------------------------------------------------------------
