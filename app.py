@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, pega_despesas_cartao, pega_despesas, dados_receita, inserir_assinatura
+     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, pega_despesas_cartao, pega_despesas, dados_receita, inserir_assinatura, dados_assinaturas_avulcas, dados_assinaturas_cartao
      )
 
 from utils.helper import(
@@ -541,12 +541,11 @@ class Main_app(ctk.CTk):
         # parte avulsas
         for desp in desp_avulsas:
             primeira_parc = mysql_para_obj(desp.get('primeira_parc'))
-            data_compra = mysql_para_obj(desp.get('data_compra'))
             parcelas = desp.get('parcelas')
             dia_venc = desp.get('dia_vencimento')
         
             # Usando sua função de controle para avulsas
-            resultado = controle_data_parc(data_compra, primeira_parc, dia_venc , parcelas, controle_mes = controle_mes)
+            resultado = controle_data_parc(primeira_parc, dia_venc , parcelas, controle_mes = controle_mes)
             _, entra_no_mes, _ = resultado
 
             if entra_no_mes:
@@ -593,14 +592,15 @@ class Main_app(ctk.CTk):
             widget.destroy()
 
         despesas = pega_despesas(id_user) 
-        cartoes = dados_card(id_user)     
+        cartoes = dados_card(id_user) 
+        assin = dados_assinaturas_avulcas(id_user) 
 
         total_avulsas = 0
         total_cards = 0
 
+        #Lógica para montar lista com o total de cada cartão
 
         lista_faturas_resumo = []
-
         if cartoes:
             for cartao in cartoes:
                 nome_cartao = cartao.get('nome_cartao')
@@ -639,15 +639,14 @@ class Main_app(ctk.CTk):
                         'vencimento': data_vencimento_fatura
                     })
 
-                
 
 
     
         # Se tiver despesas avulsas OU tiver faturas de cartão, a gente desenha a tabela
-        if despesas or lista_faturas_resumo:
+        if despesas or lista_faturas_resumo or assin:
         
             # Cabeçalho
-            ctk.CTkLabel(self.tabela_frame, text="Local", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame, text="Local/Nome", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
             ctk.CTkLabel(self.tabela_frame, text="Mensalidade", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.tabela_frame, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
@@ -655,19 +654,46 @@ class Main_app(ctk.CTk):
             linha = 1
 
 
+
+            lista_assin_resumo = []
+            total_ass_avulcas = 0.0
+
+            if assin: #'id_assinatura', 'nome', 'valor', 'descricao','data_pp', 'dia_vencimento', 'categoria'
+                
+                for ass in assin:
+
+                        data_pp = mysql_para_obj(ass.get('data_pp'))
+                        dia_venc = ass.get('dia_vencimento')
+                        nome = ass.get('nome')
+                        valor = ass.get('valor')
+
+                        resultado = controle_data_parc(data_pp, dia_venc, total_parcelas=None, controle_mes = controle_mes )
+                        str_sit,entra_no_mes, data_vencimento = resultado
+
+                        if entra_no_mes:
+
+                            ctk.CTkLabel(self.tabela_frame, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                            ctk.CTkLabel(self.tabela_frame, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                            ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                            ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+
+
+                        linha += 1
+
+
             if despesas:
                 for _, dados in enumerate(despesas):
-                    data_compra = mysql_para_obj(dados.get('data_compra'))
                     primeira_parc = mysql_para_obj(dados.get('primeira_parc'))
                     dia_venc = primeira_parc.day
                 
-                    resultado_avulso = controle_data_parc(data_compra, primeira_parc, dia_venc, dados.get('parcelas'), controle_mes= controle_mes)
-                    str_parcela, control_parc, control_mes = resultado_avulso
+                    resultado_avulso = controle_data_parc(primeira_parc, dia_venc, dados.get('parcelas'), controle_mes= controle_mes)
+
+                    str_parcela, control_parc, data_vencimento = resultado_avulso
 
                     dia_venc = int(primeira_parc.day)
 
-                    if control_mes:
-                        data_fatura = control_mes.replace(day=dia_venc)
+                    if data_vencimento:
+                        data_fatura = data_vencimento
                     else:
                         data_fatura = datetime.now().replace(day=dia_venc)
 
@@ -683,6 +709,10 @@ class Main_app(ctk.CTk):
                     
                         linha += 1
 
+
+
+
+                    
             # Desenha o Resumo das Faturas dos Cartões
             for fatura in lista_faturas_resumo:
                 ctk.CTkLabel(self.tabela_frame, text=fatura['local']).grid(row=linha, column=0, padx=5, pady=2, sticky="w")

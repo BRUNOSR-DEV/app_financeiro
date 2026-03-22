@@ -344,7 +344,7 @@ def pega_despesas(id_user, conn= None):
             desconectar(conn)
 
 
-def dados_assinaturas(id_user, conn=None):
+def dados_assinaturas_avulcas(id_user, conn=None):
     """
     Busca todas as assinaturas de um usuário específico.
     """
@@ -357,9 +357,9 @@ def dados_assinaturas(id_user, conn=None):
 
     try:
         query = """
-            SELECT id, nome, valor, descricao, data_aquisicao, data_prim_parc, dia_vencimento, categoria, id_cc
+            SELECT id, nome, valor, descricao, data_prim_parc, dia_vencimento, categoria
             FROM assinaturas 
-            WHERE id_usuario = %s 
+            WHERE id_usuario = %s and id_cc IS NULL
         """
         
         cursor.execute(query, (id_user,))
@@ -367,18 +367,21 @@ def dados_assinaturas(id_user, conn=None):
         
         # Mapeando as colunas. 
         colunas = [
-            'id_assinatura', 'nome', 'valor', 'descricao', 'data_aquisicao','data_prim_parc', 'categoria', 'id_cc', 
+            'id_assinatura', 'nome', 'valor', 'descricao','data_pp', 'dia_vencimento', 'categoria', 
         ]
         
         return [dict(zip(colunas, linha)) for linha in resultados]
 
     except Exception as e:
-        print(f"Erro ao buscar Assinaturas: {e}")
+        print(f"Erro ao buscar Assinaturas avulças: {e}")
         return []
     finally:
         if gerenciar_conn:
             desconectar(conn)
 
+
+def dados_assinaturas_cartao(id_user, id_card, conn=None):
+    pass
 
 
 #----------------------------------------------------------------------

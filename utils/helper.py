@@ -60,7 +60,7 @@ def formatar_moeda(valor):
 
 
 #rename - control_pags()
-def controle_data_parc(data_compra_obj, primeira_parc, dia_vencimento, total_parcelas, controle_mes=None, data_atual=None):
+def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_mes=None, data_atual=None):
     """
     Calcula a parcela atual baseada na data de compra e no fechamento da fatura.
     Retorna uma string no formato 'Atual/Total' (ex: '3/12').
@@ -69,51 +69,76 @@ def controle_data_parc(data_compra_obj, primeira_parc, dia_vencimento, total_par
         data_atual = datetime.now()
     
 
+    assinatura = False
+
+    if total_parcelas is None:
+        assinatura = True
+
     if controle_mes == 1:
-        data_alvo = data_atual
+        data_alvo = data_atual.date()
 
     elif controle_mes == 2:
-        data_alvo = data_atual + relativedelta(months=1)
+        data_alvo = (data_atual + relativedelta(months=1)).date()
+
     elif controle_mes == 3:
-        data_alvo = data_atual + relativedelta(months=2)
+        data_alvo = (data_atual + relativedelta(months=2)).date()
         
-    # 1. Descobre o mês da PRIMEIRA cobrança
+    """   # 1. Descobre o mês da PRIMEIRA cobrança
     mes_primeira_cobranca = data_compra_obj.month
-    ano_primeira_cobranca = data_compra_obj.year
+    ano_primeira_cobranca = data_compra_obj.year"""
     
     # Se a compra foi DEPOIS do fechamento, a 1ª parcela cai só no mês seguinte
     
-    mes_primeira_cobranca = primeira_parc.month
-    ano_primeira_cobranca = primeira_parc.year
+    mes_primeira_cobranca = data_pp.month
+    ano_primeira_cobranca = data_pp.year
             
-    # 2. Calcula a diferença de meses entre o mês atual e o mês da 1ª cobrança
-    diferenca_anos = data_alvo.year - ano_primeira_cobranca
-    diferenca_meses = data_alvo.month - mes_primeira_cobranca
-    meses_passados = (diferenca_anos * 12) + diferenca_meses
+        
+    if not assinatura:
+
+        # 2. Calcula a diferença de meses entre o mês de atual e o mês da 1ª cobrança
+        diferenca_anos = data_alvo.year - ano_primeira_cobranca
+        diferenca_meses = data_alvo.month - mes_primeira_cobranca
+        meses_passados = (diferenca_anos * 12) + diferenca_meses
 
     
-    # A parcela atual é os meses que passaram + 1 (a parcela inicial)
-    parcela_atual = meses_passados + 1
+        # A parcela atual é os meses que passaram + 1 (a parcela inicial)
+    
+        parcela_atual = meses_passados + 1
+
     
     try:
         data_pagamento = data_alvo.replace(day=dia_vencimento)
+
     except ValueError:
         # Prevenção de erro: Se o vencimento for dia 31 e o mês alvo for Fevereiro (28)
         ultimo_dia = calendar.monthrange(data_alvo.year, data_alvo.month)[1]
         data_pagamento = data_alvo.replace(day=ultimo_dia)
 
-    # 3. Validações de segurança
-    if parcela_atual < 1:
-        # Se for menor que 1, a cobrança ainda não chegou neste mês alvo
-        return f"0/{total_parcelas}", False, data_pagamento #a vencer
+    
+    if assinatura:
+
+        data_inicio_cobranca = data_pp.replace(day=1)
+        data_alvo_inicio = data_alvo.replace(day=1)
+
+        if data_alvo_inicio >= data_inicio_cobranca:
+            return "Mensal", True, data_pagamento
+        else:
+            return "Mensal", False, data_pagamento
         
-    elif parcela_atual > total_parcelas:
-        # Já acabou de pagar antes deste mês alvo
-        return f"{total_parcelas}/{total_parcelas}", False, data_pagamento #quitado
+
+    if not assinatura:
+
+        if parcela_atual < 1:
+            # Se for menor que 1, a cobrança ainda não chegou neste mês alvo
+            return f"0/{total_parcelas}", False, data_pagamento #a vencer
+    
+        elif parcela_atual > total_parcelas:
+            # Já acabou de pagar antes deste mês alvo
+            return f"{total_parcelas}/{total_parcelas}", False, data_pagamento #quitado
         
-    else:
-        # Está na janela de pagamento! Vai pra tabela!
-        return f"{parcela_atual}/{total_parcelas}", True, data_pagamento
+        else:
+            # Está na janela de pagamento! Vai pra tabela!
+            return f"{parcela_atual}/{total_parcelas}", True, data_pagamento
     
 
 
