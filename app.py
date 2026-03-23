@@ -7,6 +7,8 @@ from utils.helper import(
     gerar_opcoes_meses, controle_data_parc, mysql_para_obj, data_para_mysql, formatar_moeda, data_para_exibicao, controle_data_parc_cc
 )
 
+from utils.audio_helper import tocar_notificacao 
+
 from time import sleep
 
 #interface gráfica 
@@ -64,7 +66,7 @@ class Login(ctk.CTk):
 
     def validar_login(self):
         """ Valida o login que o usuário inseriu na entry"""
-        
+
         usuario = self.usuario_entry.get()
         senha = self.senha_entry.get()
         login_sucesso = False
@@ -77,8 +79,12 @@ class Login(ctk.CTk):
          
         if login_sucesso:
             self.status_label.configure(text='Login feito com sucesso', text_color='green')
-            self.update_idletasks() # Atualiza a UI para mostrar a mensagem
-            sleep(2)
+             # Atualiza a UI para mostrar a mensagem
+            self.update_idletasks()
+
+            tocar_notificacao('ligar_desligar')
+            
+            self.after(3000, lambda: self.status_label.configure(text=''))
             self.destroy()
 
             # Abre a janela principal (Gerenciador de Tarefas)
@@ -86,6 +92,10 @@ class Login(ctk.CTk):
             main_app.mainloop()
         else:
             self.status_label.configure(text='Login Incorreto!', text_color='red')
+            tocar_notificacao('erro')
+            
+            self.update_idletasks()
+            self.after(1000, lambda: self.status_label.configure(text=''))
 
     def nome_usuario(self):
         return self.usuario
@@ -93,6 +103,7 @@ class Login(ctk.CTk):
 
     def abrir_tela_registro(self):
         """ Direciona o usuário para fazer cadastro chamando a classe Registro_usuario"""
+        tocar_notificacao("click")
         
         # Passa a própria instância da tela de login para a tela de registro
         register_window = Registro_usuario(self, login_instance=self)
@@ -158,8 +169,10 @@ class Registro_usuario(ctk.CTkToplevel):
 
         if not usuario or not senha1 or not senha2:
             self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
+
+            tocar_notificacao("erro")
             self.update_idletasks()
-            sleep(1)
+            self.after(3000, lambda: self.status_label.configure(text='')) 
             return
 
         if senha1 == senha2:
@@ -167,19 +180,22 @@ class Registro_usuario(ctk.CTkToplevel):
 
             if retorno:
                 self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+                tocar_notificacao("sucesso")
                 self.update_idletasks()
-                sleep(2)
+                self.after(3000, lambda: self.status_label.configure(text='')) 
 
                 self.status_label.configure(text=f'usuário: {usuario} Já pode fazer login no sistema! ', text_color='blue')
                 self.update_idletasks()
-                sleep(6)
+                self.after(3000, lambda: self.status_label.configure(text='')) 
 
                 self.destroy()
             else:
                 self.status_label.configure(text='Não foi possível registrar, contate o adm do sistema...', text_color='red')
+                tocar_notificacao('erro')
                 self.update_idletasks()
         else:
             self.status_label.configure(text='As senhas não correspondem!', text_color='red')
+            tocar_notificacao('erro')
             self.update_idletasks()
 
 
@@ -445,7 +461,6 @@ class Main_app(ctk.CTk):
 
 
     def att_app(self):
-
         self.config(cursor="watch")
         self.update() 
 
@@ -751,6 +766,7 @@ class Main_app(ctk.CTk):
 
     def voltar_Plogin(self):
         """ Método para voltar para a tela de login (botão 'Sair')"""
+        tocar_notificacao('ligar_desligar')
 
         self.nomeusuario_label.configure(text=f'Até a próxima {self.usuario_logado} !', text_color='red')
         self.update_idletasks()
@@ -823,23 +839,28 @@ class Cadastrar_receitas(ctk.CTkToplevel):
             valor = float(valor.replace(',', '.'))
         except ValueError:
             print('Valor precisa ser um número valido, decimal!')
+            tocar_notificacao("erro")
 
 
         if not valor or not descricao or not data_obj:
             self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
+
+            tocar_notificacao("erro")
             self.update_idletasks()
-            sleep(1)
             return
         else:
             retorno = inserir_receitas(self.user_id, valor, descricao, data_mysql)
 
         if retorno:
             self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+
+            tocar_notificacao("sucesso")
             self.update_idletasks()
             sleep(2)
                 
         else:
             self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
+            tocar_notificacao("erro")
             self.update_idletasks()
 
  
@@ -968,8 +989,10 @@ class Cadastrar_despesas(ctk.CTkToplevel):
 
 
         if not local or not valor_total or categoria == "Categoria" or menu_parcelas_str == "N° Parcelas":
+
             self.status_label.configure(text='Preencha Local, Valor Total, Categoria , N° Parcelas e Data da compra', text_color='red')
-            self.after(2000, lambda: self.status_label.configure(text='')) # Usa after() para não travar
+            tocar_notificacao('erro')
+            self.after(3000, lambda: self.status_label.configure(text='')) # Usa after() para não travar
             return
     
         try:
@@ -978,7 +1001,9 @@ class Cadastrar_despesas(ctk.CTkToplevel):
             valor_total = float(valor_total.replace(",", "."))
         except ValueError:
             self.status_label.configure(text='Valor Total ou Parcelas devem ser números válidos!', text_color='red')
-            self.after(2000, lambda: self.status_label.configure(text=''))
+            tocar_notificacao('erro')
+
+            self.after(3000, lambda: self.status_label.configure(text=''))
             return
         
         
@@ -988,7 +1013,8 @@ class Cadastrar_despesas(ctk.CTkToplevel):
         if not tem_cartao and not verifica_pri_dc:
             # Se não tem cartão E não tem dia de vencimento, falha!
             self.status_label.configure(text='Informe um Cartão OU Data do primeiro pagamento', text_color='red')
-            self.after(4000, lambda: self.status_label.configure(text=''))
+            tocar_notificacao('erro')
+            self.after(3000, lambda: self.status_label.configure(text=''))
             return # Sai do método
 
         
@@ -1003,6 +1029,8 @@ class Cadastrar_despesas(ctk.CTkToplevel):
 
         if retorno:
             self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+
+            tocar_notificacao('sucesso')
             self.update_idletasks()
 
             if hasattr(self.master, 'trocar_mes'): 
@@ -1015,6 +1043,7 @@ class Cadastrar_despesas(ctk.CTkToplevel):
                 
         else:
             self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
+            tocar_notificacao('erro')
             self.update_idletasks()
 
 
@@ -1090,21 +1119,27 @@ class Cadastrar_car_cred(ctk.CTkToplevel):
 
         if not nome_cc or not limite or not dia_f or not dia_v:
             self.status_label.configure(text='Por favor, preencha todos os campos obrigarórios', text_color='red')
+            tocar_notificacao("erro")
+
             self.update_idletasks()
-            sleep(1)
+            self.after(3000, lambda: self.status_label.configure(text=''))
+            
             return
         else:
             retorno = inserir_cc(self.user_id, nome_cc, limite, dia_f, dia_v)
 
         if retorno:
             self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+            tocar_notificacao("sucesso")
             self.update_idletasks()
-            sleep(2)
-
-            #self.destroy()
+            
+            self.after(3000, lambda: self.status_label.configure(text=''))
+            
                 
         else:
             self.status_label.configure(text='Não foi possível salvar os dados, contate o adm do sistema...', text_color='red')
+
+            tocar_notificacao("erro")
             self.update_idletasks()
 
 
@@ -1215,12 +1250,16 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
 
             if data_pp.year == self.data_futuro.year:
                 self.status_label.configure(text='Mude o ano da data de primeiro pagemento', text_color='red')
+
+                tocar_notificacao("erro")
                 self.after(3000, lambda: self.status_label.configure(text='')) 
                 return
 
         if not nome or not valor or categoria == "Selecione a Categoria":
+
             self.status_label.configure(text='Preencha Nome, Valor, Categoria ,', text_color='red')
-            self.after(3000, lambda: self.status_label.configure(text='')) 
+            tocar_notificacao("erro")
+            self.after(3000, lambda: self.status_label.configure(text=''))
             return
 
         try:
@@ -1228,6 +1267,8 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
             valor = float(valor.replace(",", "."))
         except ValueError:
             self.status_label.configure(text=" 'Valor' deve ser números válidos!", text_color='red')
+            tocar_notificacao("erro")
+
             self.after(3000, lambda: self.status_label.configure(text=''))
             return
         
@@ -1241,6 +1282,8 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
         #Verifica se data_pp ou seleção do cartão não foi alterado 
         if not verifica_data_pp and cartao == "Cartão de Cobrança - Sem Cartão":
             self.status_label.configure(text='Selecione uma data de primeiro pagamento ou um cartão de crédito ', text_color='red')
+            tocar_notificacao("erro")
+
             self.after(3000, lambda: self.status_label.configure(text='')) 
             return
         
@@ -1249,6 +1292,8 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
 
         #retorno do banco - texto de indicação
         if retorno:
+            tocar_notificacao("sucesso")
+
             self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
             self.update_idletasks()
 
@@ -1261,6 +1306,7 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
 
         else:
             self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
+            tocar_notificacao("erro")
             self.update_idletasks()
 
 

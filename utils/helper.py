@@ -66,7 +66,7 @@ def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_me
     Retorna uma string no formato 'Atual/Total' (ex: '3/12').
     """
     if data_atual is None:
-        data_atual = datetime.now()
+        data_atual = datetime.now().date()
     
 
     assinatura = False
@@ -75,13 +75,13 @@ def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_me
         assinatura = True
 
     if controle_mes == 1:
-        data_alvo = data_atual.date()
+        data_alvo = data_atual
 
     elif controle_mes == 2:
-        data_alvo = (data_atual + relativedelta(months=1)).date()
+        data_alvo = data_atual + relativedelta(months=1)
 
     elif controle_mes == 3:
-        data_alvo = (data_atual + relativedelta(months=2)).date()
+        data_alvo = data_atual + relativedelta(months=2)
         
     """   # 1. Descobre o mês da PRIMEIRA cobrança
     mes_primeira_cobranca = data_compra_obj.month
