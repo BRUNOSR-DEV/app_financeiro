@@ -555,6 +555,7 @@ class Main_app(ctk.CTk):
                     categoria = desp.get('categoria', 'Outros')
                     gastos_por_categoria[categoria] += valor_mensal
                     total_previsto += valor_mensal
+
         # parte avulsas
         for desp in desp_avulsas:
             primeira_parc = mysql_para_obj(desp.get('primeira_parc'))
@@ -697,12 +698,12 @@ class Main_app(ctk.CTk):
                         nome = ass.get('nome')
                         valor = ass.get('valor')
 
-                        total_ass_avulcas += valor
-
                         resultado = controle_data_parc(data_pp, dia_venc, total_parcelas=None, controle_mes = controle_mes )
-                        str_sit,entra_no_mes, data_vencimento = resultado
+                        str_sit, entra_no_mes, data_vencimento = resultado
 
                         if entra_no_mes:
+
+                            total_ass_avulcas += Decimal(str(valor))
 
                             ctk.CTkLabel(self.tabela_frame, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
                             ctk.CTkLabel(self.tabela_frame, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
