@@ -24,6 +24,8 @@ import locale
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+
+from decimal import Decimal
 from collections import defaultdict 
 
 #configura a aparência
@@ -524,9 +526,10 @@ class Main_app(ctk.CTk):
         for widget in self.grafico_frame.winfo_children():
             widget.destroy()
 
+        assin = dados_assinaturas_avulcas(self.user_id)
 
-        gastos_por_categoria = defaultdict(float)
-        total_previsto = 0.0
+        gastos_por_categoria = defaultdict(Decimal)
+        total_previsto = Decimal('0.0')
     
         # Pegamos os dados necessários
         id_cartoes = [d.get('id_cartao') for d in self.dados_cartoes]
@@ -547,12 +550,11 @@ class Main_app(ctk.CTk):
                 _, entra_na_fatura, _ = resultado
 
                 if entra_na_fatura:
-                    valor_mensal = desp.get('valor_total') / parcelas
+                    valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
                     # SOMA NO DICIONÁRIO USANDO A CATEGORIA
                     categoria = desp.get('categoria', 'Outros')
-                    gastos_por_categoria[categoria] += float(valor_mensal)
-                    total_previsto += float(valor_mensal)
-
+                    gastos_por_categoria[categoria] += valor_mensal
+                    total_previsto += valor_mensal
         # parte avulsas
         for desp in desp_avulsas:
             primeira_parc = mysql_para_obj(desp.get('primeira_parc'))
@@ -564,13 +566,28 @@ class Main_app(ctk.CTk):
             _, entra_no_mes, _ = resultado
 
             if entra_no_mes:
-                valor_mensal = desp.get('valor_total') / parcelas
+                valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
                 categoria = desp.get('categoria', 'Outros')
-                gastos_por_categoria[categoria] += float(valor_mensal)
-                total_previsto += float(valor_mensal)
+                gastos_por_categoria[categoria] += valor_mensal
+                total_previsto += valor_mensal
 
+                
+        for ass in assin:
+
+            data_pp = mysql_para_obj(ass.get('data_pp'))
+            dia_venc = ass.get('dia_vencimento')
+            valor = ass.get('valor')
+
+            resultado = controle_data_parc(data_pp, dia_venc, controle_mes = controle_mes)
+            _, entra_no_mes, _ = resultado
+
+            if entra_no_mes:
+                total_previsto += valor
+                categoria = desp.get('categoria', 'Outros')
+                gastos_por_categoria[categoria] += valor
+            
         #Verifica se tem algo para mostrar
-        if total_previsto == 0:
+        if total_previsto == Decimal('0.0'):
             ctk.CTkLabel(self.grafico_frame, text="Nenhum gasto para este mês.").grid(row=0, column=0, padx=20, pady=20)
             return
 
@@ -590,7 +607,7 @@ class Main_app(ctk.CTk):
         ax.axis('equal')
     
         # Título (Ajuste o gerar_opcoes_meses conforme sua estrutura)
-        ax.set_title(f"Distribuição de Gastos\nTotal: R$ {total_previsto:,.2f}", color='white', fontsize=12)
+        ax.set_title(f"Distribuição de Gastos\nTotal: {formatar_moeda(total_previsto)}", color='white', fontsize=12)
 
         # 6. Renderização no CustomTkinter
         canvas = FigureCanvasTkAgg(fig, master=self.grafico_frame)
@@ -610,9 +627,8 @@ class Main_app(ctk.CTk):
         cartoes = dados_card(id_user) 
         assin = dados_assinaturas_avulcas(id_user) 
 
-        total_avulsas = 0
-        total_cards = 0
-
+        total_avulsas = Decimal('0.0')
+        total_cards = Decimal('0.0')
         #Lógica para montar lista com o total de cada cartão
 
         lista_faturas_resumo = []
@@ -623,7 +639,7 @@ class Main_app(ctk.CTk):
             
                 despesas_do_cartao = pega_despesas_cartao(id_user, id_cartao)
             
-                total_deste_cartao = 0
+                total_deste_cartao = Decimal('0.0')
                 data_vencimento_fatura = None
 
                 if despesas_do_cartao:
@@ -640,14 +656,14 @@ class Main_app(ctk.CTk):
                         _, entra_na_fatura, controle_data = resultado
 
                         if entra_na_fatura:
-                            valor_mensal = desp.get('valor_total') / parcelas
+                            valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
                             total_deste_cartao += valor_mensal
                             data_vencimento_fatura = controle_data 
 
                         
 
                 # Se o cartão tem fatura para pagar, guardamos na lista!
-                if total_deste_cartao > 0:
+                if total_deste_cartao > Decimal('0.0'):
                     lista_faturas_resumo.append({
                         'local': f"Fatura - {nome_cartao}",
                         'valor': total_deste_cartao,
@@ -670,8 +686,7 @@ class Main_app(ctk.CTk):
 
 
 
-            lista_assin_resumo = []
-            total_ass_avulcas = 0.0
+            total_ass_avulcas = Decimal('0.0')
 
             if assin: #'id_assinatura', 'nome', 'valor', 'descricao','data_pp', 'dia_vencimento', 'categoria'
                 
@@ -681,6 +696,8 @@ class Main_app(ctk.CTk):
                         dia_venc = ass.get('dia_vencimento')
                         nome = ass.get('nome')
                         valor = ass.get('valor')
+
+                        total_ass_avulcas += valor
 
                         resultado = controle_data_parc(data_pp, dia_venc, total_parcelas=None, controle_mes = controle_mes )
                         str_sit,entra_no_mes, data_vencimento = resultado
@@ -713,7 +730,7 @@ class Main_app(ctk.CTk):
                         data_fatura = datetime.now().replace(day=dia_venc)
 
                     if control_parc:
-                        valor_mensal = dados.get('valor_total') / dados.get('parcelas')
+                        valor_mensal = Decimal(str(dados.get('valor_total'))) / dados.get('parcelas')
                     
                         ctk.CTkLabel(self.tabela_frame, text=dados.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
                         ctk.CTkLabel(self.tabela_frame, text=str_parcela).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
@@ -744,20 +761,20 @@ class Main_app(ctk.CTk):
 
             ctk.CTkLabel(
                 self.tabela_frame, 
-                text="TOTAL DA FATURA:", 
+                text="TOTAL DESPESAS:", 
                 font=ctk.CTkFont(weight="bold", size=14)
             ).grid(row=linha, column=0, columnspan=2, padx=5, pady=(20, 5), sticky="e")
 
             ctk.CTkLabel(
                 self.tabela_frame, 
-                text=formatar_moeda((total_avulsas + total_cards)), 
+                text=formatar_moeda((total_avulsas + total_cards + total_ass_avulcas)), 
                 font=ctk.CTkFont(weight="bold", size=14), 
                 text_color="red" 
             ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
 
             self.tabela_frame.grid_columnconfigure(2, weight=1)
 
-            return (total_avulsas + total_cards)
+            return (total_avulsas + total_cards + total_ass_avulcas)
 
         else:
             ctk.CTkLabel(self.tabela_frame, text="Nenhum pagamento previsto.").grid(row=0, column=0, padx=10, pady=10)
