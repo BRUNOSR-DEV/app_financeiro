@@ -540,11 +540,11 @@ class Main_app(ctk.CTk):
         for id_cc in id_cartoes:
 
             desp_cc = pega_despesas_cartao(self.user_id, id_cc)
-            assin_card = dados_assinaturas_cartao(self.user_id, id_cartoes)
+            assin_card = dados_assinaturas_cartao(self.user_id, id_cc)
 
             for ass in assin_card:
-                dia_f = ass.get('dia_fechamenro_cc')
-                dia_v = ass.get('dia_vencimento')
+                dia_f = ass.get('dia_fechamento_cc')
+                dia_v = ass.get('dia_vencimento_cc')
                 data_aquisicao = ass.get('data_aquisicao')
 
                 resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes= controle_mes)
@@ -554,7 +554,7 @@ class Main_app(ctk.CTk):
                     valor = Decimal(str(ass.get('valor')))
                     # SOMA NO DICIONÁRIO USANDO A CATEGORIA
                     categoria = ass.get('categoria', 'Outros')
-                    gastos_por_categoria[categoria] += valor_mensal
+                    gastos_por_categoria[categoria] += valor
                     total_previsto += valor
         
             for desp in desp_cc:
@@ -659,9 +659,24 @@ class Main_app(ctk.CTk):
                 id_cartao = cartao.get('id_cartao') 
             
                 despesas_do_cartao = pega_despesas_cartao(id_user, id_cartao)
+                assin_card = dados_assinaturas_cartao(id_user, id_cartao)
             
                 total_deste_cartao = Decimal('0.0')
                 data_vencimento_fatura = None
+
+                if assin_card:
+                    for ass in assin_card:
+
+                        dia_f = ass.get('dia_fechamento_cc')
+                        dia_v = ass.get('dia_vencimento_cc')
+                        data_aquisicao = ass.get('data_aquisicao')
+
+                        resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes= controle_mes)
+                        _, entra_na_fatura, _ = resultado
+
+                        if entra_na_fatura:
+                            valor = Decimal(str(ass.get('valor')))
+                            total_deste_cartao += valor
 
                 if despesas_do_cartao:
 
@@ -690,8 +705,6 @@ class Main_app(ctk.CTk):
                         'valor': total_deste_cartao,
                         'vencimento': data_vencimento_fatura
                     })
-
-
 
     
         # Se tiver despesas avulsas OU tiver faturas de cartão, a gente desenha a tabela
@@ -768,9 +781,10 @@ class Main_app(ctk.CTk):
                     
             # Desenha o Resumo das Faturas dos Cartões
             for fatura in lista_faturas_resumo:
+
                 ctk.CTkLabel(self.tabela_frame, text=fatura['local']).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.tabela_frame, text="-").grid(row=linha, column=1, padx=3, pady=1, sticky="w") # Fatura não tem "1/12"
-                ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(fatura['valor']), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(fatura['valor']), justify=ctk.LEFT, text_color="blue").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
             
                 # Formata a data se ela não vier vazia
                 venc_str = data_para_exibicao(fatura['vencimento']) if fatura['vencimento'] else "N/A"
