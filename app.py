@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, pega_despesas_cartao, pega_despesas, dados_receita, inserir_assinatura, dados_assinaturas_avulcas, dados_assinaturas_cartao
+     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, pega_despesas_cartao, pega_despesas, dados_receita, inserir_assinatura, dados_assinaturas_avulsas, dados_assinaturas_cartao
      )
 
 from utils.helper import(
@@ -526,7 +526,7 @@ class Main_app(ctk.CTk):
         for widget in self.grafico_frame.winfo_children():
             widget.destroy()
 
-        assin = dados_assinaturas_avulcas(self.user_id)
+        assin = dados_assinaturas_avulsas(self.user_id)
 
         gastos_por_categoria = defaultdict(Decimal)
         total_previsto = Decimal('0.0')
@@ -534,10 +534,28 @@ class Main_app(ctk.CTk):
         # Pegamos os dados necessários
         id_cartoes = [d.get('id_cartao') for d in self.dados_cartoes]
         desp_avulsas = pega_despesas(self.user_id)
+        
 
         #DESPESAS DE CARTÃO
         for id_cc in id_cartoes:
+
             desp_cc = pega_despesas_cartao(self.user_id, id_cc)
+            assin_card = dados_assinaturas_cartao(self.user_id, id_cartoes)
+
+            for ass in assin_card:
+                dia_f = ass.get('dia_fechamenro_cc')
+                dia_v = ass.get('dia_vencimento')
+                data_aquisicao = ass.get('data_aquisicao')
+
+                resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes= controle_mes)
+                _, entra_na_fatura, _ = resultado
+
+                if entra_na_fatura:
+                    valor = Decimal(str(ass.get('valor')))
+                    # SOMA NO DICIONÁRIO USANDO A CATEGORIA
+                    categoria = ass.get('categoria', 'Outros')
+                    gastos_por_categoria[categoria] += valor_mensal
+                    total_previsto += valor
         
             for desp in desp_cc:
                 data_compra = mysql_para_obj(desp.get('data_compra'))
@@ -555,6 +573,8 @@ class Main_app(ctk.CTk):
                     categoria = desp.get('categoria', 'Outros')
                     gastos_por_categoria[categoria] += valor_mensal
                     total_previsto += valor_mensal
+
+
 
         # parte avulsas
         for desp in desp_avulsas:
@@ -626,7 +646,7 @@ class Main_app(ctk.CTk):
 
         despesas = pega_despesas(id_user) 
         cartoes = dados_card(id_user) 
-        assin = dados_assinaturas_avulcas(id_user) 
+        assin = dados_assinaturas_avulsas(id_user) 
 
         total_avulsas = Decimal('0.0')
         total_cards = Decimal('0.0')
@@ -1087,7 +1107,7 @@ class Cadastrar_despesas(ctk.CTkToplevel):
 
 class Cadastrar_car_cred(ctk.CTkToplevel):
 
-    def __init__(self,  parent=None, user_id=None, login_instance=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
@@ -1176,8 +1196,8 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes 
 
-        self.data_atual = datetime.now()
-        self.data_futuro = (self.data_atual + relativedelta(years=73)).replace(day=1, month=1).date() #set de data no futuro ddistante, para lógica
+        self.data_atual = datetime.now().date()
+        self.data_futuro = (self.data_atual + relativedelta(years=73)).replace(day=1, month=1) #set de data no futuro ddistante, para lógica
         
         # --- UI scrollable Com Título ---
         self.scrollable_frame = ctk.CTkScrollableFrame(self, label_text="Cadastre Suas Assinaturas")
@@ -1361,7 +1381,7 @@ class Despesas_cc(ctk.CTkToplevel):
         # Garante que a janela fique na frente
         self.attributes("-topmost", True) 
 
-        self.data_atual = datetime.now()
+        self.data_atual = datetime.now().date()
         self.mes_atual = self.data_atual.month
         self.prox_mes =  (self.data_atual + relativedelta(months=1)).month
         self.seg_prox_mes =  (self.data_atual + relativedelta(months=2)).month
@@ -1420,17 +1440,15 @@ class Despesas_cc(ctk.CTkToplevel):
             widget.destroy()
 
         dados_desp_card = pega_despesas_cartao(id_user, id_card)
+        assin = dados_assinaturas_cartao(id_user, id_card)
 
         data_teste = mysql_para_obj('2026-06-02')
 
-        total_fatura = 0
+        total_fatura = Decimal('0.0')
+        total_assin = Decimal('0.0')
 
-        data_atual = data_atual = datetime.now()
 
-
-        
-
-        if dados_desp_card:
+        if dados_desp_card or assin:
 
                         # Cabeçalho
             ctk.CTkLabel(self.tabela_frame, text="Local.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
@@ -1439,6 +1457,31 @@ class Despesas_cc(ctk.CTkToplevel):
             ctk.CTkLabel(self.tabela_frame, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
 
             linha = 1
+
+            for ass in assin:
+                        #''id_assinatura', 'nome', 'valor','descricao','data_aquisicao','data_prim_pag','dia_vencimento','categoria','nome_cartao','limite','dia_fechamento_cc', 'dia_vencimento_cc'
+                data_aquisicao = ass.get('data_aquisicao')
+                nome = ass.get('nome')
+                valor = ass.get('valor')
+
+
+                dia_f = ass.get('dia_fechamento_cc')
+                dia_v = ass.get('dia_vencimento_cc')
+
+                resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes = controle_mes )
+                str_sit, entra_no_mes, data_vencimento = resultado
+
+                if entra_no_mes:
+
+                    total_assin += Decimal(str(valor))
+
+                    ctk.CTkLabel(self.tabela_frame, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                    ctk.CTkLabel(self.tabela_frame, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                    ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                    ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+
+
+                    linha += 1
 
             for _, dado  in enumerate(dados_desp_card):
 
@@ -1458,7 +1501,7 @@ class Despesas_cc(ctk.CTkToplevel):
 
                 if control_parc:
                     
-                    valor_mensal = dado.get('valor_total') / dado.get('parcelas')
+                    valor_mensal = Decimal(str(dado.get('valor_total'))) / dado.get('parcelas')
                     total_fatura += valor_mensal
 
                     ctk.CTkLabel(self.tabela_frame, text=dado.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
@@ -1479,7 +1522,7 @@ class Despesas_cc(ctk.CTkToplevel):
 
             ctk.CTkLabel(
                 self.tabela_frame, 
-                text=formatar_moeda(total_fatura), 
+                text=formatar_moeda(total_fatura + total_assin), 
                 font=ctk.CTkFont(weight="bold", size=14), 
                 text_color="red" 
             ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
@@ -1497,17 +1540,19 @@ class Despesas_cc(ctk.CTkToplevel):
             widget.destroy()
 
         dados_desp_card = pega_despesas_cartao(id_user, id_card)
+        assin = dados_assinaturas_cartao(id_user, id_card)
 
         data_teste = mysql_para_obj('2026-06-02')
 
-        total_fatura = 0
+        total_fatura = Decimal('0.0')
+        total_assin = Decimal('0.0')
 
-        data_atual = data_atual = datetime.now()
+        data_atual = data_atual = datetime.now().date()
 
 
         
 
-        if dados_desp_card:
+        if dados_desp_card or assin:
 
                         # Cabeçalho
             ctk.CTkLabel(self.tabela_frame_prox, text="Local.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
@@ -1516,6 +1561,33 @@ class Despesas_cc(ctk.CTkToplevel):
             ctk.CTkLabel(self.tabela_frame_prox, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
 
             linha = 1
+
+
+            for ass in assin:
+                        #'id_assinatura', 'nome', 'valor','descricao','data_aquisicao','data_prim_pag','dia_vencimento','categoria'
+
+                data_aquisicao = ass.get('data_aquisicao')
+                nome = ass.get('nome')
+                valor = ass.get('valor')
+                
+                dia_f = ass.get('dia_fechamento_cc')
+                dia_v = ass.get('dia_vencimento_cc')
+
+                resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes = controle_mes )
+
+                str_sit, entra_no_mes, data_vencimento = resultado
+
+                if entra_no_mes:
+
+                    total_assin += Decimal(str(valor))
+
+                    ctk.CTkLabel(self.tabela_frame_prox, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                    ctk.CTkLabel(self.tabela_frame_prox, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                    ctk.CTkLabel(self.tabela_frame_prox, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                    ctk.CTkLabel(self.tabela_frame_prox, text=data_para_exibicao(data_vencimento)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+
+
+                    linha += 1
 
             for _, dado  in enumerate(dados_desp_card):
 
@@ -1533,7 +1605,7 @@ class Despesas_cc(ctk.CTkToplevel):
 
                 if control_parc:
                     
-                    valor_mensal = dado.get('valor_total') / dado.get('parcelas')
+                    valor_mensal = Decimal(str(dado.get('valor_total'))) / dado.get('parcelas')
                     total_fatura += valor_mensal
 
                     ctk.CTkLabel(self.tabela_frame_prox, text=dado.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
@@ -1554,7 +1626,7 @@ class Despesas_cc(ctk.CTkToplevel):
             
             ctk.CTkLabel(
                 self.tabela_frame_prox, 
-                text=formatar_moeda(total_fatura), 
+                text=formatar_moeda(total_fatura + total_assin), 
                 font=ctk.CTkFont(weight="bold", size=14), 
                 text_color="red" 
             ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")

@@ -142,12 +142,17 @@ def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_me
     
 
 
-def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total_parcelas, controle_mes=None, data_atual=None):
+def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total_parcelas=None, controle_mes=None, data_atual=None):
     """
-    Retorna: (string_parcela, deve_aparecer_na_tabela, data_pagamento_exata)
+    Returns: 
     """
     if data_atual is None:
-        data_atual = datetime.now()
+        data_atual = datetime.now().date()
+
+    assinatura = False
+
+    if total_parcelas is None:
+        assinatura = True
         
     # Define qual é a FATURA ALVO (Mês Atual ou Próximo Mês)
     if controle_mes == 1:
@@ -159,20 +164,23 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
     elif controle_mes == 3:
         data_alvo = data_atual + relativedelta(months=2)
         
+    
     # Descobre a Fatura da PRIMEIRA cobrança (com base no fechamento)
     primeira_cobranca = data_compra_obj
-    if data_compra_obj.day >= dia_fechamento: # Se comprou no dia do fechamento ou depois, vai pro outro mês
+    if data_compra_obj.day >= dia_fechamento: 
         primeira_cobranca += relativedelta(months=1)
 
-    # Quantos meses se passaram entre a 1ª Cobrança e a Fatura Alvo?
-    diferenca_anos = data_alvo.year - primeira_cobranca.year
-    diferenca_meses = data_alvo.month - primeira_cobranca.month
-    meses_passados = (diferenca_anos * 12) + diferenca_meses
 
-    # A parcela atual nesta fatura alvo
-    parcela_atual = meses_passados + 1
+    # Quantos meses se passaram entre a 1ª Cobrança e a Fatura Alvo
+    if not assinatura:
+        diferenca_anos = data_alvo.year - primeira_cobranca.year
+        diferenca_meses = data_alvo.month - primeira_cobranca.month
+        meses_passados = (diferenca_anos * 12) + diferenca_meses
+
+        # A parcela atual nesta fatura alvo
+        parcela_atual = meses_passados + 1
     
-    # Monta a data de vencimento exata desta fatura
+
     try:
         data_pagamento = data_alvo.replace(day=dia_vencimento)
     except ValueError:
@@ -180,15 +188,26 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
         ultimo_dia = calendar.monthrange(data_alvo.year, data_alvo.month)[1]
         data_pagamento = data_alvo.replace(day=ultimo_dia)
 
-    # Filtros para saber se a despesa entra na tabela
-    if parcela_atual < 1:
-        # Se for menor que 1, a cobrança ainda não chegou neste mês alvo, o segundo retorno é um bool de controle
-        return f"0/{total_parcelas} (A vencer)", False, data_pagamento
+
+    if assinatura:
+        data_inicio_cobranca = primeira_cobranca.replace(day=1)
+        data_alvo_inicio = data_alvo.replace(day=1)
+
+        if data_alvo_inicio >= data_inicio_cobranca:
+            return "Mensal", True, data_pagamento
+        else:
+            return "Mensal", False, data_pagamento
+    
+    if not assinatura:
+        # Filtros para saber se a despesa entra na tabela
+        if parcela_atual < 1:
+            # Se for menor que 1, a cobrança ainda não chegou neste mês alvo, o segundo retorno é um bool de controle
+            return f"0/{total_parcelas} (A vencer)", False, data_pagamento
         
-    elif parcela_atual > total_parcelas:
-        # Já acabou de pagar antes deste mês alvo
-        return f"{total_parcelas}/{total_parcelas} (Quitado)", False, data_pagamento
+        elif parcela_atual > total_parcelas:
+            # Já acabou de pagar antes deste mês alvo
+            return f"{total_parcelas}/{total_parcelas} (Quitado)", False, data_pagamento
         
-    else:
-        # Está na janela de pagamento! Vai pra tabela!
-        return f"{parcela_atual}/{total_parcelas}", True, data_pagamento
+        else:
+            # Está na janela de pagamento! Vai pra tabela!
+            return f"{parcela_atual}/{total_parcelas}", True, data_pagamento

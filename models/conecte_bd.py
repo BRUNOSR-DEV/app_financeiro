@@ -344,7 +344,7 @@ def pega_despesas(id_user, conn= None):
             desconectar(conn)
 
 
-def dados_assinaturas_avulcas(id_user, conn=None):
+def dados_assinaturas_avulsas(id_user, conn=None):
     """
     Busca todas as assinaturas de um usuário específico.
     """
@@ -357,7 +357,7 @@ def dados_assinaturas_avulcas(id_user, conn=None):
 
     try:
         query = """
-            SELECT id, nome, valor, descricao, data_prim_parc, dia_vencimento, categoria
+            SELECT id, nome, valor, descricao, data_prim_pag, dia_vencimento, categoria
             FROM assinaturas 
             WHERE id_usuario = %s and id_cc IS NULL
         """
@@ -381,7 +381,53 @@ def dados_assinaturas_avulcas(id_user, conn=None):
 
 
 def dados_assinaturas_cartao(id_user, id_card, conn=None):
-    pass
+    """
+    Busca todas as assinaturas de um cartão específico
+    """
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+        query = """
+            SELECT 
+                a.id, 
+                a.nome, 
+                a.valor,
+                a.descricao,
+                a.data_aquisicao,
+                a.data_prim_pag,
+                a.dia_vencimento,
+                a.categoria,
+                c.nome,
+                c.limite, 
+                c.dia_fechamento, 
+                c.dia_vencimento
+            FROM assinaturas a
+            INNER JOIN cartoes_credito c ON a.id_cc = c.id
+            WHERE a.id_usuario = %s AND a.id_cc = %s
+        """
+        
+        cursor.execute(query, (id_user, id_card))
+        resultados = cursor.fetchall()
+        
+        # Mapeando as colunas. 
+        colunas = [
+            'id_assinatura', 'nome', 'valor','descricao','data_aquisicao','data_prim_pag','dia_vencimento','categoria','nome_cartao','limite','dia_fechamento_cc', 'dia_vencimento_cc'
+        ]
+        
+        return [dict(zip(colunas, linha)) for linha in resultados]
+     
+
+    except Exception as e:
+        print(f"Erro ao buscar assinaturas do cartão informado ID:{id_card}: {e}")
+        return []
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
 
 
 #----------------------------------------------------------------------
