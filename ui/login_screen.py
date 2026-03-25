@@ -1,0 +1,92 @@
+
+from models.conecte_bd import (
+     pega_usuarios,
+)
+
+
+from utils.audio_helper import tocar_notificacao 
+
+
+import customtkinter as ctk
+ctk.set_appearance_mode('dark')
+
+
+from ui.forms import(Registro_usuario)
+
+class Login(ctk.CTk):
+    """Classe Login herda de ctk.CTK - configura a interface para receber os dados do usuário e faz a verificação no BD."""
+
+    def __init__(self):
+        super().__init__()
+        self.title('Sistem de Login')
+        self.geometry('350x400')
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=0)
+
+        self.label = ctk.CTkLabel(self, text="Faça seu Login", font=ctk.CTkFont(size=20, weight="bold"))
+        self.label.grid(row=0, column=0, pady=20)
+
+        self.usuario_entry = ctk.CTkEntry(self, placeholder_text="Usuário")
+        self.usuario_entry.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+
+        self.senha_entry = ctk.CTkEntry(self, placeholder_text="Senha", show="*")
+        self.senha_entry.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+
+        self.botao_enter = ctk.CTkButton(self, text="Entrar", command=self.validar_login, 
+                                         fg_color="#000200", hover_color="#FC0404")
+        self.botao_enter.grid(row=3, column=0, padx=20, pady=10)
+        self.bind("<Return>", lambda event: self.botao_enter.invoke())
+
+        self.registrar = ctk.CTkButton(self, text="Registrar", command=self.abrir_tela_registro,
+                                       fg_color="#000200", hover_color="#FC0404")
+        self.registrar.grid(row=4, column=0, padx=20, pady=10)
+
+        self.status_label = ctk.CTkLabel(self, text="", text_color="red")
+        self.status_label.grid(row=5, column=0, pady=5)
+
+    def validar_login(self):
+        """ Valida o login que o usuário inseriu na entry"""
+
+        usuario = self.usuario_entry.get()
+        senha = self.senha_entry.get()
+        login_sucesso = False
+        usuario_logado = usuario
+
+        for _, v in enumerate(pega_usuarios()):
+            if usuario == v[2] and senha == v[3]:
+                login_sucesso = True
+                break
+         
+        if login_sucesso:
+            self.status_label.configure(text='Login feito com sucesso', text_color='green')
+             # Atualiza a UI para mostrar a mensagem
+            self.update_idletasks()
+
+            tocar_notificacao('ligar_desligar')
+
+            self.usuario_logado = usuario_logado
+            self.destroy()
+
+
+        else:
+            self.status_label.configure(text='Login Incorreto!', text_color='red')
+            tocar_notificacao('erro')
+            
+            self.update_idletasks()
+            self.after(2000, lambda: self.status_label.configure(text=''))
+            
+
+    def nome_usuario(self):
+        return self.usuario
+    
+
+    def abrir_tela_registro(self):
+        """ Direciona o usuário para fazer cadastro chamando a classe Registro_usuario"""
+        tocar_notificacao("click")
+        
+        # Passa a própria instância da tela de login para a tela de registro
+        register_window = Registro_usuario(self, login_instance=self)
+        #self.status_label.configure(text='Abrindo tela de registro...', text_color='blue')
+        
+        # A  não é chamada para toplevels, elas são gerenciadas pelo master.
+        self.wait_window(register_window) #Pausa a janela de login até a popup fechar

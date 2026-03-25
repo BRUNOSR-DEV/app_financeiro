@@ -20,7 +20,7 @@ def tocar_notificacao(tipo="sucesso"):
         }
 
         nome_arq = sons.get(tipo)
-        caminho = os.path.join(BASE_DIR, "sounds", f"{nome_arq}.mp3")
+        caminho = os.path.join(BASE_DIR, "assets", f"{nome_arq}.mp3")
         
         if os.path.exists(caminho):
             try:
