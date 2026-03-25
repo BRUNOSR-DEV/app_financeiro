@@ -14,7 +14,7 @@ from utils.helper import(
 )
 
 from utils.audio_helper import tocar_notificacao 
-from ui.detalhar_screen import Despesas_cc
+from ui.detalhar_app import Despesas_cc
 from ui.forms import(
     Cadastrar_assinaturas, Cadastrar_receitas, Cadastrar_despesas, Cadastrar_car_cred
 )
@@ -38,7 +38,7 @@ class Main_app(ctk.CTk):
         self.title("Controle Financeiro")
         self.geometry("1500x800")
 
-        self.__dict__['usuario_logado'] = logged_in_username
+        self.usuario_logado = logged_in_username
         
         self.user_id = pega_id(self.usuario_logado)
         self.dados_usuario = dados_user(self.user_id)
@@ -205,57 +205,6 @@ class Main_app(ctk.CTk):
         self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), self.preencher_total_dividas(self.user_id))
 
 
-
-
-    #------ Chamada das classes ---------
-
-    def abrir_receitas(self):
-        
-        register_window = Cadastrar_receitas(self, self.user_id, login_instance=self)
-
-        self.wait_window(register_window) 
-
-
-    def abrir_despesas(self):
-        register_window = Cadastrar_despesas(self, self.user_id, self.dados_cartoes, login_instance=self, callback=self.trocar_mes)
-
-        self.wait_window(register_window)
-
-
-
-    def abrir_cc(self):
-        register_window = Cadastrar_car_cred(self, self.user_id, login_instance=self)
-
-        self.wait_window(register_window)
-
-
-    def abrir_det_cc(self):
-
-        nome_selecionado = self.menu_cartoes.get()
-        id_card = None
-
-        for i in self.dados_cartoes:
-            if i.get('nome_cartao') == nome_selecionado:
-                id_card = i.get('id_cartao')
-
-        if id_card:
-
-            register_window = Despesas_cc(self, self.user_id, id_card, nome_card=nome_selecionado)
-
-            self.wait_window(register_window)
-        else:
-            print("Erro: Cartão não encontrado")
-    
-
-    def abrir_assinaturas(self):
-
-        register_window = Cadastrar_assinaturas(self, self.user_id, self.dados_cartoes)
-
-        self.wait_window(register_window)
-
-
-    # --------- Lógica do sistema ------------
-
     def trocar_mes(self, escolha=None):
 
         print("Botão clicado! Chamando com vigente False")
@@ -283,11 +232,6 @@ class Main_app(ctk.CTk):
 
         self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), att_mes, controle_mes)
 
-        
-            
-
-            
-
         self.tabela_frame._label.configure(text=f"Pagamentos Detalhados: {escolha} / {self.data_atual.year}")
 
 
@@ -295,13 +239,21 @@ class Main_app(ctk.CTk):
         self.config(cursor="watch")
         self.update() 
 
-        self.preencher_total_dividas(self.user_id)
-        self.gerar_grafico_mensal()
+        self.atualiza_sistema = True
+
+        #self.preencher_total_dividas(self.user_id)
+        #self.gerar_grafico_mensal()
     
+        self.after(500, self.quit_and_destroy)
+
 
         self.config(cursor="")
         print("Dashboard atualizado com sucesso! 🚀")
 
+
+    #------ Chamada das classes ---------
+
+ 
 
     def atualizar_cores_saldo(self, sal_fixo, despesa, controle_mes=1):
 
@@ -347,6 +299,75 @@ class Main_app(ctk.CTk):
         self.frame_resumo.configure(border_color=cor_status)
         self.label_valor_saldo.configure(text=f"{formatar_moeda(saldo)}", text_color=cor_status)
 
+
+    def voltar_Plogin(self):
+        """ Método para voltar para a tela de login (botão 'Sair')"""
+
+        tocar_notificacao('ligar_desligar')
+
+        self.nomeusuario_label.configure(text=f'Até a próxima {self.usuario_logado} !', text_color='red')
+        self.update_idletasks()
+
+        
+        self.quer_voltar_login = True
+        
+        # Em vez de destroy() direto, usamos o after para dar 
+        # tempo das animações de clique e sons terminarem.
+        self.after(500, self.quit_and_destroy)
+
+
+    def quit_and_destroy(self):
+        self.quit()    # Para o mainloop com elegância
+        self.destroy()
+
+
+# ------------- chamada de classes -------------------
+
+    def abrir_receitas(self):
+            
+        register_window = Cadastrar_receitas(self, self.user_id, login_instance=self, callback = self.trocar_mes)
+
+        self.wait_window(register_window) 
+
+
+    def abrir_despesas(self):
+        register_window = Cadastrar_despesas(self, self.user_id, self.dados_cartoes, login_instance=self, callback=self.trocar_mes)
+
+        self.wait_window(register_window)
+
+
+    def abrir_cc(self):
+        register_window = Cadastrar_car_cred(self, self.user_id, login_instance=self, nomes_cards=self.nomes_cartoes, callback=self.att_app)
+
+        self.wait_window(register_window)
+
+
+    def abrir_det_cc(self):
+
+        nome_selecionado = self.menu_cartoes.get()
+        id_card = None
+
+        for i in self.dados_cartoes:
+            if i.get('nome_cartao') == nome_selecionado:
+                id_card = i.get('id_cartao')
+
+        if id_card:
+
+            register_window = Despesas_cc(self, self.user_id, id_card, nome_card=nome_selecionado, callback=self.trocar_mes)
+
+            self.wait_window(register_window)
+        else:
+            print("Erro: Cartão não encontrado")
+    
+
+    def abrir_assinaturas(self):
+
+        register_window = Cadastrar_assinaturas(self, self.user_id, self.dados_cartoes, callback=self.att_app)
+
+        self.wait_window(register_window)
+
+
+# -------------- gráfico e tabela -----------------------
 
     def gerar_grafico_mensal(self, controle_mes= 1):
 
@@ -645,22 +666,4 @@ class Main_app(ctk.CTk):
             self.tabela_frame.grid_columnconfigure(2, weight=1)
 
 
-    def voltar_Plogin(self):
-        """ Método para voltar para a tela de login (botão 'Sair')"""
-
-        tocar_notificacao('ligar_desligar')
-
-        self.nomeusuario_label.configure(text=f'Até a próxima {self.usuario_logado} !', text_color='red')
-        self.update_idletasks()
-
-        
-        self.quer_voltar_login = True
-        
-        # 2. Em vez de destroy() direto, usamos o after para dar 
-        # tempo das animações de clique e sons terminarem.
-        # 200 a 500ms é o suficiente.
-        self.after(500, self.quit_and_destroy)
-
-    def quit_and_destroy(self):
-        self.quit()    # Para o mainloop com elegância
-        self.destroy()
+    

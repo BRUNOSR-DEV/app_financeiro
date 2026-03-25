@@ -5,7 +5,7 @@ from models.conecte_bd import (
 
 
 from utils.audio_helper import tocar_notificacao 
-
+from time import sleep
 
 import customtkinter as ctk
 ctk.set_appearance_mode('dark')
@@ -44,6 +44,10 @@ class Login(ctk.CTk):
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
         self.status_label.grid(row=5, column=0, pady=5)
 
+    def quit_and_destroy(self):
+        self.quit()    # Para o mainloop com elegância
+        self.destroy()
+
     def validar_login(self):
         """ Valida o login que o usuário inseriu na entry"""
 
@@ -61,11 +65,13 @@ class Login(ctk.CTk):
             self.status_label.configure(text='Login feito com sucesso', text_color='green')
              # Atualiza a UI para mostrar a mensagem
             self.update_idletasks()
+            sleep(1)
 
             tocar_notificacao('ligar_desligar')
 
             self.usuario_logado = usuario_logado
-            self.destroy()
+
+            self.after(500, self.quit_and_destroy)
 
 
         else:
@@ -75,10 +81,10 @@ class Login(ctk.CTk):
             self.update_idletasks()
             self.after(2000, lambda: self.status_label.configure(text=''))
             
-
-    def nome_usuario(self):
-        return self.usuario
     
+
+    
+
 
     def abrir_tela_registro(self):
         """ Direciona o usuário para fazer cadastro chamando a classe Registro_usuario"""

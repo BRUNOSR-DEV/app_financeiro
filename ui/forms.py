@@ -103,17 +103,9 @@ class Registro_usuario(ctk.CTkToplevel):
 
 
 
-
-
-
-
-
-
-# -------- Classes de Cadastro --------------  
-
 class Cadastrar_receitas(ctk.CTkToplevel):
 
-    def __init__(self,  parent=None, user_id=None, login_instance=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, login_instance=None, callback = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
@@ -123,6 +115,8 @@ class Cadastrar_receitas(ctk.CTkToplevel):
         self.transient(parent) # Faz a popup aparecer sobre a janela principal e fechar com ela
         self.grab_set() # Bloqueia interações com a janela principal enquanto a popup está aberta
         self.focus_set() # Define o foco para esta janela
+
+        self.callback = callback
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=0)
@@ -166,7 +160,7 @@ class Cadastrar_receitas(ctk.CTkToplevel):
         except ValueError:
             print('Valor precisa ser um número valido, decimal!')
             tocar_notificacao("erro")
-            self.after(3000, lambda: self.status_label.configure(text=''))
+            self.after(2000, lambda: self.status_label.configure(text=''))
 
 
         if not valor or not descricao or not data_obj:
@@ -174,7 +168,7 @@ class Cadastrar_receitas(ctk.CTkToplevel):
 
             tocar_notificacao("erro")
             self.update_idletasks()
-            self.after(3000, lambda: self.status_label.configure(text=''))
+            self.after(2000, lambda: self.status_label.configure(text=''))
             return
         else:
             retorno = inserir_receitas(self.user_id, valor, descricao, data_mysql)
@@ -184,14 +178,18 @@ class Cadastrar_receitas(ctk.CTkToplevel):
 
             tocar_notificacao("sucesso")
             self.update_idletasks()
-            self.after(3000, lambda: self.status_label.configure(text=''))
+            self.after(2000, lambda: self.status_label.configure(text=''))
+
+            if self.callback:
+                self.callback(escolha=gerar_opcoes_meses().get(data_obj.month))
                 
         else:
             self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
             tocar_notificacao("erro")
             self.update_idletasks()
-            self.after(3000, lambda: self.status_label.configure(text=''))
+            self.after(2000, lambda: self.status_label.configure(text=''))
 
+ 
  
 class Cadastrar_despesas(ctk.CTkToplevel):
 
@@ -345,7 +343,7 @@ class Cadastrar_despesas(ctk.CTkToplevel):
             self.status_label.configure(text='Informe um Cartão OU Data do primeiro pagamento', text_color='red')
             tocar_notificacao('erro')
             self.after(3000, lambda: self.status_label.configure(text=''))
-            return # Sai do método
+            return 
 
         
         if tem_cartao:
@@ -397,9 +395,10 @@ class Cadastrar_despesas(ctk.CTkToplevel):
         self.campo_primeira_dc.set_date(self.data_atual)
         
 
+
 class Cadastrar_car_cred(ctk.CTkToplevel):
 
-    def __init__(self,  parent=None, user_id=None, login_instance=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, login_instance=None, nomes_cards =None, callback = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
@@ -409,6 +408,9 @@ class Cadastrar_car_cred(ctk.CTkToplevel):
         self.transient(parent)
         self.grab_set() 
         self.focus_set()
+
+        self.callback = callback
+        self.nomes_cards = nomes_cards
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6), weight=0)
@@ -437,22 +439,30 @@ class Cadastrar_car_cred(ctk.CTkToplevel):
     def salvar_dados(self):
         """ Verifica e salva os dados no BD """
 
-
-        """VERIFICAR SE O USUÁRIO NÃO ESTÁ COLOCANDO UM NOME DE CARTÃO REPETIDO"""
-
-
         nome_cc = self.nome_cc.get().strip()
         limite = self.limite.get().strip()
         dia_f = self.dia_fechamento.get().strip()
         dia_v = self.dia_vencimento.get().strip()
-                
+        
+        #verifiva se já a o nome informado no bd
+        for nome in self.nomes_cards:
+            if nome == nome_cc:
+
+                tocar_notificacao("erro")
+
+                self.status_label.configure(text=f'Por favor, Não repitir nome de cartões, tente - ex: *{nome_cc}700', text_color='red')
+                self.update_idletasks()
+
+                self.after(2000, lambda: self.status_label.configure(text=''))
+                return
+
 
         if not nome_cc or not limite or not dia_f or not dia_v:
             self.status_label.configure(text='Por favor, preencha todos os campos obrigarórios', text_color='red')
             tocar_notificacao("erro")
 
             self.update_idletasks()
-            self.after(3000, lambda: self.status_label.configure(text=''))
+            self.after(2000, lambda: self.status_label.configure(text=''))
             
             return
         else:
@@ -463,8 +473,11 @@ class Cadastrar_car_cred(ctk.CTkToplevel):
             tocar_notificacao("sucesso")
             self.update_idletasks()
             
-            self.after(3000, lambda: self.status_label.configure(text=''))
+            self.after(2000, lambda: self.status_label.configure(text=''))
+
+            self.limpar_campos()
             
+
                 
         else:
             self.status_label.configure(text='Não foi possível salvar os dados, contate o adm do sistema...', text_color='red')
@@ -473,9 +486,20 @@ class Cadastrar_car_cred(ctk.CTkToplevel):
             self.update_idletasks()
 
 
+    def limpar_campos(self):
+        """Limpa todos os campos de entrada do formulário""" 
+        
+        self.nome_cc.delete(0, ctk.END)
+        self.limite.delete(0, ctk.END)
+        self.dia_fechamento.delete(0, ctk.END)
+        self.dia_vencimento.delete(0, ctk.END)
+
+
+
+
 class Cadastrar_assinaturas(ctk.CTkToplevel):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None):
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None, callback=None):
         super().__init__(parent)
         self.title("Gerenciar Assinaturas")
         self.geometry("600x600")
@@ -484,6 +508,8 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
+
+        self.callback = callback
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes 
@@ -544,14 +570,7 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
 
 
     def salvar_dados(self):
-        """ Verifica e salvar dados no db
 
-        Args: 
-            objeto self
-        Returns:
-
-        
-        """
         dia_venc = None
         verifica_data_pp = False
 
@@ -627,12 +646,12 @@ class Cadastrar_assinaturas(ctk.CTkToplevel):
             self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
             self.update_idletasks()
 
-            """if hasattr(self.master, 'trocar_mes'): 
-                self.master.trocar_mes()"""
-
             self.limpar_campos()
             
-            self.after(3000, lambda: self.status_label.configure(text=''))
+            self.after(2000, lambda: self.status_label.configure(text=''))
+
+            """if self.callback:
+                self.callback()"""
 
         else:
             self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')

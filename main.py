@@ -1,5 +1,5 @@
-from ui.main_screen import Main_app
-from ui.login_screen import Login
+from ui.main_app import Main_app
+from ui.login_app import Login
 
 def rodar_sistema():
 
@@ -16,10 +16,14 @@ def rodar_sistema():
             app_principal = Main_app(logged_in_username=user)
             app_principal.mainloop()
 
-            print("Janela principal fechada!")
-            
-            # 4. Quando a Main fechar, verificamos se ele clicou em "Sair"
-            # Se ele NÃO clicou em sair (fechou no X), o loop quebra e o app encerra
+            print("...")
+
+            if getattr(app_principal, 'atualiza_sistema', False):
+
+                print('atualizando sistema!')
+                app_principal = Main_app(logged_in_username=user)
+                app_principal.mainloop()
+
             if getattr(app_principal, 'quer_voltar_login', False):
                 print("Reiniciando para tela de login...")
                 continue
