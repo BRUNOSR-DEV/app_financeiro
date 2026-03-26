@@ -6,6 +6,7 @@ def rodar_sistema():
     while True:
         # 1. Abre o Login
         app_login = Login()
+        app_login.tk.eval('proc bgerror {args} {}')
         app_login.mainloop()
 
         # 2. Verifica se o login teve sucesso
