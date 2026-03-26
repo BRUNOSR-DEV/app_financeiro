@@ -1,10 +1,10 @@
 
 from models.conecte_bd import (
-     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, pega_despesas_cartao, pega_despesas, dados_receita, inserir_assinatura, dados_assinaturas_avulsas, dados_assinaturas_cartao
+    pega_despesas_cartao, dados_assinaturas_cartao
      )
 
 from utils.helper import(
-    gerar_opcoes_meses, controle_data_parc, mysql_para_obj, data_para_mysql, formatar_moeda, data_para_exibicao, controle_data_parc_cc
+    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc
 )
 
 from dateutil.relativedelta import relativedelta
@@ -15,9 +15,10 @@ ctk.set_appearance_mode('dark')
 
 from decimal import Decimal
 
+
 class Despesas_cc(ctk.CTkToplevel):
     
-    def __init__(self, parent, id_user, id_card, nome_card, *args, **kwargs):
+    def __init__(self, parent, id_user, id_card, nome_card, callback=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.title(f"Detalhes: {nome_card}")
@@ -26,6 +27,8 @@ class Despesas_cc(ctk.CTkToplevel):
         
         # Garante que a janela fique na frente
         self.attributes("-topmost", True) 
+
+        self.calback = callback
 
         self.data_atual = datetime.now().date()
         self.mes_atual = self.data_atual.month
@@ -44,7 +47,7 @@ class Despesas_cc(ctk.CTkToplevel):
         self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
 
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1) # Onde fica o frame principal das tabelas
+        self.grid_rowconfigure(1, weight=1) 
 
         self.label_titulo = ctk.CTkLabel(self, text=f"Fatura: {nome_card}", font=("Arial", 22, "bold"))
         self.label_titulo.grid(row=0, column=0, pady=20)
@@ -53,7 +56,6 @@ class Despesas_cc(ctk.CTkToplevel):
         self.main_content_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.main_content_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
-        # Configuração de expansão das colunas do conteúdo principal
         self.main_content_frame.grid_columnconfigure(0, weight=1) # Tabela (Grande)
         self.main_content_frame.grid_columnconfigure(1, weight=1) 
         self.main_content_frame.grid_rowconfigure(0, weight=1)
@@ -105,12 +107,10 @@ class Despesas_cc(ctk.CTkToplevel):
             linha = 1
 
             for ass in assin:
-                        #''id_assinatura', 'nome', 'valor','descricao','data_aquisicao','data_prim_pag','dia_vencimento','categoria','nome_cartao','limite','dia_fechamento_cc', 'dia_vencimento_cc'
+
                 data_aquisicao = ass.get('data_aquisicao')
                 nome = ass.get('nome')
                 valor = ass.get('valor')
-
-
                 dia_f = ass.get('dia_fechamento_cc')
                 dia_v = ass.get('dia_vencimento_cc')
 
@@ -130,9 +130,6 @@ class Despesas_cc(ctk.CTkToplevel):
                     linha += 1
 
             for _, dado  in enumerate(dados_desp_card):
-
-                """"'despesa_id', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 
-                        'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'"""
                 
                 data_compra = mysql_para_obj(dado.get('data_compra'))
                 fecha_fatura = dado.get('fechamento_fatura')
@@ -194,8 +191,6 @@ class Despesas_cc(ctk.CTkToplevel):
         total_assin = Decimal('0.0')
 
         data_atual = data_atual = datetime.now().date()
-
-
         
 
         if dados_desp_card or assin:
@@ -210,7 +205,6 @@ class Despesas_cc(ctk.CTkToplevel):
 
 
             for ass in assin:
-                        #'id_assinatura', 'nome', 'valor','descricao','data_aquisicao','data_prim_pag','dia_vencimento','categoria'
 
                 data_aquisicao = ass.get('data_aquisicao')
                 nome = ass.get('nome')
@@ -236,9 +230,6 @@ class Despesas_cc(ctk.CTkToplevel):
                     linha += 1
 
             for _, dado  in enumerate(dados_desp_card):
-
-                """"'despesa_id', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 
-            'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'"""
                 
                 data_compra = mysql_para_obj(dado.get('data_compra'))
                 fecha_fatura = dado.get('fechamento_fatura')

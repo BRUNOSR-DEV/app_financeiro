@@ -54,7 +54,7 @@ def mysql_para_obj(data_mysql):
 
 
 def formatar_moeda(valor):
-    """Auxiliar extra para formatar R$ 1.234,56."""
+    """Para formatar R$ 1.234,56."""
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 

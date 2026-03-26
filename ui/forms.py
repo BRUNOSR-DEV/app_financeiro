@@ -1,10 +1,10 @@
 
 from models.conecte_bd import (
-     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, pega_despesas_cartao, pega_despesas, dados_receita, inserir_assinatura, dados_assinaturas_avulsas, dados_assinaturas_cartao
+      inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_assinatura
      )
 
 from utils.helper import(
-    gerar_opcoes_meses, controle_data_parc, mysql_para_obj, data_para_mysql, formatar_moeda, data_para_exibicao, controle_data_parc_cc
+    gerar_opcoes_meses, data_para_mysql
 )
 
 from tkcalendar import DateEntry
@@ -118,6 +118,8 @@ class Cadastrar_receitas(ctk.CTkToplevel):
 
         self.callback = callback
 
+        self.data_atual = datetime.now().date()
+
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=0)
 
@@ -180,8 +182,12 @@ class Cadastrar_receitas(ctk.CTkToplevel):
             self.update_idletasks()
             self.after(2000, lambda: self.status_label.configure(text=''))
 
+            self.limpar_campos()
+
             if self.callback:
                 self.callback(escolha=gerar_opcoes_meses().get(data_obj.month))
+
+            
                 
         else:
             self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
@@ -189,7 +195,15 @@ class Cadastrar_receitas(ctk.CTkToplevel):
             self.update_idletasks()
             self.after(2000, lambda: self.status_label.configure(text=''))
 
- 
+
+    def limpar_campos(self):
+
+        self.valor.delete(0, ctk.END)
+        self.descricao.delete(0, ctk.END)
+
+        self.data_recebimento.set_date(self.data_atual)
+
+
  
 class Cadastrar_despesas(ctk.CTkToplevel):
 
@@ -493,7 +507,6 @@ class Cadastrar_car_cred(ctk.CTkToplevel):
         self.limite.delete(0, ctk.END)
         self.dia_fechamento.delete(0, ctk.END)
         self.dia_vencimento.delete(0, ctk.END)
-
 
 
 

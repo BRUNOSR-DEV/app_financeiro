@@ -3,7 +3,6 @@ from models.conecte_bd import (
      pega_usuarios,
 )
 
-
 from utils.audio_helper import tocar_notificacao 
 from time import sleep
 
@@ -14,7 +13,6 @@ ctk.set_appearance_mode('dark')
 from ui.forms import(Registro_usuario)
 
 class Login(ctk.CTk):
-    """Classe Login herda de ctk.CTK - configura a interface para receber os dados do usuário e faz a verificação no BD."""
 
     def __init__(self):
         super().__init__()
@@ -63,7 +61,6 @@ class Login(ctk.CTk):
          
         if login_sucesso:
             self.status_label.configure(text='Login feito com sucesso', text_color='green')
-             # Atualiza a UI para mostrar a mensagem
             self.update_idletasks()
             sleep(1)
 
@@ -83,16 +80,11 @@ class Login(ctk.CTk):
             
     
 
-    
-
-
     def abrir_tela_registro(self):
         """ Direciona o usuário para fazer cadastro chamando a classe Registro_usuario"""
         tocar_notificacao("click")
         
-        # Passa a própria instância da tela de login para a tela de registro
         register_window = Registro_usuario(self, login_instance=self)
         #self.status_label.configure(text='Abrindo tela de registro...', text_color='blue')
         
-        # A  não é chamada para toplevels, elas são gerenciadas pelo master.
-        self.wait_window(register_window) #Pausa a janela de login até a popup fechar
+        self.wait_window(register_window) 

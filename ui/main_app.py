@@ -6,11 +6,11 @@ import locale
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 from models.conecte_bd import (
-     pega_usuarios, dados_user, pega_id, dados_card, inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, pega_despesas_cartao, pega_despesas, dados_receita, inserir_assinatura, dados_assinaturas_avulsas, dados_assinaturas_cartao
+     dados_user, pega_id, dados_card,pega_despesas_cartao, pega_despesas, dados_receita, dados_assinaturas_avulsas, dados_assinaturas_cartao
      )
 
 from utils.helper import(
-    gerar_opcoes_meses, controle_data_parc, mysql_para_obj, data_para_mysql, formatar_moeda, data_para_exibicao, controle_data_parc_cc
+    gerar_opcoes_meses, controle_data_parc, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc
 )
 
 from utils.audio_helper import tocar_notificacao 
@@ -31,7 +31,7 @@ from collections import defaultdict
 
 
 class Main_app(ctk.CTk):
-    """ Classe Main - app principal, configuração de interface, listamento de tarefas do BD. Intereção com app, atualição, delete, inserção... (CRUD)"""
+
 
     def __init__(self, logged_in_username=None):
         super().__init__()
@@ -101,18 +101,12 @@ class Main_app(ctk.CTk):
                                         fg_color="#FF0000", hover_color="#810000")
         
         self.botao_sair.grid(row=0, column=4,sticky="e") #coluna 2 alinhado a direita
-
-        #Primeira Label da janela   
         
-
-        
-
         #-------------------------------------------------------------------------------------
         # Frame para agrupar os botões de cadastro
         self.cadastro_frame = ctk.CTkFrame(self.top_section_frame, fg_color="transparent")
         self.cadastro_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="ew")
         self.cadastro_frame.grid_columnconfigure((0, 1, 2, 3, 4), weight=1) # Distribui o espaço entre os botões
-        #---------------------------------------------------------------------------------------
         #---------------------------------------------------------------------------------------
 
         # Botões
@@ -139,9 +133,9 @@ class Main_app(ctk.CTk):
 
 
         
-        # -------------------------------------------------------------------------
-        # FRAME DE CONTEÚDO PRINCIPAL (Main Content) - DEVE SER DEFINIDO AQUI
-        # -------------------------------------------------------------------------
+        # -------------------------------------------
+        # FRAME DE CONTEÚDO PRINCIPAL (Main Content) 
+        # -------------------------------------------
         self.main_content_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.main_content_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
@@ -151,9 +145,9 @@ class Main_app(ctk.CTk):
         self.main_content_frame.grid_rowconfigure(0, weight=1)
 
 
-        # -------------------------------------------------------------------------
-        # FRAME DA TABELA DETALHADA (AGORA PODE SER DEFINIDO
-        # -------------------------------------------------------------------------
+        # -----------------------------
+        # FRAME DA TABELA DETALHADA 
+        # -----------------------------
 
         self.tabela_frame = ctk.CTkScrollableFrame(
         self.main_content_frame, 
@@ -167,11 +161,11 @@ class Main_app(ctk.CTk):
         self.preencher_total_dividas(self.user_id)
 
 
-        # -------------------------------------------------------------------------
-        # FRAME DO GRÁFICO (AGORA PODE SER DEFINIDO)
-        # -------------------------------------------------------------------------
+        # -------------------------------------------
+        # FRAME DO GRÁFICO 
+        # -------------------------------------------
         self.grafico_frame = ctk.CTkFrame(self.main_content_frame)
-        self.grafico_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew") # Coluna 1
+        self.grafico_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
         self.grafico_frame.grid_columnconfigure(0, weight=1)
         self.grafico_frame.grid_rowconfigure(0, weight=1)
 
@@ -180,12 +174,11 @@ class Main_app(ctk.CTk):
         self.gerar_grafico_mensal()
 
 
-        #-------------------------------------------------------------------------------------
+        #------------------------------------
         # Frame para agrupar card saldo do mês
+         #------------------------------------
 
-        self.frame_resumo = ctk.CTkFrame(self.top_section_frame, width=250, height=100, corner_radius=15, # Bordas arredondadas (estil card moderno)
-        border_width=2    # Espessura da borda que vai mudar de cor
-        )
+        self.frame_resumo = ctk.CTkFrame(self.top_section_frame, width=250, height=100, corner_radius=15, border_width=2 )
         self.frame_resumo.grid(row=1, column=6, padx=20, pady=10, sticky="n")
 
         self.label_titulo_resumo = ctk.CTkLabel(
@@ -205,8 +198,10 @@ class Main_app(ctk.CTk):
         self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), self.preencher_total_dividas(self.user_id))
 
 
-    def trocar_mes(self, escolha=None):
+# ------------------- Lógica de atualização de dados ----------------------
 
+    def trocar_mes(self, escolha=None):
+        
         print("Botão clicado! Chamando com vigente False")
 
         for widget in self.tabela_frame.winfo_children():
@@ -236,6 +231,9 @@ class Main_app(ctk.CTk):
 
 
     def att_app(self):
+
+        tocar_notificacao('click')
+
         self.config(cursor="watch")
         self.update() 
 
@@ -251,14 +249,10 @@ class Main_app(ctk.CTk):
         print("Dashboard atualizado com sucesso! 🚀")
 
 
-    #------ Chamada das classes ---------
-
- 
-
     def atualizar_cores_saldo(self, sal_fixo, despesa, controle_mes=1):
 
         receitas = dados_receita(self.user_id)
-        receitas_fornecidas = 0.0
+        receitas_fornecidas = Decimal('0.0')
 
         prox_mes =  (self.data_atual + relativedelta(months=1))
         seg_prox_mes =  (self.data_atual + relativedelta(months=2))
@@ -266,29 +260,27 @@ class Main_app(ctk.CTk):
 
         for dado in receitas:
             data_obj = mysql_para_obj(dado.get('data'))
-            valor = float(dado.get('valor_recebido'))
+            valor = Decimal(str(dado.get('valor_recebido')))
 
             if controle_mes == 1: #mes_atual
                 if self.data_atual.month == data_obj.month and self.data_atual.year == data_obj.year:
-                    receitas_fornecidas = receitas_fornecidas +  valor
-                    print(f"Soma Mes 1: + {valor}") # Print de Debug
+                    receitas_fornecidas += valor
 
             elif controle_mes == 2: #prox_mes
                 if prox_mes.month == data_obj.month and prox_mes.year == data_obj.year:
-                    receitas_fornecidas = valor
-                    print(f"Soma Mes 2: + {valor}") # Print de Debug
+                    receitas_fornecidas += valor
 
             elif controle_mes == 3: #seg_prox_mes
                 if seg_prox_mes.month == data_obj.month and seg_prox_mes.year == data_obj.year:
                     receitas_fornecidas += valor
-                    print(f"Soma Mes 3: + {valor}") # Print de Debug
 
 
-        receita_total = (float(sal_fixo) + receitas_fornecidas)
-        saldo =  receita_total - float(despesa)
+
+        receita_total = (Decimal(str(sal_fixo)) + receitas_fornecidas)
+        saldo =  receita_total - Decimal(str(despesa))
 
 
-        if saldo > (receita_total * 0.03):
+        if saldo > (receita_total * Decimal(str(0.30))): #se saldo é maior que 30% do que ele ganhou no mês.
             cor_status = "#2ecc71" # Verde (Sucesso)
         elif saldo >= 0:
             cor_status = "#f1c40f" # Amarelo (No limite)
@@ -300,6 +292,7 @@ class Main_app(ctk.CTk):
         self.label_valor_saldo.configure(text=f"{formatar_moeda(saldo)}", text_color=cor_status)
 
 
+# ------------- Fecha janela e volta para login -------------
     def voltar_Plogin(self):
         """ Método para voltar para a tela de login (botão 'Sair')"""
 
@@ -317,31 +310,11 @@ class Main_app(ctk.CTk):
 
 
     def quit_and_destroy(self):
-        self.quit()    # Para o mainloop com elegância
+        self.quit()  
         self.destroy()
 
 
-# ------------- chamada de classes -------------------
-
-    def abrir_receitas(self):
-            
-        register_window = Cadastrar_receitas(self, self.user_id, login_instance=self, callback = self.trocar_mes)
-
-        self.wait_window(register_window) 
-
-
-    def abrir_despesas(self):
-        register_window = Cadastrar_despesas(self, self.user_id, self.dados_cartoes, login_instance=self, callback=self.trocar_mes)
-
-        self.wait_window(register_window)
-
-
-    def abrir_cc(self):
-        register_window = Cadastrar_car_cred(self, self.user_id, login_instance=self, nomes_cards=self.nomes_cartoes, callback=self.att_app)
-
-        self.wait_window(register_window)
-
-
+# ------------- chamada de classes detalhar_app -------------------
     def abrir_det_cc(self):
 
         nome_selecionado = self.menu_cartoes.get()
@@ -352,16 +325,43 @@ class Main_app(ctk.CTk):
                 id_card = i.get('id_cartao')
 
         if id_card:
+            tocar_notificacao('click')
 
             register_window = Despesas_cc(self, self.user_id, id_card, nome_card=nome_selecionado, callback=self.trocar_mes)
 
             self.wait_window(register_window)
         else:
             print("Erro: Cartão não encontrado")
+
+
+# ---------- chamada de classes forms --------------------
+    def abrir_receitas(self):
+
+        tocar_notificacao('click')
+        register_window = Cadastrar_receitas(self, self.user_id, login_instance=self, callback = self.trocar_mes)
+
+        self.wait_window(register_window) 
+
+
+    def abrir_cc(self):
+
+        tocar_notificacao('click')
+        register_window = Cadastrar_car_cred(self, self.user_id, login_instance=self, nomes_cards=self.nomes_cartoes, callback=self.att_app)
+
+        self.wait_window(register_window)
+
+
+    def abrir_despesas(self):
+
+        tocar_notificacao('click')
+        register_window = Cadastrar_despesas(self, self.user_id, self.dados_cartoes, login_instance=self, callback=self.trocar_mes)
+
+        self.wait_window(register_window)
     
 
     def abrir_assinaturas(self):
 
+        tocar_notificacao('click')
         register_window = Cadastrar_assinaturas(self, self.user_id, self.dados_cartoes, callback=self.att_app)
 
         self.wait_window(register_window)
@@ -548,7 +548,7 @@ class Main_app(ctk.CTk):
 
                         
 
-                # Se o cartão tem fatura para pagar, guardamos na lista!
+                # Se o cartão tem fatura para pagar, guardamos na lista
                 if total_deste_cartao > Decimal('0.0'):
                     lista_faturas_resumo.append({
                         'local': f"Fatura - {nome_cartao}",
@@ -563,7 +563,7 @@ class Main_app(ctk.CTk):
             # Cabeçalho
             ctk.CTkLabel(self.tabela_frame, text="Local/Nome", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
-            ctk.CTkLabel(self.tabela_frame, text="Mensalidade", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame, text="Mensalidade/Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.tabela_frame, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
 
             linha = 1
@@ -572,7 +572,7 @@ class Main_app(ctk.CTk):
 
             total_ass_avulcas = Decimal('0.0')
 
-            if assin: #'id_assinatura', 'nome', 'valor', 'descricao','data_pp', 'dia_vencimento', 'categoria'
+            if assin: 
                 
                 for ass in assin:
 
@@ -598,6 +598,7 @@ class Main_app(ctk.CTk):
 
 
             if despesas:
+
                 for _, dados in enumerate(despesas):
                     primeira_parc = mysql_para_obj(dados.get('primeira_parc'))
                     dia_venc = primeira_parc.day
@@ -624,16 +625,12 @@ class Main_app(ctk.CTk):
                         total_avulsas += valor_mensal
                     
                         linha += 1
-
-
-
-
-                    
+          
             # Desenha o Resumo das Faturas dos Cartões
             for fatura in lista_faturas_resumo:
 
                 ctk.CTkLabel(self.tabela_frame, text=fatura['local']).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.tabela_frame, text="-").grid(row=linha, column=1, padx=3, pady=1, sticky="w") # Fatura não tem "1/12"
+                ctk.CTkLabel(self.tabela_frame, text="-").grid(row=linha, column=1, padx=3, pady=1, sticky="w") 
                 ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(fatura['valor']), justify=ctk.LEFT, text_color="orange").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
             
                 # Formata a data se ela não vier vazia
