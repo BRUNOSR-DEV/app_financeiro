@@ -204,7 +204,7 @@ class Cadastrar_receitas(ctk.CTkToplevel):
         self.data_recebimento.set_date(self.data_atual)
 
 
- 
+#Cadastro de despesas
 class Cadastrar_despesas(ctk.CTkToplevel):
 
     def __init__(self,  parent=None, user_id=None, dados_cartoes =None, login_instance=None, callback=None, *args, **kwargs):
@@ -258,7 +258,7 @@ class Cadastrar_despesas(ctk.CTkToplevel):
         self.descricao.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
 
         # CATEGORIA
-        categorias = ['Lazer', 'Roupas', 'Essencial', 'Estudos', 'Saúde', 'Empréstimo', ' Hobby', 'Trabalho']
+        categorias = ['Essencial', 'Lazer', 'Hobby', 'Vestimenta/Acessórios', 'Evolução Pessoal', 'Saúde', 'Empréstimo', 'Reforma e Construção']
         self.categoria = ctk.CTkOptionMenu(self.scrollable_frame, values=categorias)
         self.categoria.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
         self.categoria.set("Categoria")
@@ -277,7 +277,7 @@ class Cadastrar_despesas(ctk.CTkToplevel):
         self.label_primeira_dc.grid(row=7, column=0)
 
         self.campo_primeira_dc = DateEntry(self.scrollable_frame, width=12, background='darkblue',
-                            foreground='white', borderwidth=2, year=2026, 
+                            foreground='white', borderwidth=2, day=1, month=1, year=2050, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
         self.campo_primeira_dc.grid(row=8, column=0, padx=10, pady=10)
         
@@ -305,7 +305,6 @@ class Cadastrar_despesas(ctk.CTkToplevel):
         """ Verifica e salva os dados no BD """
 
         dia_venc = None
-        id_card = None
         verifica_pri_dc = False
 
         local = self.local.get().strip()
@@ -318,7 +317,9 @@ class Cadastrar_despesas(ctk.CTkToplevel):
 
         prim_dc_select_mysql = None
 
-        if prim_dc_select != self.data_atual:
+        self.sentinela = self.data_atual.replace(day=1, month=1, year=2050)
+
+        if prim_dc_select != self.sentinela:
             dia_venc = prim_dc_select.day
             verifica_pri_dc = True
             prim_dc_select_mysql = data_para_mysql(prim_dc_select)
@@ -334,7 +335,7 @@ class Cadastrar_despesas(ctk.CTkToplevel):
 
             self.status_label.configure(text='Preencha Local, Valor Total, Categoria , N° Parcelas e Data da compra', text_color='red')
             tocar_notificacao('erro')
-            self.after(3000, lambda: self.status_label.configure(text='')) # Usa after() para não travar
+            self.after(3000, lambda: self.status_label.configure(text=''))
             return
     
         try:
@@ -361,12 +362,33 @@ class Cadastrar_despesas(ctk.CTkToplevel):
 
         
         if tem_cartao:
+            id_card = None
+            mes_vencimento = None
             for dado in self.dados_cartoes:
                 if dado.get('nome_cartao') == car_cred:
                     id_card = dado.get('id_cartao')
+                    dia_fechamento = dado.get('fechamento_fatura')
+            
+            if dc_select.day >= dia_fechamento:
+                mes_vencimento = (dc_select + relativedelta(months=1)).month
+            else:
+                mes_vencimento = dc_select.month
 
-        #Chama o método para inserir no bd - retorna se tiver sucesso
-        retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+
+        #Chama o método para inserir no bd - retorna se tiver sucesso condição para evitar valores desnecessrios no bd
+        if tem_cartao and verifica_pri_dc:
+            self.campo_primeira_dc.set_date(self.sentinela)
+            prim_dc_select_mysql = None
+            dia_venc = None
+
+            self.status_label.configure(text='Como foi informado um Cartão a Data primeiro pagamento será desconsiderada', text_color='red')
+            self.update_idletasks()
+            self.after(3000, lambda: self.status_label.configure(text=''))
+
+            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+
+        else:
+            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
 
 
         if retorno:
@@ -376,7 +398,7 @@ class Cadastrar_despesas(ctk.CTkToplevel):
             self.update_idletasks()
 
             if self.callback:
-                self.callback()
+                self.callback(gerar_opcoes_meses().get(mes_vencimento))
 
             self.limpar_campos()
             
@@ -406,7 +428,7 @@ class Cadastrar_despesas(ctk.CTkToplevel):
         self.car_cred.set("Selecione um Cartão")
 
         self.campo_data_compra.set_date(self.data_atual)
-        self.campo_primeira_dc.set_date(self.data_atual)
+        self.campo_primeira_dc.set_date(self.sentinela)
         
 
 

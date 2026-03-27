@@ -200,7 +200,7 @@ class Main_app(ctk.CTk):
 
 # ------------------- Lógica de atualização de dados ----------------------
 
-    def trocar_mes(self, escolha=None):
+    def trocar_mes(self, escolha):
         
         print("Botão clicado! Chamando com vigente False")
 
