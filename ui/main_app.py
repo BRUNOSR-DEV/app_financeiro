@@ -14,10 +14,10 @@ from utils.helper import(
 )
 
 from utils.audio_helper import tocar_notificacao 
-from ui.detalhar_app import Despesas_cc
-from ui.forms import(
-    Cadastrar_assinaturas, Cadastrar_receitas, Cadastrar_despesas, Cadastrar_car_cred
+from ui.detalhar_app import (
+    Faturas_cartao, Receitas, Despesas, Car_cred, Assinaturas
 )
+
 
 #gráficos
 import matplotlib.pyplot as plt
@@ -200,7 +200,7 @@ class Main_app(ctk.CTk):
 
 # ------------------- Lógica de atualização de dados ----------------------
 
-    def trocar_mes(self, escolha):
+    def trocar_mes(self, escolha=None):
         
         print("Botão clicado! Chamando com vigente False")
 
@@ -238,9 +238,6 @@ class Main_app(ctk.CTk):
         self.update() 
 
         self.atualiza_sistema = True
-
-        #self.preencher_total_dividas(self.user_id)
-        #self.gerar_grafico_mensal()
     
         self.after(500, self.quit_and_destroy)
 
@@ -327,7 +324,7 @@ class Main_app(ctk.CTk):
         if id_card:
             tocar_notificacao('click')
 
-            register_window = Despesas_cc(self, self.user_id, id_card, nome_card=nome_selecionado, callback=self.trocar_mes)
+            register_window = Faturas_cartao(self, self.user_id, id_card, nome_card=nome_selecionado, callback=self.trocar_mes)
 
             self.wait_window(register_window)
         else:
@@ -338,7 +335,7 @@ class Main_app(ctk.CTk):
     def abrir_receitas(self):
 
         tocar_notificacao('click')
-        register_window = Cadastrar_receitas(self, self.user_id, login_instance=self, callback = self.trocar_mes)
+        register_window = Receitas(self, self.user_id, login_instance=self, callback = self.trocar_mes)
 
         self.wait_window(register_window) 
 
@@ -346,7 +343,7 @@ class Main_app(ctk.CTk):
     def abrir_cc(self):
 
         tocar_notificacao('click')
-        register_window = Cadastrar_car_cred(self, self.user_id, login_instance=self, nomes_cards=self.nomes_cartoes, callback=self.att_app)
+        register_window = Car_cred(self, self.user_id, login_instance=self, nomes_cards=self.nomes_cartoes, callback=self.att_app)
 
         self.wait_window(register_window)
 
@@ -354,7 +351,7 @@ class Main_app(ctk.CTk):
     def abrir_despesas(self):
 
         tocar_notificacao('click')
-        register_window = Cadastrar_despesas(self, self.user_id, self.dados_cartoes, login_instance=self, callback=self.trocar_mes)
+        register_window = Despesas(self, self.user_id, self.dados_cartoes, login_instance=self, callback=self.trocar_mes)
 
         self.wait_window(register_window)
     
@@ -362,9 +359,11 @@ class Main_app(ctk.CTk):
     def abrir_assinaturas(self):
 
         tocar_notificacao('click')
-        register_window = Cadastrar_assinaturas(self, self.user_id, self.dados_cartoes, callback=self.att_app)
+        register_window = Assinaturas(self, self.user_id, self.dados_cartoes, callback=self.att_app)
 
         self.wait_window(register_window)
+
+
 
 
 # -------------- gráfico e tabela -----------------------

@@ -20,16 +20,15 @@ ctk.set_appearance_mode('dark')
 class Registro_usuario(ctk.CTkToplevel):
     """Classe para registro: configuração da interface para receber dados e a inserção dos dados no BD. (inserir_usuario)"""
 
-    def __init__(self,  master=None, login_instance=None):
-        super().__init__(master)
+    def __init__(self,  parent=None, login_instance=None):
+        super().__init__(parent)
 
-        self.master = master # A referência à janela pai (opcional, mas útil)
+        self.master = parent # A referência à janela pai (opcional, mas útil)
         self.login_instance = login_instance
-
-
+        
         self.title("Registrar Novo Usuário")
         self.geometry("350x500")
-        self.transient(master) # Faz a popup aparecer sobre a janela principal e fechar com ela
+        self.transient(parent) # Faz a popup aparecer sobre a janela principal e fechar com ela
         self.grab_set() # Bloqueia interações com a janela principal enquanto a popup está aberta
         self.focus_set() # Define o foco para esta janela
 
@@ -103,18 +102,12 @@ class Registro_usuario(ctk.CTkToplevel):
 
 
 
-class Cadastrar_receitas(ctk.CTkToplevel):
+class Cadastrar_receitas(ctk.CTkFrame):
 
     def __init__(self,  parent=None, user_id=None, login_instance=None, callback = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-
-        self.title("Registrar Novas Receitas")
-        self.geometry("400x600")
-        self.transient(parent) # Faz a popup aparecer sobre a janela principal e fechar com ela
-        self.grab_set() # Bloqueia interações com a janela principal enquanto a popup está aberta
-        self.focus_set() # Define o foco para esta janela
 
         self.callback = callback
 
@@ -186,9 +179,7 @@ class Cadastrar_receitas(ctk.CTkToplevel):
 
             if self.callback:
                 self.callback(escolha=gerar_opcoes_meses().get(data_obj.month))
-
-            
-                
+   
         else:
             self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
             tocar_notificacao("erro")
@@ -205,7 +196,7 @@ class Cadastrar_receitas(ctk.CTkToplevel):
 
 
 #Cadastro de despesas
-class Cadastrar_despesas(ctk.CTkToplevel):
+class Cadastrar_despesas(ctk.CTkFrame):
 
     def __init__(self,  parent=None, user_id=None, dados_cartoes =None, login_instance=None, callback=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -213,12 +204,6 @@ class Cadastrar_despesas(ctk.CTkToplevel):
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes
         self.callback = callback
-
-        self.title("Registrar Novas Despesas")
-        self.geometry("800x900")
-        self.transient(parent)
-        self.grab_set() 
-        self.focus_set() 
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1) # O frame rolavel ocupará toda a janela
@@ -432,18 +417,12 @@ class Cadastrar_despesas(ctk.CTkToplevel):
         
 
 
-class Cadastrar_car_cred(ctk.CTkToplevel):
+class Cadastrar_car_cred(ctk.CTkFrame):
 
     def __init__(self,  parent=None, user_id=None, login_instance=None, nomes_cards =None, callback = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-
-        self.title("Registrar Novos Cartões de Crédito")
-        self.geometry("400x600")
-        self.transient(parent)
-        self.grab_set() 
-        self.focus_set()
 
         self.callback = callback
         self.nomes_cards = nomes_cards
@@ -532,14 +511,10 @@ class Cadastrar_car_cred(ctk.CTkToplevel):
 
 
 
-class Cadastrar_assinaturas(ctk.CTkToplevel):
+class Cadastrar_assinaturas(ctk.CTkFrame):
 
     def __init__(self, parent=None, user_id=None, dados_cartoes=None, callback=None):
         super().__init__(parent)
-        self.title("Gerenciar Assinaturas")
-        self.geometry("600x600")
-        self.grab_set() 
-        self.focus_set()
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)

@@ -6,6 +6,9 @@ from models.conecte_bd import (
 from utils.helper import(
     gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc
 )
+from ui.forms import(
+    Cadastrar_receitas, Cadastrar_despesas, Cadastrar_car_cred, Cadastrar_assinaturas
+)
 
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
@@ -16,7 +19,113 @@ ctk.set_appearance_mode('dark')
 from decimal import Decimal
 
 
-class Despesas_cc(ctk.CTkToplevel):
+class Receitas(ctk.CTkToplevel):
+
+    def __init__(self,  parent=None, user_id=None, login_instance=None, callback = None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.user_id = user_id
+
+        self.title("Gerenciar Receitas")
+        self.geometry("1000x800")
+        self.transient(parent) # Faz a popup aparecer sobre a janela principal e fechar com ela
+        self.grab_set() # Bloqueia interações com a janela principal enquanto a popup está aberta
+        self.focus_set() # Define o foco para esta janela
+
+        self.callback = callback
+
+        self.data_atual = datetime.now().date()
+
+
+        self.grid_columnconfigure(0, weight=1) 
+        self.grid_columnconfigure(1, weight=2) 
+        self.grid_rowconfigure(0, weight=1)
+
+
+        self.frame_cadastro = Cadastrar_receitas(parent=self, user_id=self.user_id, callback=self.atualizar_lista)
+        self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+
+        #FRAME DA LISTA (Update/Delete)
+        self.frame_lista = ctk.CTkFrame(self)
+        self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+    
+        self.frame_lista.grid_columnconfigure(0, weight=1)
+        
+        ctk.CTkLabel(self.frame_lista, text="Receitas Cadastradas", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=10)
+        
+
+
+    def atualizar_lista(self, escolha=None):
+        """Método que será chamado após um novo cadastro ou delete para recarregar a tabela"""
+
+        print("Atualizando a lista de receitas na tela...")
+
+        
+        # Lógica para puxar do banco 
+
+
+        if self.callback:
+            self.callback() # Atualiza a tela principal (Main) também, se necessário
+
+
+
+class Despesas(ctk.CTkFrame):
+
+    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, login_instance=None, callback=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.user_id = user_id
+        self.dados_cartoes = dados_cartoes
+        self.callback = callback
+
+        self.label_titulo = ctk.CTkLabel(self, text=f"Despesas Cadastradas", font=("Arial", 22, "bold"))
+        self.label_titulo.grid(row=0, column=0, pady=20)
+
+
+
+class Car_cred(ctk.CTkToplevel):
+
+    def __init__(self,  parent=None, user_id=None, login_instance=None, nomes_cards =None, callback = None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+
+        self.user_id = user_id
+
+        self.title("Gerenciar Cartões de Crédito")
+        self.geometry("1000x800")
+        self.transient(parent)
+        self.grab_set() 
+        self.focus_set()
+
+        self.callback = callback
+        self.nomes_cards = nomes_cards
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6), weight=0)
+
+
+class Assinaturas(ctk.CTkToplevel):
+
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None, callback=None):
+        super().__init__(parent)
+        self.title("Gerenciar Assinaturas")
+        self.geometry("1000x800")
+        self.grab_set() 
+        self.focus_set()
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        self.callback = callback
+
+        self.user_id = user_id
+        self.dados_cartoes = dados_cartoes 
+
+        self.data_atual = datetime.now().date()
+        self.data_futuro = (self.data_atual + relativedelta(years=73)).replace(day=1, month=1)
+
+
+
+class Faturas_cartao(ctk.CTkToplevel):
     
     def __init__(self, parent, id_user, id_card, nome_card, callback=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -269,3 +378,5 @@ class Despesas_cc(ctk.CTkToplevel):
             ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
 
         self.tabela_frame.grid_columnconfigure(2, weight=1)
+
+
