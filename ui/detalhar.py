@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-    pega_despesas_cartao, dados_assinaturas_cartao
+    pega_despesas_cartao, dados_assinaturas_cartao, dados_receita
      )
 
 from utils.helper import(
@@ -26,8 +26,70 @@ class Listar_receitas(ctk.CTkFrame):
         self.user_id = user_id
         self.callback = callback
 
+        self.dados_receitas = dados_receita(self.user_id)
+
+         # --------------- Configuração da janela/'labels' -----------------------
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        self.lista_frame = ctk.CTkScrollableFrame(self, label_text="Receitas Cadastradas")
+        self.lista_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        self.lista_frame.grid_columnconfigure((0, 1, 3), weight=0) # Index, Valor e Data fixos
+        self.lista_frame.grid_columnconfigure(2, weight=1) #Descriçao estica
+
+        #ctk.CTkLabel(self.lista_frame, text="Receitas Cadastradas", font=("Arial", 18, "bold")).grid(row=0, column=0, padx=10, pady=10)
+
+        #cabeçalho
+        ctk.CTkLabel(self.lista_frame, text='#', font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Descrição", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Data Recebimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+        
 
 
+
+        self.listar()
+
+       
+    def listar(self):
+
+        for widget in self.lista_frame.winfo_children():
+            if int(widget.grid_info().get("row", 0)) > 0:
+                widget.destroy()
+
+        if self.dados_receitas:
+
+
+            for i ,dado in enumerate(self.dados_receitas, start=1):
+                
+                valor = dado.get('valor_recebido')
+                descricao = dado.get('descricao')
+                data = dado.get('data')
+
+                ctk.CTkLabel(self.lista_frame, text=str(i)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=formatar_moeda(valor), text_color="#27ae60").grid(row=i, column=1, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=descricao).grid(row=i, column=2, padx=3, pady=1, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data)).grid(row=i, column=3, padx=5, pady=2, sticky="e")
+
+                btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
+                                     command=lambda d=dado: self.confirmar_update(d))
+                btn_edit.grid(row=i, column=4, padx=2)
+
+                btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
+                                    command=lambda id_rec=dado.get('id_receita'): self.confirmar_delete(id_rec))
+                btn_del.grid(row=i, column=5, padx=5)
+
+
+        self.lista_frame.grid_columnconfigure((4, 5), weight=0)
+
+
+    def confirmar_update(self, dict_dados):
+        pass
+
+
+    def confirmar_delete(self, id_rec):
+        pass
         
 
 class Listar_despesas(ctk.CTkFrame):

@@ -1,10 +1,10 @@
 
 from models.conecte_bd import (
-     pega_usuarios,
+     pega_usuarios, dados_user
 )
 
 from utils.audio_helper import tocar_notificacao 
-from time import sleep
+import time
 
 import customtkinter as ctk
 ctk.set_appearance_mode('dark')
@@ -62,7 +62,7 @@ class Login(ctk.CTk):
         if login_sucesso:
             self.status_label.configure(text='Login feito com sucesso', text_color='green')
             self.update_idletasks()
-            sleep(1)
+            time.sleep(0.8)
 
             tocar_notificacao('ligar_desligar')
 

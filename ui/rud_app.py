@@ -59,7 +59,7 @@ class Receitas(ctk.CTkToplevel):
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
-        ctk.CTkLabel(self.frame_lista, text="Receitas Cadastradas", font=("Arial", 18, "bold")).grid(row=0, column=0, padx=10, pady=10)
+        
         
 
 

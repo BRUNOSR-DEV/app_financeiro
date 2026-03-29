@@ -84,21 +84,26 @@ class Registro_usuario(ctk.CTkToplevel):
                 self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
                 tocar_notificacao("sucesso")
                 self.update_idletasks()
-                self.after(3000, lambda: self.status_label.configure(text='')) 
+                self.after(2000, lambda: self.status_label.configure(text='')) 
 
                 self.status_label.configure(text=f'usuário: {usuario} Já pode fazer login no sistema! ', text_color='blue')
                 self.update_idletasks()
-                self.after(3000, lambda: self.status_label.configure(text='')) 
+                self.after(2000, lambda: self.status_label.configure(text='')) 
 
                 self.destroy()
             else:
                 self.status_label.configure(text='Não foi possível registrar, contate o adm do sistema...', text_color='red')
                 tocar_notificacao('erro')
                 self.update_idletasks()
+
+                self.after(3000, lambda: self.status_label.configure(text='')) 
+                
         else:
             self.status_label.configure(text='As senhas não correspondem!', text_color='red')
             tocar_notificacao('erro')
             self.update_idletasks()
+
+            self.after(3000, lambda: self.status_label.configure(text='')) 
 
 
 

@@ -64,7 +64,7 @@ def desconectar(conn):
 
 #-------------------------------------------------------------------
 
-#-------------------- Pega dados (get) -----------------------------
+#-------------------- Listagem de dados / entidades  -----------------------------
 def pega_usuarios(conn=None):
     """
     Função que retorna lista de usuarios
