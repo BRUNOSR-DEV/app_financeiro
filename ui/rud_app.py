@@ -52,8 +52,6 @@ class Receitas(ctk.CTkToplevel):
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
-        ctk.CTkLabel(self.frame_cadastro, text="Cadastre Seus Ganhos", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=10)
-
 
         #-------------- FRAME DA LISTA (Update/Delete) --------------------------
         self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, callback = self.atualizar_lista )
@@ -101,14 +99,12 @@ class Despesas(ctk.CTkToplevel):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1) 
-        self.grid_columnconfigure(1, weight=2) 
+        self.grid_columnconfigure(1, weight=3) 
         self.grid_rowconfigure(0, weight=1)
 
          # ---------- formulário de cadastro -----------------------
         self.frame_cadastro = Cadastrar_despesas(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, callback= callback)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
-
-        ctk.CTkLabel(self.frame_cadastro, text="Cadastre Suas Despesas", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=10)
 
 
         #-------------------- FRAME DA LISTA (Update/Delete) ----------------------------------
@@ -163,7 +159,6 @@ class Car_cred(ctk.CTkToplevel):
         self.frame_cadastro = Cadastrar_car_cred(parent=self, user_id=self.user_id, callback= callback)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
-        ctk.CTkLabel(self.frame_cadastro, text="Cadastre Seus Cartões de Crédito", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=10)
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
 
@@ -215,8 +210,6 @@ class Assinaturas(ctk.CTkToplevel):
          # ---------------- formulário de cadastro -----------------------
         self.frame_cadastro = Cadastrar_assinaturas(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes,  callback= callback)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
-
-        ctk.CTkLabel(self.frame_cadastro, text="Cadastre Suas Assinaturas", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=10)
 
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------

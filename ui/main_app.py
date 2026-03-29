@@ -84,7 +84,7 @@ class Main_app(ctk.CTk):
         self.nomeusuario_label.grid(row=0, column=0, pady=(0, 10), sticky="w")
             
         self.btn_att_app = ctk.CTkButton(self.top_section_frame, text="Atualizar", command=self.att_app, width=80,
-                                        fg_color="#0400FF", hover_color="#7D0081")
+                                        fg_color="#0400FF", hover_color="#024389")
         
         self.btn_att_app.grid(row=0, column=1,sticky="e")
         
@@ -110,26 +110,26 @@ class Main_app(ctk.CTk):
         #---------------------------------------------------------------------------------------
 
         # Botões
-        self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Cadastar Receitas", command=self.abrir_receitas)
-        self.btn_receitas.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Gerenciar Receitas", command=self.abrir_receitas)
+        self.btn_receitas.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
-        self.btn_despesas = ctk.CTkButton(self.cadastro_frame, text="Cadastrar Despesas", command=self.abrir_despesas)
-        self.btn_despesas.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        self.btn_despesas = ctk.CTkButton(self.cadastro_frame, text="Gerenciar Despesas", command=self.abrir_despesas)
+        self.btn_despesas.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
 
-        self.btn_cc = ctk.CTkButton(self.cadastro_frame, text="Cadastrar C.Crédito", command=self.abrir_cc)
-        self.btn_cc.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+        self.btn_cc = ctk.CTkButton(self.cadastro_frame, text="Gerenciar C.Crédito", command=self.abrir_cc)
+        self.btn_cc.grid(row=1, column=2, padx=5, pady=5, sticky="ew")
 
-        self.btn_assin = ctk.CTkButton(self.cadastro_frame, text="Cadastrar Assinaturas", command=self.abrir_assinaturas)
-        self.btn_assin.grid(row=0, column=3, padx=5, pady=5, sticky="ew")
+        self.btn_assin = ctk.CTkButton(self.cadastro_frame, text="Gerenciar Assinaturas", command=self.abrir_assinaturas)
+        self.btn_assin.grid(row=1, column=3, padx=5, pady=5, sticky="ew")
 
         self.label_cc = ctk.CTkLabel(self.cadastro_frame, text="Selecione o Cartão:")
         self.label_cc.grid(row=0, column=4, padx=10, pady=5)
 
-        self.menu_cartoes = ctk.CTkOptionMenu(self.cadastro_frame, values=self.nomes_cartoes)
+        self.menu_cartoes = ctk.CTkOptionMenu(self.cadastro_frame, values=self.nomes_cartoes, width=80, fg_color="#FF8000")
         self.menu_cartoes.grid(row=1, column=4, padx=10, pady=5)
 
-        self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=self.abrir_det_cc)
-        self.det_despesas_cc.grid(row=1, column=5, padx=5, pady=5, sticky="ew")
+        self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=self.abrir_det_cc, width=80, fg_color="#FF8000", hover_color="#813C00")
+        self.det_despesas_cc.grid(row=1, column=5, padx=2, pady=2, )
 
 
         
