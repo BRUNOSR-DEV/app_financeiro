@@ -646,11 +646,45 @@ def atualizar_divida(id_divida, valor_pago, conn=None):
         gerenciar_conn = True
 
     cursor = conn.cursor()
+
     try:
         sql = "UPDATE dividas SET valor_pago = valor_pago + %s WHERE id = %s"
         cursor.execute(sql, (valor_pago, id_divida))
         conn.commit()
         print(f"Dívida com ID {id_divida} atualizada com sucesso!")
+        return True
+    
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f"Erro MySQL ao fazer atualização: {e}")
+        conn.rollback()
+        return False # Retorna None para indicar falha
+    
+    except Exception as e:
+        print(f"Erro inesperado ao inserir cartão: {e}")
+        conn.rollback()
+        return False
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
+def atualizar_receitas(id_rec, valor, descricao, data, conn=None):
+
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    
+    try:
+        sql = "UPDATE receitas SET valor = %s, descricao = %s, data = %s WHERE id = %s"
+        cursor.execute(sql, (valor, descricao, data, id_rec))
+        conn.commit()
+
+        print(f"Receita com ID {id_rec} atualizada com sucesso!")
+        return True
     
     except MySQLdb.Error as e: # Captura erro específico do MySQL
         print(f"Erro MySQL ao fazer atualização: {e}")
@@ -658,15 +692,13 @@ def atualizar_divida(id_divida, valor_pago, conn=None):
         return None # Retorna None para indicar falha
     
     except Exception as e:
-        print(f"Erro inesperado ao inserir cartão: {e}")
+        print(f"Erro inesperado ao atualizar receita: {e}")
         conn.rollback()
         return None
         
     finally:
         if gerenciar_conn:
             desconectar(conn)
-
-
 
 
 
