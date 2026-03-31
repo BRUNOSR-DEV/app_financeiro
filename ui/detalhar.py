@@ -26,7 +26,6 @@ class Listar_receitas(ctk.CTkFrame):
         self.user_id = user_id
         self.callback = callback
 
-        self.dados_receitas = dados_receita(self.user_id)
 
          # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -58,6 +57,8 @@ class Listar_receitas(ctk.CTkFrame):
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
 
+        self.dados_receitas = dados_receita(self.user_id)
+
         if self.dados_receitas:
 
 
@@ -85,7 +86,13 @@ class Listar_receitas(ctk.CTkFrame):
 
 
     def confirmar_update(self, dict_dados):
-        pass
+
+        print("Estou no'confirmar_update' mandando dados dict para crud_app")
+
+        if dict_dados:
+            self.callback(dict_dados)
+        else:
+            self.callback(None)
 
 
     def confirmar_delete(self, id_rec):

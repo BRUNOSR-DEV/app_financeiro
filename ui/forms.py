@@ -110,11 +110,12 @@ class Registro_usuario(ctk.CTkToplevel):
 
 class Cadastrar_receitas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, login_instance=None, callback = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, trocar_mes = None, atualizar_lista= None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.callback = callback
+        self.trocar_mes = trocar_mes
+        self.atualizar_lista = atualizar_lista
 
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
@@ -136,7 +137,7 @@ class Cadastrar_receitas(ctk.CTkFrame):
         self.label_data_compra.grid(row=3, column=0)
             
         self.data_recebimento = DateEntry(self, width=12, background='darkblue',
-                            foreground='white', borderwidth=2, year=2026, 
+                            foreground='white', borderwidth=2, day=1, month=1, year=2099, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
         self.data_recebimento.grid(row=4, column=0, padx=10, pady=10)
 
@@ -178,17 +179,17 @@ class Cadastrar_receitas(ctk.CTkFrame):
         sucesso = False
 
         if not atualizar:
-                #inserir os dados novos
-                sucesso = inserir_receitas(self.user_id, valor, descricao, data_mysql)
-                msg_ok = "INSERIDOS"
+            #inserir os dados novos
+            sucesso = inserir_receitas(self.user_id, valor, descricao, data_mysql)
+            msg_ok = "INSERIDOS"
 
-                msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
+            msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
         else:
-                #Fazer atualização
-                sucesso = atualizar_receitas(id_rec, valor, descricao, data_mysql)
-                msg_ok = "ATUALIZADOS"
+            #Fazer atualização
+            sucesso = atualizar_receitas(id_rec, valor, descricao, data_mysql)
+            msg_ok = "ATUALIZADOS"
 
-                msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema..."
+            msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema..."
 
         if sucesso:
 
@@ -198,11 +199,15 @@ class Cadastrar_receitas(ctk.CTkFrame):
             self.update_idletasks()
             self.after(2000, lambda: self.status_label.configure(text=''))
 
+
             if atualizar:
                 self.controla_campos(None)
 
-            if self.callback: #Atualiza janela main
-                self.callback(escolha=gerar_opcoes_meses().get(data_obj.month))
+            if self.atualizar_lista:
+                self.atualizar_lista()
+
+            if self.trocar_mes: #Atualiza janela main
+                self.trocar_mes(escolha=gerar_opcoes_meses().get(data_obj.month))
    
         else:
 
@@ -228,7 +233,7 @@ class Cadastrar_receitas(ctk.CTkFrame):
             self.descricao.insert(0, dados.get('descricao'))
             self.data_recebimento.set_date(data_obj)
 
-            self.botao_salvar.configure(txt='Atualizar', fg_color="orange", command=lambda: self.salvar_dados(id_rec, atualizar=True))
+            self.botao_salvar.configure(text='Atualizar', fg_color="orange", command=lambda: self.salvar_dados(id_rec, atualizar=True))
         
         else:
             id_rec = None

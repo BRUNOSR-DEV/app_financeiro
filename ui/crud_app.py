@@ -25,11 +25,11 @@ from decimal import Decimal
 
 class Receitas(ctk.CTkToplevel):
 
-    def __init__(self,  parent=None, user_id=None, callback = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, trocar_mes = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.callback = callback
+        self.trocar_mes = trocar_mes
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Receitas")
@@ -48,32 +48,33 @@ class Receitas(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
         # ---------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_receitas(parent=self, user_id=self.user_id, callback= callback)
+        self.frame_cadastro = Cadastrar_receitas(parent=self, user_id=self.user_id, trocar_mes = trocar_mes, atualizar_lista= self.atualizar_lista)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
 
         #-------------- FRAME DA LISTA (Update/Delete) --------------------------
-        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, callback = self.atualizar_lista )
+        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, callback = self.pega_dados )
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
         
+    
+    def pega_dados(self, dados=None):
         
+        self.frame_cadastro.controla_campos(dados)
 
 
     def atualizar_lista(self, escolha=None):
         """Método que será chamado após um novo cadastro ou delete para recarregar a tabela"""
-
+        
         print("Atualizando a lista de receitas na tela...")
-
+        self.frame_lista.listar()
         
         # Lógica para puxar do banco 
-
-
-        if self.callback:
-            self.callback() # Atualiza a tela principal (Main) também, se necessário
+        #if self.trocar_mes:
+        #    self.trocar() # Atualiza a tela principal (Main) também, se necessário
 
 
 

@@ -14,7 +14,7 @@ from utils.helper import(
 )
 
 from utils.audio_helper import tocar_notificacao 
-from ui.rud_app import (
+from ui.crud_app import (
     Faturas_cartao, Receitas, Despesas, Car_cred, Assinaturas
 )
 
@@ -335,7 +335,7 @@ class Main_app(ctk.CTk):
     def abrir_receitas(self):
 
         tocar_notificacao('click')
-        register_window = Receitas(self, self.user_id, callback = self.trocar_mes)
+        register_window = Receitas(self, self.user_id, trocar_mes = self.trocar_mes)
 
         self.wait_window(register_window) 
 
