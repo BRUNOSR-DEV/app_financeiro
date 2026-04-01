@@ -35,7 +35,6 @@ class Receitas(ctk.CTkToplevel):
         self.title("Gerenciar Receitas")
         self.geometry("1000x800")
         self.transient(parent) # Faz a popup aparecer sobre a janela principal e fechar com ela
-        self.grab_set() # Bloqueia interações com a janela principal enquanto a popup está aberta
         self.focus_set() # Define o foco para esta janela
 
         # ---------------- Gerencimento de self ---------------------
@@ -54,16 +53,18 @@ class Receitas(ctk.CTkToplevel):
 
 
         #-------------- FRAME DA LISTA (Update/Delete) --------------------------
-        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, callback = self.pega_dados )
+        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, controle_dados= self.controle_dados, trocar_mes= trocar_mes )
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
         
     
-    def pega_dados(self, dados=None):
+    def controle_dados(self, dados=None):
         
-        self.frame_cadastro.controla_campos(dados)
+        if dados:
+            self.frame_cadastro.controla_campos(dados)
+        
 
 
     def atualizar_lista(self, escolha=None):

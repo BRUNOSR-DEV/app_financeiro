@@ -702,128 +702,31 @@ def atualizar_receitas(id_rec, valor, descricao, data, conn=None):
 
 
 
+#------------------------------------------------------------------------------
 
+# ----------------------------- Deletar ---------------------------------
 
-def listar_tarefas(id_usuario, conn=None):
-    """ Função que retorna a lista de tarefas do usuário passando o id do mesmo"""
-    
-    gerenciar_conn = False
-
-    if conn is None:
-        conn= conectar_bd_original()
-        gerenciar_conn= True
-
-    cursor = conn.cursor()
-
-    try:
-        # CORREÇÃO: Usar placeholder %s e passar id_usuario como tupla
-        cursor.execute("SELECT id, descricao, checkbox FROM tarefas WHERE fk_usuario = %s", (id_usuario,))
-        tarefas = cursor.fetchall() # fetchall() para obter todas as linhas, retorna tupla de tuplas 
-
-        return [(t[0], t[1], t[2]) for t in tarefas] # Se o row_factory não estiver definido, acesse por índice
-    
-    except MySQLdb.Error as e:
-        print(f"Erro MySQL ao listar tarefas: {e}")
-        return [] # Retorna lista vazia em caso de erro no DB
-    except Exception as e: # Capture exceções para depuração
-        print(f"Erro ao listar tarefas: {e}")
-        return [] # Retorne uma lista vazia em caso de erro geral
-    
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-        
-
-
-def deletar_tarefa(tarefa_id, conn=None):
-    """ Função que deleta uma tarefa da tabela de tarefas, passando id da tarefa"""
+def deletar_receita(id_rec, conn=None):
 
     gerenciar_conn = False
-
     if conn is None:
         conn = conectar_bd_original()
         gerenciar_conn = True
 
     cursor = conn.cursor()
     try:
-        sql = "DELETE FROM tarefas WHERE id = %s"
-        cursor.execute(sql, (tarefa_id,))
+        sql = "DELETE FROM receitas WHERE id = %s"
+        cursor.execute(sql, (id_rec,))
         conn.commit()
-        return cursor.rowcount > 0 # Retorna True se deletou, False caso contrário
+        return True
     
-    except MySQLdb.Error as e:
-        print(f"Erro MySQL ao deletar tarefa ID {tarefa_id}: {e}")
-        conn.rollback()
-        return False
     except Exception as e:
-        print(f"Erro inesperado ao tentar deletar tarefa ID {tarefa_id}: {e}")
+        print(f"Erro ao deletar no MySQL: {e}")
         conn.rollback()
         return False
     
     finally:
         if gerenciar_conn:
             desconectar(conn)
-
-    """ ----------- forma mais correta ------------
-
-    def deletar_tarefa(id_tarefa):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("DELETE FROM tarefas WHERE id = ?", (id_tarefa,))
-        conn.commit()
-        return True
-    except sqlite3.Error as e:
-        print(f"Erro ao deletar tarefa: {e}")
-        conn.rollback()
-        return False
-    finally:
-        conn.close()"""
-
-
-
-def atualizar_checkbox(tarefa_id, novo_status, conn=None):
-    """ Atualiza o status de checkbox no banco de dados """
-    
-    gerenciar_conn = False
-
-    if conn is None:
-        conn = conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-    try:
-        sql = "UPDATE tarefas SET checkbox = %s WHERE id = %s"
-        cursor.execute(sql, (novo_status, tarefa_id,))
-        conn.commit()
-        return cursor.rowcount > 0 # Retorna True se atualizou, False caso contrário
-    except MySQLdb.Error as e:
-        print(f"Erro MySQL ao atualizar checkbox - ID {tarefa_id}: {e}")
-        conn.rollback()
-        return False
-    except Exception as e:
-        print(f"Erro inesperado ao tentar atualizar checkbox - ID {tarefa_id}: {e}")
-        conn.rollback()
-        return False
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-    
-    """------ forma mais correta --------------
-
-    def atualizar_status_tarefa(id_tarefa, status_concluida):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("UPDATE tarefas SET concluida = ? WHERE id = ?",
-                       (status_concluida, id_tarefa))
-        conn.commit()
-        return True
-    except sqlite3.Error as e:
-        print(f"Erro ao atualizar status: {e}")
-        conn.rollback()
-        return False
-    finally:
-        conn.close()"""
 
 

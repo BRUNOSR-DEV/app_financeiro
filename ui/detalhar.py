@@ -1,11 +1,13 @@
 
 from models.conecte_bd import (
-    pega_despesas_cartao, dados_assinaturas_cartao, dados_receita
+    pega_despesas_cartao, dados_assinaturas_cartao, dados_receita, deletar_receita
      )
 
 from utils.helper import(
-    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc
+    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, 
 )
+
+from utils.audio_helper import tocar_notificacao 
 
 
 from dateutil.relativedelta import relativedelta
@@ -20,11 +22,12 @@ from decimal import Decimal
 
 class Listar_receitas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, callback = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, controle_dados= None, trocar_mes=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.callback = callback
+        self.controle_dados = controle_dados
+        self.trocar_mes = trocar_mes
 
 
          # --------------- Configuração da janela/'labels' -----------------------
@@ -62,23 +65,23 @@ class Listar_receitas(ctk.CTkFrame):
         if self.dados_receitas:
 
 
-            for i ,dado in enumerate(self.dados_receitas, start=1):
-                
+            for i, dado in enumerate(self.dados_receitas, start=1):
+                #dado é o dict de uma receita
                 valor = dado.get('valor_recebido')
                 descricao = dado.get('descricao')
                 data = dado.get('data')
 
-                ctk.CTkLabel(self.lista_frame, text=str(i)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=formatar_moeda(valor), text_color="#27ae60").grid(row=i, column=1, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=descricao).grid(row=i, column=2, padx=3, pady=1, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data)).grid(row=i, column=3, padx=5, pady=2, sticky="e")
+                ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=formatar_moeda(valor), text_color="#27ae60", font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=descricao, font=('Ariel', 14)).grid(row=i, column=2, padx=3, pady=1, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data), font=('Ariel', 14)).grid(row=i, column=3, padx=5, pady=2, sticky="e")
 
                 btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
                                      command=lambda d=dado: self.confirmar_update(d))
                 btn_edit.grid(row=i, column=4, padx=2)
 
                 btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
-                                    command=lambda id_rec=dado.get('id_receita'): self.confirmar_delete(id_rec))
+                                    command=lambda dados=dado: self.confirmar_delete(dados))
                 btn_del.grid(row=i, column=5, padx=5)
 
 
@@ -90,14 +93,63 @@ class Listar_receitas(ctk.CTkFrame):
         print("Estou no'confirmar_update' mandando dados dict para crud_app")
 
         if dict_dados:
-            self.callback(dict_dados)
+            self.controle_dados(dict_dados)
         else:
-            self.callback(None)
+            self.controle_dados(None)
 
 
-    def confirmar_delete(self, id_rec):
-        pass
+
+    def confirmar_delete(self, dados):
         
+        popup = ctk.CTkToplevel(self)
+        popup.title("Confirmação")
+        popup.geometry("300x150")
+
+        popup.grab_set()
+
+        popup.grid_columnconfigure((0, 1), weight=1)
+
+        label = ctk.CTkLabel(popup, text="Tem certeza que deseja\nexcluir esta receita?", font=("Arial", 14))
+        label.grid(row=0, column=0, columnspan=2, pady=20)
+
+        btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555",
+                                 command=popup.destroy)
+        btn_cancelar.grid(row=1, column=0, padx=10, pady=10)
+
+        btn_confirmar = ctk.CTkButton(popup, text="Sim, excluir", fg_color="#c0392b", hover_color="#e74c3c",
+                                  command=lambda: self.executar_delete(dados, popup))
+        btn_confirmar.grid(row=1, column=1, padx=10, pady=10)
+
+
+    def executar_delete(self, dados, popup):
+        
+        id_rec = dados.get('id_receita')
+        print(f'----------------{id_rec}----------------------')
+        import time
+        time.sleep(2)
+
+        int_mes = mysql_para_obj(dados.get('data')).month
+        descricao = dados.get('descricao')
+
+        sucesso = deletar_receita(id_rec)
+
+        if sucesso:
+
+            print(f"ID {id_rec} receita: '{descricao}'. Mandado pro espaço 🌌​")
+            tocar_notificacao("sucesso")
+
+            self.listar()
+
+            self.trocar_mes(escolha=gerar_opcoes_meses().get(int_mes))
+
+            popup.destroy()
+
+        else:
+            print("Erro ao deletar")
+            tocar_notificacao("erro")
+
+            
+
 
 class Listar_despesas(ctk.CTkFrame):
 

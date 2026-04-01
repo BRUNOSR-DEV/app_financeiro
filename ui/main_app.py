@@ -204,6 +204,8 @@ class Main_app(ctk.CTk):
         
         print("Botão clicado! Chamando com vigente False")
 
+
+
         for widget in self.tabela_frame.winfo_children():
             widget.destroy()
 
@@ -224,6 +226,11 @@ class Main_app(ctk.CTk):
             controle_mes = 3
             att_mes = self.preencher_total_dividas(self.user_id, controle_mes)
             self.gerar_grafico_mensal(controle_mes=3)
+            
+        else:
+            controle_mes = 1
+            att_mes = self.preencher_total_dividas(self.user_id)
+            self.gerar_grafico_mensal()
 
         self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), att_mes, controle_mes)
 
