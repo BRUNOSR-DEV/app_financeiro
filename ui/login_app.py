@@ -4,6 +4,7 @@ from models.conecte_bd import (
 )
 
 from utils.audio_helper import tocar_notificacao 
+from utils.helper import(centralizar_janela)
 import time
 
 import customtkinter as ctk
@@ -16,8 +17,8 @@ class Login(ctk.CTk):
 
     def __init__(self):
         super().__init__()
-        self.title('Sistem de Login')
-        self.geometry('350x400')
+        self.title('Sistema de Login')
+        centralizar_janela(self, 350, 400)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=0)
 

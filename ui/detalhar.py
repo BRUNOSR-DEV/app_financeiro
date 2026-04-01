@@ -4,7 +4,7 @@ from models.conecte_bd import (
      )
 
 from utils.helper import(
-    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, 
+    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, centralizar_janela
 )
 
 from utils.audio_helper import tocar_notificacao 
@@ -15,6 +15,8 @@ from datetime import datetime
 
 import customtkinter as ctk
 ctk.set_appearance_mode('dark')
+
+from CTkToolTip import *
 
 from decimal import Decimal
 
@@ -30,7 +32,7 @@ class Listar_receitas(ctk.CTkFrame):
         self.trocar_mes = trocar_mes
 
 
-         # --------------- Configuração da janela/'labels' -----------------------
+         # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -79,10 +81,17 @@ class Listar_receitas(ctk.CTkFrame):
                 btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
                                      command=lambda d=dado: self.confirmar_update(d))
                 btn_edit.grid(row=i, column=4, padx=2)
+                CTkToolTip(btn_edit, message="Editar Registro")
 
                 btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
                                     command=lambda dados=dado: self.confirmar_delete(dados))
                 btn_del.grid(row=i, column=5, padx=5)
+                CTkToolTip(btn_del, 
+                            message="Excluir Registro", 
+                            delay=0.5,      # Tempo em segundos para aparecer
+                            alpha=0.9,      # Transparência
+                            bg_color="red" 
+                            )
 
 
         self.lista_frame.grid_columnconfigure((4, 5), weight=0)
@@ -103,7 +112,7 @@ class Listar_receitas(ctk.CTkFrame):
         
         popup = ctk.CTkToplevel(self)
         popup.title("Confirmação")
-        popup.geometry("300x150")
+        centralizar_janela(popup, 300, 150)
 
         popup.grab_set()
 
@@ -124,10 +133,6 @@ class Listar_receitas(ctk.CTkFrame):
     def executar_delete(self, dados, popup):
         
         id_rec = dados.get('id_receita')
-        print(f'----------------{id_rec}----------------------')
-        import time
-        time.sleep(2)
-
         int_mes = mysql_para_obj(dados.get('data')).month
         descricao = dados.get('descricao')
 
@@ -191,20 +196,14 @@ class Listar_assinaturas(ctk.CTkFrame):
 
 #-----------------  Detalhes da fatura dos cartões -----------------------------------------
 
-class Faturas_cartao(ctk.CTkToplevel):
+class Listar_faturas_cartao(ctk.CTkFrame):
     
     def __init__(self, parent, id_user, id_card, nome_card, callback=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
-        self.title(f"Detalhes: {nome_card}")
-        self.geometry("1000x800")
-        self.transient(parent)
-        
-        # Garante que a janela fique na frente
-        self.attributes("-topmost", True) 
-
+        # ---------------- Gerencimento de self ---------------------
         self.calback = callback
-
+        
         self.data_atual = datetime.now().date()
         self.mes_atual = self.data_atual.month
         self.prox_mes =  (self.data_atual + relativedelta(months=1)).month
@@ -220,10 +219,12 @@ class Faturas_cartao(ctk.CTkToplevel):
         self.mes_atual_str = opcoes.get(self.mes_atual)
         self.prox_mes_str = opcoes.get(self.prox_mes)
         self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
+        
 
+        # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1) 
-
+    
         self.label_titulo = ctk.CTkLabel(self, text=f"Fatura: {nome_card}", font=("Arial", 22, "bold"))
         self.label_titulo.grid(row=0, column=0, pady=20)
         

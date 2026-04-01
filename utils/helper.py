@@ -59,7 +59,23 @@ def formatar_moeda(valor):
 
 
 
-#rename - control_pags()
+def centralizar_janela(janela, largura, altura):
+    # Pega a largura e altura da tela do PC do usuário
+
+    janela.update_idletasks()
+    
+    largura_tela = janela.winfo_screenwidth()
+    altura_tela = janela.winfo_screenheight()
+
+    # Calcula a posição X e Y para o centro
+    pos_x = (largura_tela // 2) - (largura // 2)
+    pos_y = (altura_tela // 2) - (altura // 2)
+
+    # Aplica a geometria: "300x150+500+300" por exemplo
+    janela.geometry(f"{largura}x{altura}+{pos_x}+{pos_y}")
+
+
+
 def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_mes=None, data_atual=None):
     """
     Calcula a parcela atual baseada na data de compra e no fechamento da fatura.

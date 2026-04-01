@@ -10,12 +10,12 @@ from models.conecte_bd import (
      )
 
 from utils.helper import(
-    gerar_opcoes_meses, controle_data_parc, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc
+    gerar_opcoes_meses, controle_data_parc, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, centralizar_janela
 )
 
 from utils.audio_helper import tocar_notificacao 
 from ui.crud_app import (
-    Faturas_cartao, Receitas, Despesas, Car_cred, Assinaturas
+    Faturas, Receitas, Despesas, Car_cred, Assinaturas
 )
 
 
@@ -35,11 +35,12 @@ class Main_app(ctk.CTk):
 
     def __init__(self, logged_in_username=None):
         super().__init__()
-        self.title("Controle Financeiro")
-        self.geometry("1500x800")
 
         self.usuario_logado = logged_in_username
-        
+
+        self.title("Controle Financeiro")
+        centralizar_janela(self, 1500, 800)
+
         self.user_id = pega_id(self.usuario_logado)
         self.dados_usuario = dados_user(self.user_id)
 
@@ -331,7 +332,7 @@ class Main_app(ctk.CTk):
         if id_card:
             tocar_notificacao('click')
 
-            register_window = Faturas_cartao(self, self.user_id, id_card, nome_card=nome_selecionado, callback=self.trocar_mes)
+            register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado, callback=self.trocar_mes)
 
             self.wait_window(register_window)
         else:
