@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-      inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_assinatura, atualizar_receitas
+      inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_assinatura, atualizar_receitas, atualiza_assinaturas
      )
 
 from utils.helper import(
@@ -576,10 +576,11 @@ class Cadastrar_car_cred(ctk.CTkFrame):
 
 class Cadastrar_assinaturas(ctk.CTkFrame):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, callback=None):
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None, trocar_mes=None, atualizar_lista = None):
         super().__init__(parent)
 
-        self.callback = callback
+        self.trocar_mes = trocar_mes
+        self.atualizar_lista = atualizar_lista
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes 
         
@@ -637,14 +638,12 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
         self.status_label.grid(row=10, column=0, pady=5)
 
 
-    def salvar_dados(self):
+    def salvar_dados(self, id_ass=None, atualizar=None):
 
         dia_venc = None
         verifica_data_pp = False
 
         id_card = None
-        
-        so_data = self.data_atual.date()
 
         nome = self.entry_nome.get().strip()
         valor = self.entry_valor.get().strip()
@@ -705,29 +704,47 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
             return
         
         #chama o método para inserir os dados no db e retorna se bem sucedido
-        retorno = inserir_assinatura(self.user_id, nome, valor, descricao, data_aq_mysql, data_pp_mysql, dia_venc, categoria, id_card )
+        sucesso = False
+        if not atualizar:
+            sucesso = inserir_assinatura(self.user_id, nome, valor, descricao, data_aq_mysql, data_pp_mysql, dia_venc, categoria, id_card )
+            msg_ok = "INSERIDOS"
+            msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
+            
+        else:
+            sucesso = atualiza_assinaturas(self.user_id, nome, valor, descricao, data_aq_mysql, data_pp_mysql, dia_venc, categoria, id_card )
+            msg_ok = "ATUALIZADOS"
+            msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema...'"
 
         #retorno do banco - texto de indicação
-        if retorno:
+        if sucesso:
             tocar_notificacao("sucesso")
 
-            self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+            self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')
             self.update_idletasks()
 
             self.limpar_campos()
             
             self.after(2000, lambda: self.status_label.configure(text=''))
 
-            """if self.callback:
-                self.callback()"""
+            if self.trocar_mes:
+                pass #????????????????
+
+            if self.atualizar_lista:
+                self.atualizar_lista()
+            
 
         else:
-            self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
+            self.status_label.configure(text=f'{msg_falha}', text_color='red')
             tocar_notificacao("erro")
             self.update_idletasks()
+            self.after(2000, lambda: self.status_label.configure(text=''))
 
 
-    def limpar_campos(self):
+    def controla_campos(self, dados=None):
+
+        pass
+
+    def limpa_campos(self):
         """Limpa todos os campos de entrada do formulário de assinaturas."""
         
         # Limpa CTkEntry's

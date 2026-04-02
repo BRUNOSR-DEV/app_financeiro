@@ -367,7 +367,7 @@ class Main_app(ctk.CTk):
     def abrir_assinaturas(self):
 
         tocar_notificacao('click')
-        register_window = Assinaturas(self, self.user_id, self.dados_cartoes, callback=self.att_app)
+        register_window = Assinaturas(self, self.user_id, self.dados_cartoes, trocar_mes=self.trocar_mes)
 
         self.wait_window(register_window)
 

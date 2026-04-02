@@ -430,6 +430,9 @@ def dados_assinaturas_cartao(id_user, id_card, conn=None):
             desconectar(conn)
 
 
+def dados_assinaturas_full(id_user, conn=None):
+    pass
+
 #----------------------------------------------------------------------
 
 #------------------------- Inserir ------------------------------------
@@ -701,6 +704,8 @@ def atualizar_receitas(id_rec, valor, descricao, data, conn=None):
             desconectar(conn)
 
 
+def atualiza_assinaturas(id_ass, nome,  valor, descricao, data_aq, data_prim_pag, dia_venc, id_cc):
+    pass
 
 #------------------------------------------------------------------------------
 

@@ -186,16 +186,16 @@ class Car_cred(ctk.CTkToplevel):
 
 class Assinaturas(ctk.CTkToplevel):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, callback=None):
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None, trocar_mes=None):
         super().__init__(parent)
 
-        self.callback = callback
+        self.trocar_mes = trocar_mes
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes 
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Assinaturas")
-        centralizar_janela(self, 1000, 800)
+        centralizar_janela(self, 1300, 800)
         self.grab_set() 
         self.focus_set()
 
@@ -210,12 +210,12 @@ class Assinaturas(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_assinaturas(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes,  callback= callback)
+        self.frame_cadastro = Cadastrar_assinaturas(self, self.user_id, self.dados_cartoes, self.trocar_mes, self.atualizar_lista)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
-        self.frame_lista = Listar_assinaturas(parent=self, user_id=self.user_id, callback = self.atualizar_lista )
+        self.frame_lista = Listar_assinaturas(self, self.user_id, self.controle_dados )
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
@@ -223,15 +223,18 @@ class Assinaturas(ctk.CTkToplevel):
         ctk.CTkLabel(self.frame_lista, text="Assinaturas Cadastradas", font=("Arial", 18, "bold")).grid(row=0, column=0, padx=10, pady=10)
 
 
+
+    def controle_dados(self, dados=None):
+        
+        if dados:
+            self.frame_cadastro.controla_campos(dados)
+        
+
     def atualizar_lista(self, escolha=None):
         """Método que será chamado após um novo cadastro ou delete para recarregar a tabela"""
-
-        print("Atualizando a lista assinaturas na tela...")
-
-        # Lógica para puxar do banco 
-
-        if self.callback:
-            self.callback() # Atualiza a tela principal (Main) também, se necessário
+        
+        print("Atualizando a lista de receitas na tela...")
+        self.frame_lista.listar()
 
 
         

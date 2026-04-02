@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-    pega_despesas_cartao, dados_assinaturas_cartao, dados_receita, deletar_receita
+    pega_despesas_cartao, dados_assinaturas_cartao, dados_receita, deletar_receita, dados_assinaturas_full
      )
 
 from utils.helper import(
@@ -185,7 +185,43 @@ class Listar_assinaturas(ctk.CTkFrame):
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes 
 
+        # --------------- Configuração da Frames/'labels' -----------------------
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
+        self.lista_frame = ctk.CTkScrollableFrame(self, label_text="Assinaturas Cadastradas")
+        self.lista_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        self.lista_frame.grid_columnconfigure((0, 1, 2, 4, 5, 6, 7), weight=0) # Index, Valor e Data fixos
+        self.lista_frame.grid_columnconfigure(3, weight=1) #Descriçao estica
+
+
+        #cabeçalho
+        ctk.CTkLabel(self.lista_frame, text='#', font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text='Nome', font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Descrição", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Data Aquisisão", font=ctk.CTkFont(weight="bold")).grid(row=0, column=4, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Data P/Pagamento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=5, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Categoria", font=ctk.CTkFont(weight="bold")).grid(row=0, column=6, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Cartão Utilizado", font=ctk.CTkFont(weight="bold")).grid(row=0, column=7, padx=5, pady=5, sticky="w")
+
+        self.listar()
+
+
+    def listar(self):
+
+        for widget in self.lista_frame.winfo_children():
+            if int(widget.grid_info().get("row", 0)) > 0:
+                widget.destroy()
+
+        self.dados_assinaturas = dados_assinaturas_full(self.user_id)
+
+        if self.dados_assinaturas:
+
+
+            for i, dado in enumerate(self.dados_assinaturas, start=1):
+                pass
 
 
 
