@@ -252,8 +252,8 @@ class Faturas(ctk.CTkToplevel):
         self.transient(parent)
         self.attributes("-topmost", True) 
 
-        self.grid_columnconfigure(0, weight=1) 
-        self.grid_columnconfigure(1, weight=2) 
+        self.grid_columnconfigure(0, weight=0) 
+        self.grid_columnconfigure(1, weight=1) 
         self.grid_rowconfigure(0, weight=1)
 
 
@@ -261,7 +261,7 @@ class Faturas(ctk.CTkToplevel):
         self.frame_tabelas = Listar_faturas_cartao(self, self.id_user, self.id_card, self.nome_card, callback=self.calback)
         self.frame_tabelas.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
-        self.frame_tabelas.grid_columnconfigure(0, weight=1)
+        
 
 
 

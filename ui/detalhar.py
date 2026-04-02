@@ -31,7 +31,6 @@ class Listar_receitas(ctk.CTkFrame):
         self.controle_dados = controle_dados
         self.trocar_mes = trocar_mes
 
-
          # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -49,9 +48,6 @@ class Listar_receitas(ctk.CTkFrame):
         ctk.CTkLabel(self.lista_frame, text="Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text="Descrição", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text="Data Recebimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
-        
-
-
 
         self.listar()
 
@@ -223,14 +219,15 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
         # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(1, weight=1) 
+
     
         self.label_titulo = ctk.CTkLabel(self, text=f"Fatura: {nome_card}", font=("Arial", 22, "bold"))
-        self.label_titulo.grid(row=0, column=0, pady=20)
+        self.label_titulo.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
         
-
         self.main_content_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.main_content_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.main_content_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
 
         self.main_content_frame.grid_columnconfigure(0, weight=1) # Tabela (Grande)
         self.main_content_frame.grid_columnconfigure(1, weight=1) 
@@ -349,7 +346,8 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
 
 
-        self.tabela_frame.grid_columnconfigure(2, weight=1)
+        self.tabela_frame.grid_columnconfigure(0, weight=2)
+        self.tabela_frame.grid_columnconfigure((1, 2, 3), weight=1)
 
 
 
@@ -444,6 +442,7 @@ class Listar_faturas_cartao(ctk.CTkFrame):
                 text_color="red" 
             ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
 
-        self.tabela_frame.grid_columnconfigure(2, weight=1)
+        self.tabela_frame_prox.grid_columnconfigure(0, weight=2) 
+        self.tabela_frame_prox.grid_columnconfigure((1, 2, 3), weight=1)
 
 
