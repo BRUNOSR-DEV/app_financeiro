@@ -195,9 +195,9 @@ class Assinaturas(ctk.CTkToplevel):
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Assinaturas")
-        centralizar_janela(self, 1300, 800)
-        self.grab_set() 
+        centralizar_janela(self, 1800, 800)
         self.focus_set()
+        self.grab_set()
 
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
@@ -205,8 +205,10 @@ class Assinaturas(ctk.CTkToplevel):
 
 
         # --------------- Configuração da janela/'labels' -----------------------
+        #coluna o - formulário
         self.grid_columnconfigure(0, weight=1) 
-        self.grid_columnconfigure(1, weight=2) 
+        #coluna 1 - Lista
+        self.grid_columnconfigure(1, weight=4) 
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
@@ -215,12 +217,11 @@ class Assinaturas(ctk.CTkToplevel):
 
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
-        self.frame_lista = Listar_assinaturas(self, self.user_id, self.controle_dados )
-        self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+        self.frame_lista = Listar_assinaturas(self, self.user_id, self.dados_cartoes, self.controle_dados, self.trocar_mes )
+        self.frame_lista.grid(row=0, column=1, padx=(0,20), pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
-        ctk.CTkLabel(self.frame_lista, text="Assinaturas Cadastradas", font=("Arial", 18, "bold")).grid(row=0, column=0, padx=10, pady=10)
 
 
 

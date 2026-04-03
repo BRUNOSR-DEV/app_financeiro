@@ -346,7 +346,7 @@ def pega_despesas(id_user, conn= None):
 
 def dados_assinaturas_avulsas(id_user, conn=None):
     """
-    Busca todas as assinaturas de um usuário específico.
+    Busca todas as assinaturas sem cartão de um usuário específico.
     """
     gerenciar_conn = False
     if conn is None:
@@ -431,7 +431,39 @@ def dados_assinaturas_cartao(id_user, id_card, conn=None):
 
 
 def dados_assinaturas_full(id_user, conn=None):
-    pass
+    """
+    Busca todas as assinaturas de um usuário específico.
+    """
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+        query = """
+            SELECT id, nome, valor, descricao, data_aquisicao, data_prim_pag, categoria, id_cc
+            FROM assinaturas 
+            WHERE id_usuario = %s 
+        """
+        
+        cursor.execute(query, (id_user,))
+        resultados = cursor.fetchall()
+        
+        # Mapeando as colunas. 
+        colunas = [
+            'id_ass', 'nome', 'valor', 'descricao','data_aquisicao','data_prim_pag', 'categoria', 'id_cc'
+        ]
+        
+        return [dict(zip(colunas, linha)) for linha in resultados]
+
+    except Exception as e:
+        print(f"Erro ao buscar todas as Assinaturas: {e}")
+        return []
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
 
 #----------------------------------------------------------------------
 
@@ -526,16 +558,17 @@ def inserir_receitas(id_usu, valor, descricao, data, conn=None):
         conn.close()'''
 
 
-def inserir_assinatura(id_user, nome, valor, descricao, data_aq, data_prim_parc, dia_venc, categoria, id_cc):
+def inserir_assinatura(id_user, nome, valor, descricao, data_aq, data_prim_pag, dia_venc, categoria, id_cc):
+
     conn = conectar_bd_original()
     cursor = conn.cursor()
     try:
         query = """
             INSERT INTO assinaturas 
-            (id_usuario, nome, valor, descricao, data_aquisicao, data_prim_parc, dia_vencimento, categoria, id_cc) 
+            (id_usuario, nome, valor, descricao, data_aquisicao, data_prim_pag, dia_vencimento, categoria, id_cc) 
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
-        valores = (id_user, nome, valor, descricao, data_aq, data_prim_parc, dia_venc, categoria, id_cc)
+        valores = (id_user, nome, valor, descricao, data_aq, data_prim_pag, dia_venc, categoria, id_cc)
         cursor.execute(query, valores)
         conn.commit()
         return cursor.lastrowid
@@ -704,8 +737,36 @@ def atualizar_receitas(id_rec, valor, descricao, data, conn=None):
             desconectar(conn)
 
 
-def atualiza_assinaturas(id_ass, nome,  valor, descricao, data_aq, data_prim_pag, dia_venc, id_cc):
-    pass
+def atualiza_assinatura(id_ass, nome,  valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc, conn=None):
+
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    
+    try:
+        sql = "UPDATE assinaturas SET nome = %s, valor = %s, descricao = %s, data_aquisicao = %s, data_prim_pag = %s, dia_vencimento = %s, categoria= %s, id_cc = %s WHERE id = %s"
+        cursor.execute(sql, (nome, valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc, id_ass))
+        conn.commit()
+
+        print(f"Assinatura com '{nome}' atualizada com sucesso!")
+        return True
+    
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f"Erro MySQL ao fazer atualização: {e}")
+        conn.rollback()
+        return False # Retorna None para indicar falha
+    
+    except Exception as e:
+        print(f"Erro inesperado ao atualizar assinatura: {e}")
+        conn.rollback()
+        return False
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
 
 #------------------------------------------------------------------------------
 
@@ -735,3 +796,6 @@ def deletar_receita(id_rec, conn=None):
             desconectar(conn)
 
 
+def deletar_assinatura(id_ass, conn =None):
+
+    pass

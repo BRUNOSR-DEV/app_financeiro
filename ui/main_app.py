@@ -202,11 +202,9 @@ class Main_app(ctk.CTk):
 # ------------------- Lógica de atualização de dados ----------------------
 
     def trocar_mes(self, escolha=None):
+
+        tocar_notificacao('open_w', True)
         
-        print("Botão clicado! Chamando com vigente False")
-
-
-
         for widget in self.tabela_frame.winfo_children():
             widget.destroy()
 
@@ -240,7 +238,10 @@ class Main_app(ctk.CTk):
 
     def att_app(self):
 
-        tocar_notificacao('click')
+        tocar_notificacao('closed', True)
+        import time
+        time.sleep(1.5)
+        tocar_notificacao('open', True)
 
         self.config(cursor="watch")
         self.update() 
@@ -301,7 +302,7 @@ class Main_app(ctk.CTk):
     def voltar_Plogin(self):
         """ Método para voltar para a tela de login (botão 'Sair')"""
 
-        tocar_notificacao('ligar_desligar')
+        tocar_notificacao('closed', True)
 
         self.nomeusuario_label.configure(text=f'Até a próxima {self.usuario_logado} !', text_color='red')
         self.update_idletasks()
@@ -330,7 +331,7 @@ class Main_app(ctk.CTk):
                 id_card = i.get('id_cartao')
 
         if id_card:
-            tocar_notificacao('click')
+            tocar_notificacao('open_w', True)
 
             register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado, callback=self.trocar_mes)
 
@@ -342,7 +343,7 @@ class Main_app(ctk.CTk):
 # ---------- chamada de classes forms --------------------
     def abrir_receitas(self):
 
-        tocar_notificacao('click')
+        tocar_notificacao('open_w', True)
         register_window = Receitas(self, self.user_id, trocar_mes = self.trocar_mes)
 
         self.wait_window(register_window) 
@@ -350,7 +351,7 @@ class Main_app(ctk.CTk):
 
     def abrir_cc(self):
 
-        tocar_notificacao('click')
+        tocar_notificacao('open_w', True)
         register_window = Car_cred(self, self.user_id, nomes_cards=self.nomes_cartoes, callback=self.att_app)
 
         self.wait_window(register_window)
@@ -358,7 +359,7 @@ class Main_app(ctk.CTk):
 
     def abrir_despesas(self):
 
-        tocar_notificacao('click')
+        tocar_notificacao('open_w', True)
         register_window = Despesas(self, self.user_id, self.dados_cartoes, callback=self.trocar_mes)
 
         self.wait_window(register_window)
@@ -366,7 +367,7 @@ class Main_app(ctk.CTk):
 
     def abrir_assinaturas(self):
 
-        tocar_notificacao('click')
+        tocar_notificacao('open_w', True)
         register_window = Assinaturas(self, self.user_id, self.dados_cartoes, trocar_mes=self.trocar_mes)
 
         self.wait_window(register_window)

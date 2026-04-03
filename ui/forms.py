@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-      inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_assinatura, atualizar_receitas, atualiza_assinaturas
+      inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_assinatura, atualizar_receitas, atualiza_assinatura
      )
 
 from utils.helper import(
@@ -586,7 +586,7 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
         
         # ---------------- Gerencimento de self --------------------
         self.data_atual = datetime.now().date()
-        self.data_futuro = (self.data_atual + relativedelta(years=73)).replace(day=1, month=1)
+        self.sentinela = (self.data_atual.replace(day=1, month=1, year=2099))
 
         
         # --------------- Configuração da janela/'labels' -----------------------
@@ -659,22 +659,22 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
 
         data_pp_mysql = None
 
-        if data_pp != self.data_futuro:
+        if data_pp != self.sentinela:
             dia_venc = data_pp.day
             verifica_data_pp = True
             data_pp_mysql = data_para_mysql(data_pp)
 
-            if data_pp.year == self.data_futuro.year:
+            if data_pp.year == self.sentinela.year:
                 self.status_label.configure(text='Mude o ano da data de primeiro pagemento', text_color='red')
 
-                tocar_notificacao("erro")
+                tocar_notificacao("dv_erro", True)
                 self.after(3000, lambda: self.status_label.configure(text='')) 
                 return
 
         if not nome or not valor or categoria == "Selecione a Categoria":
 
             self.status_label.configure(text='Preencha Nome, Valor, Categoria ,', text_color='red')
-            tocar_notificacao("erro")
+            tocar_notificacao("dv_erro", True)
             self.after(3000, lambda: self.status_label.configure(text=''))
             return
 
@@ -683,7 +683,7 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
             valor = float(valor.replace(",", "."))
         except ValueError:
             self.status_label.configure(text=" 'Valor' deve ser números válidos!", text_color='red')
-            tocar_notificacao("erro")
+            tocar_notificacao("dv_erro", True)
 
             self.after(3000, lambda: self.status_label.configure(text=''))
             return
@@ -698,12 +698,11 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
         #Verifica se data_pp ou seleção do cartão não foi alterado 
         if not verifica_data_pp and cartao == "Cartão de Cobrança - Sem Cartão":
             self.status_label.configure(text='Selecione uma data de primeiro pagamento ou um cartão de crédito ', text_color='red')
-            tocar_notificacao("erro")
+            tocar_notificacao("dv_erro", True)
 
             self.after(3000, lambda: self.status_label.configure(text='')) 
             return
         
-        #chama o método para inserir os dados no db e retorna se bem sucedido
         sucesso = False
         if not atualizar:
             sucesso = inserir_assinatura(self.user_id, nome, valor, descricao, data_aq_mysql, data_pp_mysql, dia_venc, categoria, id_card )
@@ -711,38 +710,74 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
             msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
             
         else:
-            sucesso = atualiza_assinaturas(self.user_id, nome, valor, descricao, data_aq_mysql, data_pp_mysql, dia_venc, categoria, id_card )
+            sucesso = atualiza_assinatura(self.user_id, nome, valor, descricao, data_aq_mysql, data_pp_mysql, dia_venc, categoria, id_card )
             msg_ok = "ATUALIZADOS"
             msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema...'"
 
         #retorno do banco - texto de indicação
         if sucesso:
-            tocar_notificacao("sucesso")
+            tocar_notificacao("dv_sucesso", True)
 
             self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')
             self.update_idletasks()
 
-            self.limpar_campos()
+            self.controla_campos(None)
             
             self.after(2000, lambda: self.status_label.configure(text=''))
 
             if self.trocar_mes:
-                pass #????????????????
+                self.trocar_mes(gerar_opcoes_meses().get(data_pp.month)) 
 
             if self.atualizar_lista:
-                self.atualizar_lista()
-            
+                self.atualizar_lista()     
 
         else:
             self.status_label.configure(text=f'{msg_falha}', text_color='red')
-            tocar_notificacao("erro")
+            tocar_notificacao("dv_erro", True)
             self.update_idletasks()
             self.after(2000, lambda: self.status_label.configure(text=''))
 
 
     def controla_campos(self, dados=None):
 
-        pass
+        #id_ass, nome, valor, descricao, data_aquisicao, data_prim_pag, categoria, id_cc
+
+        self.limpa_campos()
+
+        if dados:
+            nome_card = "Cartão de Cobrança - Sem Cartão"
+
+            if self.dados_cartoes:
+
+                for cartao in self.dados_cartoes:
+                    if cartao.get('id_cartao') == dados.get('id_cc'):
+                        nome_card = cartao.get('nome_cartao')
+
+            id_ass = dados.get('id_ass')
+
+            data_aq_obj = mysql_para_obj(dados.get('data_aquisicao'))
+            data_pp_obj = mysql_para_obj(dados.get('data_prim_pag'))
+
+            self.entry_nome.insert(0, (dados.get('nome')))
+            self.entry_valor.insert(0, str(dados.get('valor')))
+            self.entry_desc.insert(0, dados.get('descricao'))
+            self.data_aquisicao.set_date(data_aq_obj)
+            self.campo_prim_dp.set_date(data_pp_obj)
+            self.menu_cat.set(dados.get('categoria'))
+            self.menu_cc.set(nome_card)
+            
+
+            self.btn_salvar.configure(text='Atualizar Assinatura', fg_color="orange", command=lambda: self.salvar_dados(id_ass, atualizar=True))
+        
+        else:
+            id_ass = None
+
+            self.btn_salvar.configure(
+            text="Confirmar Assinatura", 
+            fg_color=["#3B8ED0", "#1F6AA5"], # Cores padrão do CTk
+            command=self.salvar_dados # Função original de INSERT
+        )
+
 
     def limpa_campos(self):
         """Limpa todos os campos de entrada do formulário de assinaturas."""
@@ -752,11 +787,10 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
         self.entry_valor.delete(0, ctk.END)
         self.entry_desc.delete(0, ctk.END)
 
-        
         # Reseta CTkOptionMenu's para seus valores padrão
         self.menu_cat.set("Selecione a Categoria")
         self.menu_cc.set("Cartão de Cobrança - Sem Cartão")
 
         self.data_aquisicao.set_date(self.data_atual)
-        self.campo_prim_dp.set_date(self.data_futuro)
+        self.campo_prim_dp.set_date(self.sentinela)
 

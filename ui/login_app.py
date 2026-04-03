@@ -15,6 +15,8 @@ from ui.forms import(Registro_usuario)
 
 class Login(ctk.CTk):
 
+    tocar_notificacao("open", True)
+
     def __init__(self):
         super().__init__()
         self.title('Sistema de Login')
@@ -65,7 +67,7 @@ class Login(ctk.CTk):
             self.update_idletasks()
             time.sleep(0.8)
 
-            tocar_notificacao('ligar_desligar')
+            tocar_notificacao('autenticacao', True)
 
             self.usuario_logado = usuario_logado
 

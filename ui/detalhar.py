@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-    pega_despesas_cartao, dados_assinaturas_cartao, dados_receita, deletar_receita, dados_assinaturas_full
+    pega_despesas_cartao, dados_assinaturas_cartao, dados_receita, deletar_receita, dados_assinaturas_full, deletar_assinatura
      )
 
 from utils.helper import(
@@ -177,13 +177,14 @@ class Listar_car_cred(ctk.CTkFrame):
 
 class Listar_assinaturas(ctk.CTkFrame):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, callback=None):
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None, controle_dados=None, trocar_mes=None):
         super().__init__(parent)
 
-
-        self.callback = callback
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes 
+        self.controle_dados = controle_dados
+        self.trocar_mes = trocar_mes
+
 
         # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -218,13 +219,107 @@ class Listar_assinaturas(ctk.CTkFrame):
         self.dados_assinaturas = dados_assinaturas_full(self.user_id)
 
         if self.dados_assinaturas:
-
-
+            
+            nome_card = None
+                #id_ass, nome, valor, descricao, data_aquisicao, data_prim_pag, categoria, id_cc
             for i, dado in enumerate(self.dados_assinaturas, start=1):
-                pass
+
+                nome = dado.get('nome')
+                valor = dado.get('valor')
+                desc = dado.get('descricao')
+                data_aq = dado.get('data_aquisicao')
+                data_pp = dado.get('data_prim_pag')
+                cat = dado.get('categoria')
+
+                if self.dados_cartoes:
+                    for cartao in self.dados_cartoes:
+                        if cartao.get('id_cartao') == dado.get('id_cc'):
+                            nome_card = cartao.get('nome_cartao')
+
+                ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=nome, font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(valor), text_color="#27ae60", font=('Ariel', 14)).grid(row=i, column=2, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=desc, font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=data_aq, font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=data_pp, font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=cat, font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=nome_card, font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
+
+                btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
+                                     command=lambda dados=dado: self.confirmar_update(dados))
+                btn_edit.grid(row=i, column=8, padx=2)
+                CTkToolTip(btn_edit, message="Editar Registro")
+
+                btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
+                                    command=lambda dados=dado: self.confirmar_delete(dados))
+                btn_del.grid(row=i, column=9, padx=5)
+                CTkToolTip(btn_del, 
+                            message="Excluir Registro", 
+                            delay=0.5,      # Tempo em segundos para aparecer
+                            alpha=0.9,      # Transparência
+                            bg_color="red" 
+                            )
 
 
+    def confirmar_update(self, dados):
+        print("Estou no'confirmar_update' mandando dados (dict) para crud_app")
 
+        if dados:
+            self.controle_dados(dados)
+        else:
+            self.controle_dados(None)
+
+
+    def confirmar_delete(self, dados):
+
+        popup = ctk.CTkToplevel(self)
+        popup.title("Confirmação")
+        centralizar_janela(popup, 300, 150)
+
+        popup.grab_set()
+
+        popup.grid_columnconfigure((0, 1), weight=1)
+
+        label = ctk.CTkLabel(popup, text="Tem certeza que deseja\nexcluir esta assinatura?", font=("Arial", 14))
+        label.grid(row=0, column=0, columnspan=2, pady=20)
+
+        btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555",
+                                 command=popup.destroy)
+        btn_cancelar.grid(row=1, column=0, padx=10, pady=10)
+
+        btn_confirmar = ctk.CTkButton(popup, text="Sim, excluir!", fg_color="#c0392b", hover_color="#e74c3c",
+                                  command=lambda: self.executar_delete(dados, popup))
+        btn_confirmar.grid(row=1, column=1, padx=10, pady=10)
+
+
+    def executar_delete(self, dados, popup):
+        
+        id_ass = dados.get('id_ass')
+        data_pp = dados.get('data_aquisicao')
+
+        if data_pp:
+            int_mes = mysql_para_obj(data_pp).month
+        else:
+            int_mes = datetime.now().date().month
+        
+        descricao = dados.get('descricao')
+
+        sucesso = deletar_assinatura(id_ass)
+
+        if sucesso:
+
+            print(f"ID {id_ass} receita: '{descricao}'. Mandado pro espaço 🌌​")
+            tocar_notificacao('dv_delete', True)
+
+            self.listar()
+
+            self.trocar_mes(escolha=gerar_opcoes_meses().get(int_mes))
+
+            popup.destroy()
+
+        else:
+            print("Erro ao deletar")
+            tocar_notificacao("dv_erro", True)
 
 #-----------------  Detalhes da fatura dos cartões -----------------------------------------
 
