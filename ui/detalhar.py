@@ -220,9 +220,11 @@ class Listar_assinaturas(ctk.CTkFrame):
 
         if self.dados_assinaturas:
             
-            nome_card = None
+            
                 #id_ass, nome, valor, descricao, data_aquisicao, data_prim_pag, categoria, id_cc
             for i, dado in enumerate(self.dados_assinaturas, start=1):
+
+                nome_card = None
 
                 nome = dado.get('nome')
                 valor = dado.get('valor')
@@ -235,6 +237,9 @@ class Listar_assinaturas(ctk.CTkFrame):
                     for cartao in self.dados_cartoes:
                         if cartao.get('id_cartao') == dado.get('id_cc'):
                             nome_card = cartao.get('nome_cartao')
+                            
+                if nome_card is None:
+                    nome_card = "Boleto/Avulça"
 
                 ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=nome, font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")

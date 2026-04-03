@@ -604,38 +604,41 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
         self.entry_desc = ctk.CTkEntry(self, placeholder_text="Descrição (Opcional)", width=300)
         self.entry_desc.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
 
+        self.label_prim_dp = ctk.CTkLabel(self, text="Data Requisição)", font=ctk.CTkFont(size=12, weight="bold"))
+        self.label_prim_dp.grid(row=4, column=0)
+
         self.data_aquisicao = DateEntry(self, width=12, background='darkblue',
                             foreground='white', borderwidth=2, year=2026, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
         
-        self.data_aquisicao.grid(row=4, column=0, padx=10, pady=10)
+        self.data_aquisicao.grid(row=5, column=0, padx=10, pady=10)
 
         self.label_primeira_dc = ctk.CTkLabel(self, text="Data do Primeiro Pagamento: (obs. Não preencher se a compra for no C. Crédito)", font=ctk.CTkFont(size=12, weight="bold"))
-        self.label_primeira_dc.grid(row=5, column=0)
+        self.label_primeira_dc.grid(row=6, column=0)
 
         self.campo_prim_dp = DateEntry(self, width=12, background='darkblue',
                             foreground='white', borderwidth=2, day=1, month=1, year=2099, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
-        self.campo_prim_dp.grid(row=6, column=0, padx=10, pady=10)
+        self.campo_prim_dp.grid(row=7, column=0, padx=10, pady=10)
 
         # Menu de Categorias
         categorias = ['Lazer', 'Essencial', 'Estudos', 'Saúde', ' Hobby','Streaming',]
         self.menu_cat = ctk.CTkOptionMenu(self, values=categorias, width=300)
-        self.menu_cat.grid(row=7, column=0, padx=20, pady=10, sticky="ew")
+        self.menu_cat.grid(row=8, column=0, padx=20, pady=10, sticky="ew")
         self.menu_cat.set("Selecione a Categoria")
 
         # Menu de Cartões utilizando de dados_cartos - list(dict)
         nomes_cartoes = ["Cartão de Cobrança - Sem Cartão"] + [c['nome_cartao'] for c in self.dados_cartoes]
         self.menu_cc = ctk.CTkOptionMenu(self, values=nomes_cartoes, width=300)
-        self.menu_cc.grid(row=8, column=0, padx=20, pady=10, sticky="ew")
+        self.menu_cc.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
         self.menu_cc.set("Cartão de Cobrança - Sem Cartão")
 
         # --- Botão Salvar ---
         self.btn_salvar = ctk.CTkButton(self, text="Confirmar Assinatura", command=self.salvar_dados, fg_color="#2c3e50", hover_color="#34495e")
-        self.btn_salvar.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
+        self.btn_salvar.grid(row=10, column=0, padx=20, pady=10, sticky="ew")
 
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
-        self.status_label.grid(row=10, column=0, pady=5)
+        self.status_label.grid(row=11, column=0, pady=5)
 
 
     def salvar_dados(self, id_ass=None, atualizar=None):
@@ -710,7 +713,7 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
             msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
             
         else:
-            sucesso = atualiza_assinatura(self.user_id, nome, valor, descricao, data_aq_mysql, data_pp_mysql, dia_venc, categoria, id_card )
+            sucesso = atualiza_assinatura(id_ass, nome, valor, descricao, data_aq_mysql, data_pp_mysql, dia_venc, categoria, id_card )
             msg_ok = "ATUALIZADOS"
             msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema...'"
 
@@ -741,6 +744,8 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
     def controla_campos(self, dados=None):
 
         #id_ass, nome, valor, descricao, data_aquisicao, data_prim_pag, categoria, id_cc
+        
+        print(dados)
 
         self.limpa_campos()
 

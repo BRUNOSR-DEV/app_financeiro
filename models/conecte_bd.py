@@ -798,4 +798,23 @@ def deletar_receita(id_rec, conn=None):
 
 def deletar_assinatura(id_ass, conn =None):
 
-    pass
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    try:
+        sql = "DELETE FROM assinaturas WHERE id = %s"
+        cursor.execute(sql, (id_ass,))
+        conn.commit()
+        return True
+    
+    except Exception as e:
+        print(f"Erro ao deletar no MySQL: {e}")
+        conn.rollback()
+        return False
+    
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
