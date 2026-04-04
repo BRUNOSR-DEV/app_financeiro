@@ -167,12 +167,14 @@ class Listar_despesas(ctk.CTkFrame):
 
 class Listar_car_cred(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, nomes_cards =None, callback = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, nomes_cards =None, controla_dados = None, att_app = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.callback = callback
         self.nomes_cards = nomes_cards
+        self.controla_dados = controla_dados
+        self.att_app = att_app
+
 
 
 class Listar_assinaturas(ctk.CTkFrame):

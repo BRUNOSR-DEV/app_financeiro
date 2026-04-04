@@ -751,7 +751,7 @@ def atualiza_assinatura(id_ass, nome,  valor, descricao, data_aq, data_pp, dia_v
         cursor.execute(sql, (nome, valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc, id_ass))
         conn.commit()
 
-        print(f"Assinatura com '{nome}' atualizada com sucesso!")
+        print(f"Assinatura - '{nome}' atualizada com sucesso!")
         return True
     
     except MySQLdb.Error as e: # Captura erro específico do MySQL
@@ -768,6 +768,37 @@ def atualiza_assinatura(id_ass, nome,  valor, descricao, data_aq, data_pp, dia_v
         if gerenciar_conn:
             desconectar(conn)
 
+
+def atualizar_cartao(id_card, nome, limite,  dia_fec, dia_venc, conn=None):
+
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    
+    try:
+        sql = "UPDATE cartoes_credito SET nome = %s, limite = %s, dia_fechamento = %s, dia_vencimento = %s WHERE id = %s"
+        cursor.execute(sql, (nome, limite, dia_fec, dia_venc, id_card))
+        conn.commit()
+
+        print(f"Cartão - '{nome}' atualizado com sucesso!")
+        return True
+    
+    except MySQLdb.Error as e: 
+        print(f"Erro MySQL ao fazer atualização: {e}")
+        conn.rollback()
+        return False 
+    
+    except Exception as e:
+        print(f"Erro inesperado ao atualizar cartão: {e}")
+        conn.rollback()
+        return False
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
 #------------------------------------------------------------------------------
 
 # ----------------------------- Deletar ---------------------------------

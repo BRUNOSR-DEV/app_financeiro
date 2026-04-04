@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-      inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_assinatura, atualizar_receitas, atualiza_assinatura
+      inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_assinatura, atualizar_receitas, atualiza_assinatura, atualizar_cartao
      )
 
 from utils.helper import(
@@ -479,15 +479,16 @@ class Cadastrar_despesas(ctk.CTkFrame):
 
 class Cadastrar_car_cred(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, nomes_cards =None, callback = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, nomes_cards =None, att_app= None, atualizar_lista =None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.callback = callback
         self.nomes_cards = nomes_cards
+        self.att_app = att_app
+        self.atualizar_lista = atualizar_lista
 
         # ---------------- Gerencimento de self ---------------------
-
+        
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -514,7 +515,7 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         self.status_label.grid(row=6, column=0, pady=5)
 
 
-    def salvar_dados(self):
+    def salvar_dados(self, id_card=None, atualizar=None):
         """ Verifica e salva os dados no BD """
 
         nome_cc = self.nome_cc.get().strip()
@@ -525,8 +526,7 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         #verifiva se já a o nome informado no bd
         for nome in self.nomes_cards:
             if nome == nome_cc:
-
-                tocar_notificacao("erro")
+                tocar_notificacao("dv_erro", True)
 
                 self.status_label.configure(text=f'Por favor, Não repitir nome de cartões, tente - ex: *{nome_cc}700', text_color='red')
                 self.update_idletasks()
@@ -534,37 +534,80 @@ class Cadastrar_car_cred(ctk.CTkFrame):
                 self.after(2000, lambda: self.status_label.configure(text=''))
                 return
 
-
         if not nome_cc or not limite or not dia_f or not dia_v:
             self.status_label.configure(text='Por favor, preencha todos os campos obrigarórios', text_color='red')
-            tocar_notificacao("erro")
+            tocar_notificacao("dv_erro", True)
 
             self.update_idletasks()
             self.after(2000, lambda: self.status_label.configure(text=''))
             
             return
-        else:
-            retorno = inserir_cc(self.user_id, nome_cc, limite, dia_f, dia_v)
+        
+        sucesso = False
 
-        if retorno:
-            self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
-            tocar_notificacao("sucesso")
+        if not atualizar:
+            sucesso = inserir_cc(self.user_id, nome_cc, limite, dia_f, dia_v)
+            msg_ok = "INSERIDOS"
+            msg_erro = "SALVAR"
+        else:
+            sucesso = atualizar_cartao(id_card, nome_cc, limite, dia_f, dia_v)
+            msg_ok = "ATUALIZADOS"
+            msg_erro = "ATUALIZAR"
+
+        if sucesso:
+            self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')
+            tocar_notificacao("dv_sucesso", True)
             self.update_idletasks()
             
             self.after(2000, lambda: self.status_label.configure(text=''))
 
-            self.limpar_campos()
-            
+            self.controla_campos(None)
 
+            if self.atualizar_lista:
+                self.atualizar_lista()
+
+            if self.att_app:
+                self.att_app()
+                
+    
                 
         else:
-            self.status_label.configure(text='Não foi possível salvar os dados, contate o adm do sistema...', text_color='red')
+            self.status_label.configure(text=f'Não foi possível {msg_erro} os dados, contate o adm do sistema...', text_color='red')
 
-            tocar_notificacao("erro")
+            tocar_notificacao("dv_erro", True)
             self.update_idletasks()
 
+            self.after(2000, lambda: self.status_label.configure(text=''))
+    
 
-    def limpar_campos(self):
+    def controla_campos(self, dados=None):
+
+        #'id_cartao', 'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'
+        
+        self.limpa_campos()
+
+        if dados:
+
+            id_card = dados.get('id_cartao')
+
+            self.nome_cc.insert(0, (dados.get('nome_cartao')))
+            self.limite.insert(0, str(dados.get('limite_cartao')))
+            self.dia_fechamento.insert(0, dados.get('fechamento_fatura'))
+            self.dia_vencimento.insert(0, dados.get('vencimento_fatura'))
+
+            self.botao_salvar.configure(text='Atualizar Cartão', fg_color="orange", command=lambda: self.salvar_dados(id_card, atualizar=True))
+        
+        else:
+            id_card = None
+
+            self.botao_salvar.configure(
+            text="Salvar Dados", 
+            fg_color=["#3B8ED0", "#1F6AA5"], 
+            command=self.salvar_dados 
+        )
+
+
+    def limpa_campos(self):
         """Limpa todos os campos de entrada do formulário""" 
         
         self.nome_cc.delete(0, ctk.END)
@@ -744,8 +787,6 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
     def controla_campos(self, dados=None):
 
         #id_ass, nome, valor, descricao, data_aquisicao, data_prim_pag, categoria, id_cc
-        
-        print(dados)
 
         self.limpa_campos()
 

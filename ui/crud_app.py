@@ -134,11 +134,11 @@ class Despesas(ctk.CTkToplevel):
 
 class Car_cred(ctk.CTkToplevel):
 
-    def __init__(self,  parent=None, user_id=None, nomes_cards =None, callback = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, nomes_cards =None, att_app = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.callback = callback
+        self.att_app = att_app
         self.nomes_cards = nomes_cards
 
         # --------------- Criação da Jenela -----------------------
@@ -157,24 +157,26 @@ class Car_cred(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_car_cred(parent=self, user_id=self.user_id, callback= callback)
+        self.frame_cadastro = Cadastrar_car_cred(parent=self, user_id=self.user_id, att_app= att_app, atualizar_lista= self.atualizar_lista)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
 
-        self.frame_lista = Listar_car_cred(parent=self, user_id=self.user_id, callback = self.controle_dados)
+        self.frame_lista = Listar_car_cred(parent=self, user_id=self.user_id, controle_dados = self.controle_dados, att_app = self.att_app)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
-        ctk.CTkLabel(self.frame_lista, text="Cartões Cadastrados", font=("Arial", 18, "bold")).grid(row=0, column=0,padx=10, pady=10)
+        #ctk.CTkLabel(self.frame_lista, text="Cartões Cadastrados", font=("Arial", 18, "bold")).grid(row=0, column=0,padx=10, pady=10)
 
 
     def controle_dados(self, dados=None):
         
         if dados:
             self.frame_cadastro.controla_campos(dados)
+        else:
+            print('ERRO: Detalhar(car_cred não mandou os dados esperados!)')
         
 
     def atualizar_lista(self, escolha=None):
@@ -231,6 +233,8 @@ class Assinaturas(ctk.CTkToplevel):
         
         if dados:
             self.frame_cadastro.controla_campos(dados)
+        else:
+            print('ERRO: Detalhar(car_cred não mandou os dados esperados!)')
         
 
     def atualizar_lista(self):
