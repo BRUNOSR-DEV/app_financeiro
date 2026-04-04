@@ -32,15 +32,23 @@ from collections import defaultdict
 
 class Main_app(ctk.CTk):
 
-
     def __init__(self, logged_in_username=None):
         super().__init__()
 
         self.usuario_logado = logged_in_username
-
         self.title("Controle Financeiro")
         centralizar_janela(self, 1500, 800)
 
+        self.container_principal = ctk.CTkFrame(self, fg_color="transparent")
+        self.container_principal.pack(fill="both", expand=True)
+
+        # Carrega os dados e monta a tela pela PRIMEIRA vez
+        self.buscar_dados_banco()
+        self.montar_dashboard()
+
+
+    def buscar_dados_banco(self):
+        """ Função exclusiva para buscar/calcular dados. """
         self.user_id = pega_id(self.usuario_logado)
         self.dados_usuario = dados_user(self.user_id)
 
@@ -54,7 +62,6 @@ class Main_app(ctk.CTk):
             opcoes.get(self.mes_atual, 'Mês inválido'),
             opcoes.get(self.prox_mes, 'Mês inválido'),
             opcoes.get(self.seg_prox_mes, 'Mês inválido'),
-            
         ]
         self.mes_atual_str = opcoes.get(self.mes_atual)
         self.prox_mes_str = opcoes.get(self.prox_mes)
@@ -63,54 +70,48 @@ class Main_app(ctk.CTk):
         self.dados_cartoes = dados_card(self.user_id)
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
 
-        self.grid_rowconfigure(0, weight=0) # Linha para o frame superior (usuário e add tarefa)
-        self.grid_rowconfigure(1, weight=1) 
-        self.grid_columnconfigure(0, weight=1)
 
-        self.top_section_frame = ctk.CTkFrame(self, fg_color="transparent")
+    def montar_dashboard(self):
+        """ Função exclusiva para desenhar a interface. """
+        
+        for widget in self.container_principal.winfo_children():
+            widget.destroy()
+
+
+        self.container_principal.grid_rowconfigure(0, weight=0) 
+        self.container_principal.grid_rowconfigure(1, weight=1) 
+        self.container_principal.grid_columnconfigure(0, weight=1)
+
+        # ---------------
+        # TOP SECTION 
+        # ---------------
+        self.top_section_frame = ctk.CTkFrame(self.container_principal, fg_color="transparent")
         self.top_section_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
-        self.top_section_frame.grid_columnconfigure(0, weight=0) # primeira coluna para label usuário
-        self.top_section_frame.grid_columnconfigure(0, weight=1) # segunda coluna para botão sair
+        
+        self.top_section_frame.grid_columnconfigure(0, weight=0)
+        self.top_section_frame.grid_columnconfigure(1, weight=1) # Empurra o botão pra direita
 
-        if self.usuario_logado: 
-            self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame,
-                                               text=f"Bem-vindo, {self.dados_usuario.get('nome_completo')}!",
-                                               font=ctk.CTkFont(size=16, weight="bold"))
-            
-        else:
-            self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame,
-                                               text="Bem-vindo!",
-                                               font=ctk.CTkFont(size=16, weight="bold"))
-            
+        texto_boas_vindas = f"Bem-vindo, {self.dados_usuario.get('nome_completo')}!" if self.usuario_logado else "Bem-vindo!"
+        self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame, text=texto_boas_vindas, font=ctk.CTkFont(size=16, weight="bold"))
         self.nomeusuario_label.grid(row=0, column=0, pady=(0, 10), sticky="w")
             
-        self.btn_att_app = ctk.CTkButton(self.top_section_frame, text="Atualizar", command=self.att_app, width=80,
-                                        fg_color="#0400FF", hover_color="#024389")
+        self.btn_att_app = ctk.CTkButton(self.top_section_frame, text="Atualizar", command=self.att_app, width=80, fg_color="#0400FF", hover_color="#024389")
+        self.btn_att_app.grid(row=0, column=1, sticky="e")
         
-        self.btn_att_app.grid(row=0, column=1,sticky="e")
-        
-
         self.mes_vigente_label = ctk.CTkLabel(self.top_section_frame, text=f"Mês : ", font=ctk.CTkFont(size=16, weight="bold"))
-
         self.mes_vigente_label.grid(row=0, column=2, padx=10, pady=10, sticky="w")
 
         self.menu_mes = ctk.CTkOptionMenu(self.top_section_frame, values=self.nomes_datas, command=self.trocar_mes)
-
         self.menu_mes.grid(row=0, column=3, padx=10, pady=5)
             
-        self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, width=80,
-                                        fg_color="#FF0000", hover_color="#810000")
+        self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, width=80, fg_color="#FF0000", hover_color="#810000")
+        self.botao_sair.grid(row=0, column=4, sticky="e") 
         
-        self.botao_sair.grid(row=0, column=4,sticky="e") #coluna 2 alinhado a direita
-        
-        #-------------------------------------------------------------------------------------
-        # Frame para agrupar os botões de cadastro
+        # FRAME DE BOTÕES DE CADASTRO
         self.cadastro_frame = ctk.CTkFrame(self.top_section_frame, fg_color="transparent")
         self.cadastro_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="ew")
-        self.cadastro_frame.grid_columnconfigure((0, 1, 2, 3, 4), weight=1) # Distribui o espaço entre os botões
-        #---------------------------------------------------------------------------------------
+        self.cadastro_frame.grid_columnconfigure((0, 1, 2, 3, 4), weight=1) 
 
-        # Botões
         self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Gerenciar Receitas", command=self.abrir_receitas)
         self.btn_receitas.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
@@ -130,73 +131,45 @@ class Main_app(ctk.CTk):
         self.menu_cartoes.grid(row=1, column=4, padx=10, pady=5)
 
         self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=self.abrir_det_cc, width=80, fg_color="#FF8000", hover_color="#813C00")
-        self.det_despesas_cc.grid(row=1, column=5, padx=2, pady=2, )
+        self.det_despesas_cc.grid(row=1, column=5, padx=2, pady=2)
 
 
-        
-        # -------------------------------------------
-        # FRAME DE CONTEÚDO PRINCIPAL (Main Content) 
-        # -------------------------------------------
-        self.main_content_frame = ctk.CTkFrame(self, fg_color="transparent")
+        # ---------------
+        # MAIN CONTENT 
+        # ---------------
+        self.main_content_frame = ctk.CTkFrame(self.container_principal, fg_color="transparent")
         self.main_content_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
-        # Configuração de expansão das colunas do conteúdo principal
-        self.main_content_frame.grid_columnconfigure(0, weight=2) # Tabela (Grande)
-        self.main_content_frame.grid_columnconfigure(1, weight=1) # Gráfico (Pequeno)
+        self.main_content_frame.grid_columnconfigure(0, weight=2) 
+        self.main_content_frame.grid_columnconfigure(1, weight=1) 
         self.main_content_frame.grid_rowconfigure(0, weight=1)
 
+        # FRAME TABELA
+        self.tabela_frame = ctk.CTkScrollableFrame(self.main_content_frame, label_text=f"Pagamentos Detalhados: {self.mes_atual_str} / {self.data_atual.year}")
+        self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") 
 
-        # -----------------------------
-        # FRAME DA TABELA DETALHADA 
-        # -----------------------------
+        total_dividas = self.preencher_total_dividas(self.user_id) # Executa e guarda o valor
 
-        self.tabela_frame = ctk.CTkScrollableFrame(
-        self.main_content_frame, 
-        label_text=f"Pagamentos Detalhados: {self.mes_atual_str} / {self.data_atual.year}"
-        )
-
-
-        self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") # Coluna 0
-
-        # Chamar o método para preencher a tabela ao iniciar
-        self.preencher_total_dividas(self.user_id)
-
-
-        # -------------------------------------------
-        # FRAME DO GRÁFICO 
-        # -------------------------------------------
+        # FRAME GRÁFICO
         self.grafico_frame = ctk.CTkFrame(self.main_content_frame)
         self.grafico_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
         self.grafico_frame.grid_columnconfigure(0, weight=1)
         self.grafico_frame.grid_rowconfigure(0, weight=1)
 
-        # Gerar o gráfico ao iniciar
-        
         self.gerar_grafico_mensal()
 
-
-        #------------------------------------
-        # Frame para agrupar card saldo do mês
-         #------------------------------------
-
+        # FRAME SALDO
         self.frame_resumo = ctk.CTkFrame(self.top_section_frame, width=250, height=100, corner_radius=15, border_width=2 )
         self.frame_resumo.grid(row=1, column=6, padx=20, pady=10, sticky="n")
 
-        self.label_titulo_resumo = ctk.CTkLabel(
-        self.frame_resumo, 
-        text="SALDO DO MÊS", 
-        font=ctk.CTkFont(size=12, weight="bold")
-        )
+        self.label_titulo_resumo = ctk.CTkLabel(self.frame_resumo, text="SALDO DO MÊS", font=ctk.CTkFont(size=12, weight="bold"))
         self.label_titulo_resumo.pack(pady=(10, 0))
 
-        self.label_valor_saldo = ctk.CTkLabel(
-        self.frame_resumo, 
-        text="R$ 0,00", 
-        font=ctk.CTkFont(size=24, weight="bold")
-        )
+        self.label_valor_saldo = ctk.CTkLabel(self.frame_resumo, text="R$ 0,00", font=ctk.CTkFont(size=24, weight="bold"))
         self.label_valor_saldo.pack(pady=(0, 10), padx=20)
 
-        self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), self.preencher_total_dividas(self.user_id))
+        # Chama a função de cores usando o valor retornado
+        self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), total_dividas)
 
 
 # ------------------- Lógica de atualização de dados ----------------------
@@ -237,22 +210,18 @@ class Main_app(ctk.CTk):
 
 
     def att_app(self):
-
-        tocar_notificacao('closed', True)
-        import time
-        time.sleep(1.5)
-        tocar_notificacao('open', True)
-
+        """ O botão Atualizar  """
+        
         self.config(cursor="watch")
         self.update() 
 
-        self.atualiza_sistema = True
-    
-        self.after(500, self.quit_and_destroy)
+        #Puxa do banco e remonta a tela
+        self.buscar_dados_banco()
+        self.montar_dashboard()
 
-
+        tocar_notificacao('open', True)
         self.config(cursor="")
-        print("Dashboard atualizado com sucesso! 🚀")
+        print("Dashboard atualizado in-place com sucesso! 🚀")
 
 
     def atualizar_cores_saldo(self, sal_fixo, despesa, controle_mes=1):
@@ -352,7 +321,7 @@ class Main_app(ctk.CTk):
     def abrir_cc(self):
 
         tocar_notificacao('open_w', True)
-        register_window = Car_cred(self, self.user_id, nomes_cards=self.nomes_cartoes, callback=self.att_app)
+        register_window = Car_cred(self, self.user_id, nomes_cards=self.nomes_cartoes, att_app=self.att_app)
 
         self.wait_window(register_window)
 

@@ -19,12 +19,6 @@ def rodar_sistema():
 
             print("...")
 
-            if getattr(app_principal, 'atualiza_sistema', False):
-
-                print('atualizando sistema!')
-                app_principal = Main_app(logged_in_username=user)
-                app_principal.mainloop()
-
             if getattr(app_principal, 'quer_voltar_login', False):
                 print("Reiniciando para tela de login...")
                 continue

@@ -145,7 +145,6 @@ class Car_cred(ctk.CTkToplevel):
         self.title("Gerenciar Cartões de Crédito")
         centralizar_janela(self, 1000, 800)
         self.transient(parent)
-        self.grab_set() 
         self.focus_set()
 
         # ---------------- Gerencimento de self ---------------------
@@ -154,7 +153,7 @@ class Car_cred(ctk.CTkToplevel):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1) 
-        self.grid_columnconfigure(1, weight=2) 
+        self.grid_columnconfigure(1, weight=3) 
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
@@ -164,7 +163,7 @@ class Car_cred(ctk.CTkToplevel):
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
 
-        self.frame_lista = Listar_car_cred(parent=self, user_id=self.user_id, callback = self.atualizar_lista )
+        self.frame_lista = Listar_car_cred(parent=self, user_id=self.user_id, callback = self.controle_dados)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
@@ -172,15 +171,17 @@ class Car_cred(ctk.CTkToplevel):
         ctk.CTkLabel(self.frame_lista, text="Cartões Cadastrados", font=("Arial", 18, "bold")).grid(row=0, column=0,padx=10, pady=10)
 
 
+    def controle_dados(self, dados=None):
+        
+        if dados:
+            self.frame_cadastro.controla_campos(dados)
+        
+
     def atualizar_lista(self, escolha=None):
         """Método que será chamado após um novo cadastro ou delete para recarregar a tabela"""
-
-        print("Atualizando a lista de cartões de crédito na tela...")
-
-        # Lógica para puxar do banco 
-
-        if self.callback:
-            self.callback() # Atualiza a tela principal (Main) também, se necessário
+        
+        print("Atualizando a lista de receitas na tela...")
+        self.frame_lista.listar()
 
 
 
@@ -196,8 +197,9 @@ class Assinaturas(ctk.CTkToplevel):
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Assinaturas")
         centralizar_janela(self, 1800, 800)
-        self.focus_set()
-        self.grab_set()
+        self.transient(parent) 
+        self.focus_set() 
+       
 
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
@@ -231,7 +233,7 @@ class Assinaturas(ctk.CTkToplevel):
             self.frame_cadastro.controla_campos(dados)
         
 
-    def atualizar_lista(self, escolha=None):
+    def atualizar_lista(self):
         """Método que será chamado após um novo cadastro ou delete para recarregar a tabela"""
         
         print("Atualizando a lista de receitas na tela...")
