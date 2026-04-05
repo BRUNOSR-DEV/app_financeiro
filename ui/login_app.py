@@ -17,6 +17,7 @@ class Login(ctk.CTk):
 
     tocar_notificacao("open", True)
 
+
     def __init__(self):
         super().__init__()
         self.title('Sistema de Login')

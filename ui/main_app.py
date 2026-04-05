@@ -329,7 +329,7 @@ class Main_app(ctk.CTk):
     def abrir_despesas(self):
 
         tocar_notificacao('open_w', True)
-        register_window = Despesas(self, self.user_id, self.dados_cartoes, callback=self.trocar_mes)
+        register_window = Despesas(self, self.user_id, self.dados_cartoes, trocar_mes=self.trocar_mes, att_app=self.att_app)
 
         self.wait_window(register_window)
     

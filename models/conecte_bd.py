@@ -300,7 +300,7 @@ def pega_despesas_cartao(id_user, id_card, conn=None):
 def pega_despesas(id_user, conn= None):
 
     """
-    Busca todas as despesas de um usuário que o retono do id_cc é None
+    Busca todas as despesas de um usuário que o retono do id_cc é None/Null
     """
     gerenciar_conn = False
     if conn is None:
@@ -343,6 +343,49 @@ def pega_despesas(id_user, conn= None):
         if gerenciar_conn:
             desconectar(conn)
 
+
+def dados_despesas_full(id_user, conn=None):
+
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+
+        query = """
+            SELECT 
+                id, 
+                local, 
+                valor_total, 
+                parcelas,
+                descricao,
+                categoria,
+                data,
+                data_primeira_parc,
+                dia_vencimento,
+                id_cc
+            FROM despesas 
+            WHERE id_usuario = %s
+        """
+        
+        cursor.execute(query, (id_user, ))
+        resultados = cursor.fetchall()
+        
+        colunas = [
+            'id_desp', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 'data_pp', 'dia_venc', 'id_cc' 
+        ]
+        
+        return [dict(zip(colunas, linha)) for linha in resultados]
+
+    except Exception as e:
+        print(f"Erro ao buscar despesas: {e}")
+        return []
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
 
 def dados_assinaturas_avulsas(id_user, conn=None):
     """
@@ -799,6 +842,40 @@ def atualizar_cartao(id_card, nome, limite,  dia_fec, dia_venc, conn=None):
     finally:
         if gerenciar_conn:
             desconectar(conn)
+
+
+def atualizar_despesa(id_desp, local, valor_total, parcelas, descricao, categoria, data, dc_prim_parc, dia_venc, id_cc, conn= None):
+
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    
+    try:
+        sql = "UPDATE despesas SET local = %s, valor_total= %s, parcelas= %s, descricao= %s, categoria= %s, data= %s, data_primeira_parc= %s, dia_vencimento= %s, id_cc= %s WHERE id = %s"
+        cursor.execute(sql, (local, valor_total, parcelas, descricao, categoria, data, dc_prim_parc, dia_venc, id_cc, id_desp))
+        conn.commit()
+
+        print(f"Despesa - '{local}' Atualizado com Sucesso!")
+        return True
+    
+    except MySQLdb.Error as e: 
+        print(f"Erro MySQL ao fazer atualização: {e}")
+        conn.rollback()
+        return False 
+    
+    except Exception as e:
+        print(f"Erro inesperado ao atualizar despesa: {e}")
+        conn.rollback()
+        return False
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
 #------------------------------------------------------------------------------
 
 # ----------------------------- Deletar ---------------------------------
@@ -862,6 +939,30 @@ def deletar_cartao(id_card, conn=None):
     try:
         sql = "DELETE FROM cartoes_credito WHERE id = %s"
         cursor.execute(sql, (id_card,))
+        conn.commit()
+        return True
+    
+    except Exception as e:
+        print(f"Erro ao deletar no MySQL: {e}")
+        conn.rollback()
+        return False
+    
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
+def deletar_despesa(id_desp, conn=None):
+
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    try:
+        sql = "DELETE FROM despesas WHERE id = %s"
+        cursor.execute(sql, (id_desp,))
         conn.commit()
         return True
     

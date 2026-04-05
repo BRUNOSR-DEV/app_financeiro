@@ -64,35 +64,31 @@ class Receitas(ctk.CTkToplevel):
         
         if dados:
             self.frame_cadastro.controla_campos(dados)
+        else:
+            print('ERRO: detalhar.py(Listar_receitas) não enviou os dados')
         
 
-
-    def atualizar_lista(self, escolha=None):
-        """Método que será chamado após um novo cadastro ou delete para recarregar a tabela"""
+    def atualizar_lista(self):
         
         print("Atualizando a lista de receitas na tela...")
         self.frame_lista.listar()
         
-        # Lógica para puxar do banco 
-        #if self.trocar_mes:
-        #    self.trocar() # Atualiza a tela principal (Main) também, se necessário
-
 
 
 class Despesas(ctk.CTkToplevel):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes =None, callback=None, *args, **kwargs):
+    def __init__(self, parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, att_app=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes
-        self.callback = callback
+        self.trocar_mes = trocar_mes
+        self.att_app = att_app
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Despesas")
-        centralizar_janela(self, 1000, 800)
+        centralizar_janela(self, 2000, 800)
         self.transient(parent)
-        self.grab_set() 
         self.focus_set() 
 
         # ---------------- Gerencimento de self ---------------------
@@ -101,34 +97,33 @@ class Despesas(ctk.CTkToplevel):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1) 
-        self.grid_columnconfigure(1, weight=3) 
+        self.grid_columnconfigure(1, weight=7) 
         self.grid_rowconfigure(0, weight=1)
 
          # ---------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_despesas(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, callback= callback)
+        self.frame_cadastro = Cadastrar_despesas(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, trocar_mes= self.trocar_mes, atualizar_lista= self.atualizar_lista)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
         #-------------------- FRAME DA LISTA (Update/Delete) ----------------------------------
-        self.frame_lista = Listar_despesas(parent=self, user_id=self.user_id, callback = self.atualizar_lista )
+        self.frame_lista = Listar_despesas(parent=self, user_id=self.user_id, dados_cartoes= self.dados_cartoes, att_app = self.att_app, controle_dados=self.controle_dados)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
-        
-        ctk.CTkLabel(self.frame_lista, text="Despesas Cadastradas", font=("Arial", 18, "bold")).grid(row=0, column=0,padx=10, pady=10)
 
 
-    def atualizar_lista(self, escolha=None):
-        """Método que será chamado após um novo cadastro ou delete para recarregar a tabela"""
+    def controle_dados(self, dados):
+
+        if dados:
+            self.frame_cadastro.controla_campos(dados)
+        else:
+            print('ERRO: detalhar(despesas não mandou os dados esperados!)')
+
+
+    def atualizar_lista(self):
 
         print("Atualizando a lista de despesas na tela...")
-
-        
-        # Lógica para puxar do banco 
-
-
-        if self.callback:
-            self.callback() # Atualiza a tela principal (Main) também, se necessário
+        self.frame_lista.listar()
 
 
 
@@ -150,25 +145,20 @@ class Car_cred(ctk.CTkToplevel):
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
 
-
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1) 
         self.grid_columnconfigure(1, weight=2) 
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_car_cred(parent=self, user_id=self.user_id, nomes_cards=self.nomes_cards, att_app= att_app, atualizar_lista= self.atualizar_lista)
+        self.frame_cadastro = Cadastrar_car_cred(parent=self, user_id=self.user_id, nomes_cards=self.nomes_cards, att_app= self.att_app, atualizar_lista= self.atualizar_lista)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
-
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
-
         self.frame_lista = Listar_car_cred(parent=self, user_id=self.user_id, controle_dados = self.controle_dados, att_app = self.att_app)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
-        
-        #ctk.CTkLabel(self.frame_lista, text="Cartões Cadastrados", font=("Arial", 18, "bold")).grid(row=0, column=0,padx=10, pady=10)
 
 
     def controle_dados(self, dados=None):
@@ -179,9 +169,9 @@ class Car_cred(ctk.CTkToplevel):
             print('ERRO: Detalhar(car_cred não mandou os dados esperados!)')
         
 
-    def atualizar_lista(self, escolha=None):
-        """Método que será chamado após um novo cadastro ou delete para recarregar a tabela"""
-        
+    def atualizar_lista(self):
+
+
         print("Atualizando a lista de receitas na tela...")
         self.frame_lista.listar()
 

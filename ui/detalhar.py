@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-    pega_despesas_cartao, dados_assinaturas_cartao, dados_receita, deletar_receita, dados_assinaturas_full, deletar_assinatura, dados_card, deletar_cartao
+    pega_despesas_cartao, dados_assinaturas_cartao, dados_receita, deletar_receita, dados_assinaturas_full, deletar_assinatura, dados_card, deletar_cartao, dados_despesas_full, deletar_despesa
      )
 
 from utils.helper import(
@@ -154,13 +154,150 @@ class Listar_receitas(ctk.CTkFrame):
 
 class Listar_despesas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, callback=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, att_app=None, controle_dados=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes
-        self.callback = callback
+        self.att_app = att_app
+        self.controle_dados = controle_dados
 
+        # --------------- Configuração da Frames/'labels' -----------------------
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        self.lista_frame = ctk.CTkScrollableFrame(self, label_text="Assinaturas Cadastradas")
+        self.lista_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+
+        self.lista_frame.grid_columnconfigure((0, 1, 2, 3, 5, 6, 7, 8), weight=0) # valores/colunas fixas
+        self.lista_frame.grid_columnconfigure(4, weight=1) #Descriçao estica
+
+        #cabeçalho
+        ctk.CTkLabel(self.lista_frame, text='#', font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text='Local', font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Valor Total", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Descrição", font=ctk.CTkFont(weight="bold")).grid(row=0, column=4, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Categoria", font=ctk.CTkFont(weight="bold")).grid(row=0, column=5, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Data Compra", font=ctk.CTkFont(weight="bold")).grid(row=0, column=6, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Data P/Pagamento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=7, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Método de Pagamento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=8, padx=5, pady=5, sticky="w")
+
+        self.listar()
+
+    def listar(self):
+        
+        for widget in self.lista_frame.winfo_children():
+            if int(widget.grid_info().get("row", 0)) > 0:
+                widget.destroy()
+
+        self.dados_desp = dados_despesas_full(self.user_id)
+
+        if self.dados_desp:
+            
+            #'id_desp', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 'data_pp', 'dia_venc', 'id_cc' 
+
+            for i, dado in enumerate(self.dados_desp, start=1):
+
+                nome_card = None
+
+                local = dado.get('local')
+                valor_total = dado.get('valor_total')
+                parcelas = dado.get('parcelas')
+                descricao = dado.get('descricao')
+                categoria = dado.get('categoria')
+                data_compra = dado.get('data_compra')
+                data_pp = dado.get('data_pp')
+                
+                if self.dados_cartoes:
+                    for cartao in self.dados_cartoes:
+                        if cartao.get('id_cartao') == dado.get('id_cc'):
+                            nome_card = cartao.get('nome_cartao')
+                            
+                if nome_card is None:
+                    nome_card = "Boleto/Avulça"
+
+                #cabeçalho
+                ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=local, font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=formatar_moeda(valor_total), text_color="#27ae60", font=('Ariel', 14)).grid(row=i, column=2, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=parcelas, font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=descricao, font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=categoria, font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=data_compra, font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=data_pp, font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=nome_card, font=('Ariel', 14)).grid(row=i, column=8, padx=5, pady=2, sticky="w")
+
+                btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
+                                     command=lambda dados=dado: self.confirmar_update(dados))
+                btn_edit.grid(row=i, column=9, padx=2)
+                CTkToolTip(btn_edit, message="Editar Registro")
+
+                btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
+                                    command=lambda dados=dado: self.confirmar_delete(dados))
+                btn_del.grid(row=i, column=10, padx=5)
+                CTkToolTip(btn_del, 
+                            message="Excluir Registro", 
+                            delay=0.5,      # Tempo em segundos para aparecer
+                            alpha=0.9,      # Transparência
+                            bg_color="red" 
+                            )
+                
+
+    def confirmar_update(self, dados):
+        
+        print("Estou no'confirmar_update' mandando dados (dict) para crud_app")
+
+        if dados:
+            self.controle_dados(dados)
+        else:
+            self.controle_dados(None)
+
+
+    def confirmar_delete(self, dados):
+
+        popup = ctk.CTkToplevel(self)
+        popup.title("Confirmação")
+        centralizar_janela(popup, 300, 150)
+
+        popup.grab_set()
+
+        popup.grid_columnconfigure((0, 1), weight=1)
+
+        label = ctk.CTkLabel(popup, text="Tem certeza que deseja\nexcluir está despesa?", font=("Arial", 14))
+        label.grid(row=0, column=0, columnspan=2, pady=20)
+
+        btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555",
+                                 command=popup.destroy)
+        btn_cancelar.grid(row=1, column=0, padx=10, pady=10)
+
+        btn_confirmar = ctk.CTkButton(popup, text="Sim, excluir!", fg_color="#c0392b", hover_color="#e74c3c",
+                                  command=lambda: self.executar_delete(dados, popup))
+        btn_confirmar.grid(row=1, column=1, padx=10, pady=10)
+
+
+    def executar_delete(self, dados, popup):
+        
+        id_desp = dados.get('id_desp')
+        local = dados.get('local')
+
+        sucesso = deletar_despesa(id_desp)
+
+        if sucesso:
+
+            print(f"ID: {id_desp} Local: '{local}'. Mandado pro espaço 🌌​")
+            tocar_notificacao('dv_delete', True)
+
+            self.listar()
+
+            if self.att_app():
+                self.att_app()
+
+            popup.destroy()
+
+        else:
+            print("Erro ao deletar")
+            tocar_notificacao("dv_erro", True)
 
 
 
@@ -300,9 +437,7 @@ class Listar_assinaturas(ctk.CTkFrame):
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes 
         self.controle_dados = controle_dados
-        self.trocar_mes = trocar_mes
-
-        
+        self.trocar_mes = trocar_mes    
 
         # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -314,7 +449,6 @@ class Listar_assinaturas(ctk.CTkFrame):
         self.lista_frame.grid_columnconfigure((0, 1, 2, 4, 5, 6, 7), weight=0) # valores/colunas fixas
         self.lista_frame.grid_columnconfigure(3, weight=1) #Descriçao estica
 
-
         #cabeçalho
         ctk.CTkLabel(self.lista_frame, text='#', font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text='Nome', font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
@@ -323,7 +457,7 @@ class Listar_assinaturas(ctk.CTkFrame):
         ctk.CTkLabel(self.lista_frame, text="Data Aquisisão", font=ctk.CTkFont(weight="bold")).grid(row=0, column=4, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text="Data P/Pagamento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=5, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text="Categoria", font=ctk.CTkFont(weight="bold")).grid(row=0, column=6, padx=5, pady=5, sticky="w")
-        ctk.CTkLabel(self.lista_frame, text="Cartão Utilizado", font=ctk.CTkFont(weight="bold")).grid(row=0, column=7, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Método de Pagamento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=7, padx=5, pady=5, sticky="w")
 
         self.listar()
 
@@ -443,6 +577,7 @@ class Listar_assinaturas(ctk.CTkFrame):
         else:
             print("Erro ao deletar")
             tocar_notificacao("dv_erro", True)
+
 
 #-----------------  Detalhes da fatura dos cartões -----------------------------------------
 

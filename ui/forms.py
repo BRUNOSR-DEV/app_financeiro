@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-      inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_assinatura, atualizar_receitas, atualiza_assinatura, atualizar_cartao
+      inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_assinatura, atualizar_receitas, atualiza_assinatura, atualizar_cartao, atualizar_despesa
      )
 
 from utils.helper import(
@@ -206,7 +206,7 @@ class Cadastrar_receitas(ctk.CTkFrame):
             if self.atualizar_lista:
                 self.atualizar_lista()
 
-            if self.trocar_mes: #Atualiza janela main
+            if self.trocar_mes: 
                 self.trocar_mes(escolha=gerar_opcoes_meses().get(data_obj.month))
    
         else:
@@ -254,29 +254,19 @@ class Cadastrar_receitas(ctk.CTkFrame):
 #Cadastro de despesas
 class Cadastrar_despesas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, callback=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, atualizar_lista=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes
-        self.callback = callback
+        self.trocar_mes = trocar_mes
+        self.atualizar_lista = atualizar_lista
 
-    
+        # ---------------- Gerencimento de self ---------------------
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
         self.data_atual = datetime.now().date()
 
-        # ------------------------------------------------------------------------
-        # PASSO 1: Criar o CTkScrollableFrame e posicioná-lo
-        # Ele será o master de todo o conteúdo da janela
-        """self.scrollable_frame = ctk.CTkScrollableFrame(self, label_text="Cadastre Suas Despesas")
-        self.scrollable_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        
-        # Configuração da grade interna do frame rolavel
-        self.scrollable_frame.grid_columnconfigure(0, weight=1)"""
-        # ------------------------------------------------------------------------
-
-        # TODOS OS WIDGETS USAM self.scrollable_frame COMO SEU MASTER
-
+        self.sentinela = (self.data_atual.replace(day=1, month=1, year=2099))
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -293,13 +283,13 @@ class Cadastrar_despesas(ctk.CTkFrame):
         self.valor_total.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
         # PARCELAS
-        parcelas_opcoes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+        parcelas_opcoes = [str(i) for i in range(1, 13)]
         self.menu_parcelas = ctk.CTkOptionMenu(self, values=parcelas_opcoes)
         self.menu_parcelas.grid(row=3, column=0, padx=20, pady=20, sticky="ew")
         self.menu_parcelas.set("N° Parcelas")
 
         # DESCRIÇÃO DA COMPRA
-        self.descricao = ctk.CTkEntry(self, placeholder_text="Descrição da compra")
+        self.descricao = ctk.CTkEntry(self, placeholder_text="Descrição da Compra")
         self.descricao.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
 
         # CATEGORIA
@@ -318,35 +308,36 @@ class Cadastrar_despesas(ctk.CTkFrame):
         self.campo_data_compra.grid(row=7, column=0, padx=10, pady=10)
 
         # data primeira parcela - se não for no cartão
-        self.label_primeira_dc = ctk.CTkLabel(self, text="Data do Primeiro Pagamento: (obs. Não preencher se a compra for no C. Crédito)", font=ctk.CTkFont(size=12, weight="bold"))
+        self.label_primeira_dc = ctk.CTkLabel(self, text="Data do Primeiro Pagamento: (obs. Não preencher se a compra for no Cartão)", font=ctk.CTkFont(size=12, weight="bold"))
         self.label_primeira_dc.grid(row=8, column=0)
 
         self.campo_primeira_dc = DateEntry(self, width=12, background='darkblue',
-                            foreground='white', borderwidth=2, day=1, month=1, year=2050, 
+                            foreground='white', borderwidth=2, day=1, month=1, year=2099, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
         self.campo_primeira_dc.grid(row=9, column=0, padx=10, pady=10)
         
         #Seleção de cartão de crédito
         if self.nomes_cartoes:
-            
-            self.car_cred = ctk.CTkOptionMenu(self, values=self.nomes_cartoes)
+            campo_cartoes = ["Cartão de Cobrança - Sem Cartão"] + self.nomes_cartoes
+
+            self.car_cred = ctk.CTkOptionMenu(self, values=campo_cartoes)
             self.car_cred.grid(row=10, column=0, padx=20, pady=10, sticky="ew")
             self.car_cred.set("Cartão de Cobrança")
         else:
             self.car_cred = ctk.CTkOptionMenu(self, values=[' ', ' ',])
             self.car_cred.grid(row=10, column=0, padx=20, pady=10, sticky="ew")
-            self.car_cred.set("Cadastre cartões na área destinada")
+            self.car_cred.set("Cadastre Seus Cartões Na Área Destinada")
 
-        # Linha 10 (Antiga Linha 9)
+        #bortão salvar / atualizar
         self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
-        self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew") # Maior padding para destacar
+        self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
 
-        # Linha 11 (Antiga Linha 10)
+        #status label - campo informativo
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
         self.status_label.grid(row=12, column=0, pady=5)
 
 
-    def salvar_dados(self):
+    def salvar_dados(self, id_desp=None, atualizar=None):
         """ Verifica e salva os dados no BD """
 
         dia_venc = None
@@ -357,24 +348,23 @@ class Cadastrar_despesas(ctk.CTkFrame):
         menu_parcelas_str = self.menu_parcelas.get()
         descricao = self.descricao.get().strip()
         categoria = self.categoria.get()
-        dc_select = self.campo_data_compra.get_date()
-        prim_dc_select = self.campo_primeira_dc.get_date()
+        self.dc_select = self.campo_data_compra.get_date()
+        self.prim_dc_select = self.campo_primeira_dc.get_date()
 
         prim_dc_select_mysql = None
 
-        self.sentinela = self.data_atual.replace(day=1, month=1, year=2050)
+        self.sentinela = self.data_atual.replace(day=1, month=1, year=2099)
 
-        if prim_dc_select != self.sentinela:
-            dia_venc = prim_dc_select.day
+        if self.prim_dc_select != self.sentinela:
+            dia_venc = self.prim_dc_select.day
             verifica_pri_dc = True
-            prim_dc_select_mysql = data_para_mysql(prim_dc_select)
+            prim_dc_select_mysql = data_para_mysql(self.prim_dc_select)
 
         car_cred = self.car_cred.get()
 
         # Formata o objeto datetime para a string 'AAAA-MM-DD' para mandar para o db
-        dc_select_mysql = data_para_mysql(dc_select)
+        dc_select_mysql = data_para_mysql(self.dc_select)
         
-
 
         if not local or not valor_total or categoria == "Categoria" or menu_parcelas_str == "N° Parcelas":
 
@@ -394,9 +384,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.after(3000, lambda: self.status_label.configure(text=''))
             return
         
-        
-        tem_cartao = car_cred != "Selecione um Cartão"
-
+        tem_cartao = car_cred != "Cartão de Cobrança - Sem Cartão"
         
         if not tem_cartao and not verifica_pri_dc:
             # Se não tem cartão E não tem dia de vencimento, falha!
@@ -414,51 +402,115 @@ class Cadastrar_despesas(ctk.CTkFrame):
                     id_card = dado.get('id_cartao')
                     dia_fechamento = dado.get('fechamento_fatura')
             
-            if dc_select.day >= dia_fechamento:
-                mes_vencimento = (dc_select + relativedelta(months=1)).month
+            if self.dc_select.day >= dia_fechamento:
+                mes_vencimento = (self.dc_select + relativedelta(months=1)).month
             else:
-                mes_vencimento = dc_select.month
+                mes_vencimento = self.dc_select.month
 
 
         #Chama o método para inserir no bd - retorna se tiver sucesso condição para evitar valores desnecessrios no bd
-        if tem_cartao and verifica_pri_dc:
+        verifica = tem_cartao is True and verifica_pri_dc is True
+
+        if verifica:
             self.campo_primeira_dc.set_date(self.sentinela)
+            import time
+            time.sleep(0.8)
+
             prim_dc_select_mysql = None
             dia_venc = None
 
-            self.status_label.configure(text='Como foi informado um Cartão a Data primeiro pagamento será desconsiderada', text_color='red')
+            self.status_label.configure(text='Como foi informado um Cartão, a Data primeiro pagamento será desconsiderada', text_color='blue')
             self.update_idletasks()
             self.after(3000, lambda: self.status_label.configure(text=''))
 
-            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
-
+        if not atualizar:
+            if verifica:
+                sucesso = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+            else:
+                sucesso = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+            msg_ok = 'INSERIDOS'
+            msg_erro = "SALVAR"
         else:
-            retorno = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+            sucesso = atualizar_despesa(id_desp, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+            msg_ok = 'ATUALIZADOS'
+            msg_erro = "ATUALIZAR"
 
 
-        if retorno:
-            self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+        if sucesso:
+            self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')
 
-            tocar_notificacao('sucesso')
+            tocar_notificacao('dv_sucesso', True)
             self.update_idletasks()
 
-            if self.callback:
-                self.callback(gerar_opcoes_meses().get(mes_vencimento))
+            if self.trocar_mes:
+                self.trocar_mes(gerar_opcoes_meses().get(mes_vencimento))
 
-            self.limpar_campos()
+            self.controla_campos(None)
+
+            if self.atualizar_lista():
+                self.atualizar_lista()
             
             self.after(3000, lambda: self.status_label.configure(text=''))
 
-                
         else:
-            self.status_label.configure(text='Não foi possível salvar dados, contate o adm do sistema...', text_color='red')
-            tocar_notificacao('erro')
+            self.status_label.configure(text=f'Não foi possível {msg_erro} os dados, contate o adm do sistema...', text_color='red')
+            tocar_notificacao('dv_erro', True)
             self.update_idletasks()
 
+            self.after(3000, lambda: self.status_label.configure(text=''))
 
-    
 
-    def limpar_campos(self):
+
+    def controla_campos(self, dados=None):
+        #'id_desp', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 'data_pp', 'dia_venc', 'id_cc' 
+
+        self.limpa_campos()
+        
+        if dados:
+
+            id_desp = dados.get('id_desp')
+
+            nome_card = "Cartão de Cobrança - Sem Cartão"
+
+            if self.dados_cartoes:
+                for cartao in self.dados_cartoes:
+                    if cartao.get('id_cartao') == dados.get('id_cc'):
+                        nome_card = cartao.get('nome_cartao')
+
+            self.local.insert(0, (dados.get('local')))
+            self.valor_total.insert(0, (dados.get('valor_total')))
+            self.descricao.insert(0, (dados.get('descricao')))
+
+            self.menu_parcelas.set(dados.get('parcelas'))
+            self.categoria.set(dados.get('categoria'))
+            self.car_cred.set(nome_card)
+
+            data_compra_obj = mysql_para_obj(dados.get('data_compra'))
+            data_pp = dados.get('data_pp')
+
+            if data_pp is None:
+                data_pp_obj = self.sentinela
+            else:
+                data_pp_obj = mysql_para_obj(data_pp)
+
+            self.campo_data_compra.set_date(data_compra_obj)
+            self.campo_primeira_dc.set_date(data_pp_obj)
+
+            self.botao_salvar.configure(text='Atualizar Assinatura', fg_color="orange", command=lambda: self.salvar_dados(id_desp, atualizar=True))
+        
+        else:
+            id_desp = None
+
+            self.botao_salvar.configure(
+            text="Confirmar Assinatura", 
+            fg_color=["#3B8ED0", "#1F6AA5"], # Cores padrão do CTk
+            command=self.salvar_dados # Função original de INSERT
+        )
+
+
+
+
+    def limpa_campos(self):
         """Limpa todos os campos de entrada do formulário de despesas."""
         
         # Limpa CTkEntry's
@@ -466,11 +518,9 @@ class Cadastrar_despesas(ctk.CTkFrame):
         self.valor_total.delete(0, ctk.END)
         self.descricao.delete(0, ctk.END)
 
-        
-        # Reseta CTkOptionMenu's para seus valores padrão
         self.menu_parcelas.set("N° Parcelas")
         self.categoria.set("Categoria")
-        self.car_cred.set("Selecione um Cartão")
+        self.car_cred.set("Cartão de Cobrança - Sem Cartão")
 
         self.campo_data_compra.set_date(self.data_atual)
         self.campo_primeira_dc.set_date(self.sentinela)
@@ -631,6 +681,8 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
         self.data_atual = datetime.now().date()
         self.sentinela = (self.data_atual.replace(day=1, month=1, year=2099))
 
+        self.nomes_cartoes = [c['nome_cartao'] for c in self.dados_cartoes]
+
         
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -670,11 +722,18 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
         self.menu_cat.grid(row=8, column=0, padx=20, pady=10, sticky="ew")
         self.menu_cat.set("Selecione a Categoria")
 
-        # Menu de Cartões utilizando de dados_cartos - list(dict)
-        nomes_cartoes = ["Cartão de Cobrança - Sem Cartão"] + [c['nome_cartao'] for c in self.dados_cartoes]
-        self.menu_cc = ctk.CTkOptionMenu(self, values=nomes_cartoes, width=300)
-        self.menu_cc.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
-        self.menu_cc.set("Cartão de Cobrança - Sem Cartão")
+
+        if self.nomes_cartoes:
+            campo_cartoes = ["Cartão de Cobrança - Sem Cartão"] + self.nomes_cartoes
+
+            self.menu_cc = ctk.CTkOptionMenu(self, values=campo_cartoes, width=300)
+            self.menu_cc.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
+            self.menu_cc.set("Cartão de Cobrança - Sem Cartão")
+        else:
+            self.car_cred = ctk.CTkOptionMenu(self, values=[' ', ' ',])
+            self.car_cred.grid(row=10, column=0, padx=20, pady=10, sticky="ew")
+            self.car_cred.set("Cadastre Seus Cartões Na Área Destinada")
+    
 
         # --- Botão Salvar ---
         self.btn_salvar = ctk.CTkButton(self, text="Confirmar Assinatura", command=self.salvar_dados, fg_color="#2c3e50", hover_color="#34495e")
