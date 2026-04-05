@@ -523,7 +523,7 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         dia_f = self.dia_fechamento.get().strip()
         dia_v = self.dia_vencimento.get().strip()
         
-        #verifiva se já a o nome informado no bd
+        #verifiva se já tem o nome informado na entry no bd
         for nome in self.nomes_cards:
             if nome == nome_cc:
                 tocar_notificacao("dv_erro", True)

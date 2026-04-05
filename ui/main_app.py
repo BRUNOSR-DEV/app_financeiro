@@ -219,7 +219,7 @@ class Main_app(ctk.CTk):
         self.buscar_dados_banco()
         self.montar_dashboard()
 
-        tocar_notificacao('open', True)
+        #tocar_notificacao('open', True)
         self.config(cursor="")
         print("Dashboard atualizado in-place com sucesso! 🚀")
 

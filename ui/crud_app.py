@@ -143,7 +143,7 @@ class Car_cred(ctk.CTkToplevel):
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Cartões de Crédito")
-        centralizar_janela(self, 1000, 800)
+        centralizar_janela(self, 1200, 800)
         self.transient(parent)
         self.focus_set()
 
@@ -153,11 +153,11 @@ class Car_cred(ctk.CTkToplevel):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1) 
-        self.grid_columnconfigure(1, weight=3) 
+        self.grid_columnconfigure(1, weight=2) 
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_car_cred(parent=self, user_id=self.user_id, att_app= att_app, atualizar_lista= self.atualizar_lista)
+        self.frame_cadastro = Cadastrar_car_cred(parent=self, user_id=self.user_id, nomes_cards=self.nomes_cards, att_app= att_app, atualizar_lista= self.atualizar_lista)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 

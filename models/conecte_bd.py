@@ -849,3 +849,27 @@ def deletar_assinatura(id_ass, conn =None):
     finally:
         if gerenciar_conn:
             desconectar(conn)
+
+
+def deletar_cartao(id_card, conn=None):
+
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    try:
+        sql = "DELETE FROM cartoes_credito WHERE id = %s"
+        cursor.execute(sql, (id_card,))
+        conn.commit()
+        return True
+    
+    except Exception as e:
+        print(f"Erro ao deletar no MySQL: {e}")
+        conn.rollback()
+        return False
+    
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
