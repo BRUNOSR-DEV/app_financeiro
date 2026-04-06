@@ -78,7 +78,7 @@ class Main_app(ctk.CTk):
             widget.destroy()
 
 
-        self.container_principal.grid_rowconfigure(0, weight=0) 
+        self.container_principal.grid_rowconfigure(0, weight=1) 
         self.container_principal.grid_rowconfigure(1, weight=1) 
         self.container_principal.grid_columnconfigure(0, weight=1)
 
@@ -131,7 +131,7 @@ class Main_app(ctk.CTk):
         self.menu_cartoes.grid(row=1, column=4, padx=10, pady=5)
 
         self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=self.abrir_det_cc, width=80, fg_color="#FF8000", hover_color="#813C00")
-        self.det_despesas_cc.grid(row=1, column=5, padx=2, pady=2)
+        self.det_despesas_cc.grid(row=1, column=5, padx=2, pady=2, sticky="ew")
 
 
         # ---------------
@@ -153,8 +153,8 @@ class Main_app(ctk.CTk):
         # FRAME GRÁFICO
         self.grafico_frame = ctk.CTkFrame(self.main_content_frame)
         self.grafico_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
-        self.grafico_frame.grid_columnconfigure(0, weight=1)
-        self.grafico_frame.grid_rowconfigure(0, weight=1)
+        self.grafico_frame.grid_columnconfigure(0, weight=2)
+        self.grafico_frame.grid_rowconfigure(1, weight=1)
 
         self.gerar_grafico_mensal()
 
@@ -539,8 +539,8 @@ class Main_app(ctk.CTk):
         
             # Cabeçalho
             ctk.CTkLabel(self.tabela_frame, text="Local/Nome", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
-            ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
-            ctk.CTkLabel(self.tabela_frame, text="Mensalidade/Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame, text="Mensalidade/Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="e")
             ctk.CTkLabel(self.tabela_frame, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
 
             linha = 1

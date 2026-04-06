@@ -1,10 +1,6 @@
 
-from models.conecte_bd import (
-    pega_despesas_cartao, dados_assinaturas_cartao
-     )
-
 from utils.helper import(
-    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, centralizar_janela
+    centralizar_janela
 )
 from ui.forms import(
     Cadastrar_receitas, Cadastrar_despesas, Cadastrar_car_cred, Cadastrar_assinaturas
@@ -20,7 +16,6 @@ from datetime import datetime
 import customtkinter as ctk
 ctk.set_appearance_mode('dark')
 
-from decimal import Decimal
 
 
 class Receitas(ctk.CTkToplevel):

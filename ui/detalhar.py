@@ -166,7 +166,7 @@ class Listar_despesas(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        self.lista_frame = ctk.CTkScrollableFrame(self, label_text="Assinaturas Cadastradas")
+        self.lista_frame = ctk.CTkScrollableFrame(self, label_text="Despesas Cadastradas")
         self.lista_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
         self.lista_frame.grid_columnconfigure((0, 1, 2, 3, 5, 6, 7, 8), weight=0) # valores/colunas fixas
