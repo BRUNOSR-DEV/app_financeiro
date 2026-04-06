@@ -87,7 +87,7 @@ class Despesas(ctk.CTkToplevel):
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Despesas")
-        centralizar_janela(self, 2000, 800)
+        centralizar_janela(self, 1700, 800)
         self.transient(parent)
         self.focus_set() 
 

@@ -308,7 +308,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
         self.campo_data_compra.grid(row=7, column=0, padx=10, pady=10)
 
         # data primeira parcela - se não for no cartão
-        self.label_primeira_dc = ctk.CTkLabel(self, text="Data do Primeiro Pagamento: (obs. Não preencher se a compra for no Cartão)", font=ctk.CTkFont(size=12, weight="bold"))
+        self.label_primeira_dc = ctk.CTkLabel(self, text="Data do Primeiro Pagamento: \n(obs. Não preencher se a compra for no Cartão)", font=ctk.CTkFont(size=12, weight="bold"))
         self.label_primeira_dc.grid(row=8, column=0)
 
         self.campo_primeira_dc = DateEntry(self, width=12, background='darkblue',
@@ -393,9 +393,9 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.after(3000, lambda: self.status_label.configure(text=''))
             return 
 
+        id_card = None
         
         if tem_cartao:
-            id_card = None
             mes_vencimento = None
             for dado in self.dados_cartoes:
                 if dado.get('nome_cartao') == car_cred:
@@ -406,6 +406,8 @@ class Cadastrar_despesas(ctk.CTkFrame):
                 mes_vencimento = (self.dc_select + relativedelta(months=1)).month
             else:
                 mes_vencimento = self.dc_select.month
+        else:
+            mes_vencimento = self.prim_dc_select.month
 
 
         #Chama o método para inserir no bd - retorna se tiver sucesso condição para evitar valores desnecessrios no bd
