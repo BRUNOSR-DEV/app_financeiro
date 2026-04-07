@@ -6,11 +6,11 @@ import locale
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 from models.conecte_bd import (
-     dados_user, pega_id, dados_card,pega_despesas_cartao, pega_despesas, dados_receita, dados_assinaturas_avulsas, dados_assinaturas_cartao
+     dados_user, pega_id, dados_card,pega_despesas_cartao, pega_despesas, dados_receita, dados_assinaturas_avulsas, dados_assinaturas_cartao, atualizar_renda
      )
 
 from utils.helper import(
-    gerar_opcoes_meses, controle_data_parc, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, centralizar_janela
+    gerar_opcoes_meses, controle_data_parc, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, centralizar_janela, check_entry_num
 )
 
 from utils.audio_helper import tocar_notificacao 
@@ -42,6 +42,10 @@ class Main_app(ctk.CTk):
         self.container_principal = ctk.CTkFrame(self, fg_color="transparent")
         self.container_principal.pack(fill="both", expand=True)
 
+        # Registra a função validadora no sistema do Tkinter
+        # O '%P' significa que o Tkinter vai passar o texto "Proposto" para a função
+        self.vcmd_num = (self.register(check_entry_num), '%P')
+
         # Carrega os dados e monta a tela pela PRIMEIRA vez
         self.buscar_dados_banco()
         self.montar_dashboard()
@@ -51,6 +55,8 @@ class Main_app(ctk.CTk):
         """ Função exclusiva para buscar/calcular dados. """
         self.user_id = pega_id(self.usuario_logado)
         self.dados_usuario = dados_user(self.user_id)
+
+        self.valor_renda = self.dados_usuario.get('sal_fixo', 0.0) 
 
         self.data_atual = datetime.now()
         self.mes_atual = self.data_atual.month
@@ -94,20 +100,34 @@ class Main_app(ctk.CTk):
         texto_boas_vindas = f"Bem-vindo, {self.dados_usuario.get('nome_completo')}!" if self.usuario_logado else "Bem-vindo!"
         self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame, text=texto_boas_vindas, font=ctk.CTkFont(size=16, weight="bold"))
         self.nomeusuario_label.grid(row=0, column=0, pady=(0, 10), sticky="w")
-            
-        self.btn_att_app = ctk.CTkButton(self.top_section_frame, text="Atualizar", command=self.att_app, width=80, fg_color="#0400FF", hover_color="#024389")
-        self.btn_att_app.grid(row=0, column=1, sticky="e")
+
+        # --- NOVO: DISPLAY DE RENDA FIXA ---
+        self.frame_renda = ctk.CTkFrame(self.top_section_frame, fg_color="transparent", width=150, height=100, corner_radius=15, border_width=3)
+        self.frame_renda.grid(row=0, column=1, padx=10, pady=(0, 10), sticky="w") # Fica do lado do nome
+        
+        # Pega o valor do banco (ajuste a chave 'sal_fixo' pro nome que está no seu banco)
+        
+        self.label_renda = ctk.CTkLabel(self.frame_renda, text=f"Renda Fixa: {formatar_moeda(self.valor_renda)}", text_color="#27ae60", font=ctk.CTkFont(weight="bold"))
+        self.label_renda.pack(side="left", padx=(0, 10))
+        
+        self.btn_edit_renda = ctk.CTkButton(self.frame_renda, text="📝", width=30, height=30, fg_color="transparent", border_width=1, command=self.abrir_modal_renda)
+        self.btn_edit_renda.pack(side="left")
+        # --- END Renda Frame renda fixa -----
+        
+        self.btn_att_app = ctk.CTkButton(self.top_section_frame, text="Atualizar", command=self.att_app, width=200, border_color="#000000", fg_color="#15038B", hover_color="#011328")
+        self.btn_att_app.grid(row=0, column=2, padx=30, sticky="n")
         
         self.mes_vigente_label = ctk.CTkLabel(self.top_section_frame, text=f"Mês : ", font=ctk.CTkFont(size=16, weight="bold"))
-        self.mes_vigente_label.grid(row=0, column=2, padx=10, pady=10, sticky="w")
+        self.mes_vigente_label.grid(row=0, column=3, padx=10, pady=10, sticky="w")
 
         self.menu_mes = ctk.CTkOptionMenu(self.top_section_frame, values=self.nomes_datas, command=self.trocar_mes)
-        self.menu_mes.grid(row=0, column=3, padx=10, pady=5)
+        self.menu_mes.grid(row=0, column=4, padx=10, pady=5)
             
-        self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, width=80, fg_color="#FF0000", hover_color="#810000")
-        self.botao_sair.grid(row=0, column=4, sticky="e") 
+        self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, width=200, fg_color="#9E0303", hover_color="#470100")
+        self.botao_sair.grid(row=0, column=5, sticky="e") 
         
-        # FRAME DE BOTÕES DE CADASTRO
+        
+        # ---- FRAME DE BOTÕES DE CADASTRO ----
         self.cadastro_frame = ctk.CTkFrame(self.top_section_frame, fg_color="transparent")
         self.cadastro_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="ew")
         self.cadastro_frame.grid_columnconfigure((0, 1, 2, 3, 4), weight=1) 
@@ -132,7 +152,7 @@ class Main_app(ctk.CTk):
 
         self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=self.abrir_det_cc, width=80, fg_color="#FF8000", hover_color="#813C00")
         self.det_despesas_cc.grid(row=1, column=5, padx=2, pady=2, sticky="ew")
-
+        #---- End frame botões -----
 
         # ---------------
         # MAIN CONTENT 
@@ -169,7 +189,7 @@ class Main_app(ctk.CTk):
         self.label_valor_saldo.pack(pady=(0, 10), padx=20)
 
         # Chama a função de cores usando o valor retornado
-        self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), total_dividas)
+        self.atualizar_cores_saldo(self.valor_renda, total_dividas)
 
 
 # ------------------- Lógica de atualização de dados ----------------------
@@ -267,6 +287,32 @@ class Main_app(ctk.CTk):
         self.label_valor_saldo.configure(text=f"{formatar_moeda(saldo)}", text_color=cor_status)
 
 
+    def salvar_renda(self):
+
+        nova_renda = self.entry_nova_renda.get().strip()
+
+        try:
+            nova_renda = float(nova_renda.replace(',', '.'))
+
+            sucesso = atualizar_renda(self.user_id, nova_renda)
+
+            if sucesso:
+                print('Renda atualizada com sucesso!')
+                tocar_notificacao("dv_sucesso", True)
+
+                self.modal_renda.destroy()
+
+                self.att_app()
+            else:
+                print('Não foi possível atualizar renda fixa')
+
+        except Exception as e:
+            print(f'Erro Inesperado: {e}')
+            tocar_notificacao('dv_erro', True)
+        
+
+
+
 # ------------- Fecha janela e volta para login -------------
     def voltar_Plogin(self):
         """ Método para voltar para a tela de login (botão 'Sair')"""
@@ -289,7 +335,7 @@ class Main_app(ctk.CTk):
         self.destroy()
 
 
-# ------------- chamada de classes detalhar_app -------------------
+# ------------- Detalhamento -------------------
     def abrir_det_cc(self):
 
         nome_selecionado = self.menu_cartoes.get()
@@ -307,6 +353,31 @@ class Main_app(ctk.CTk):
             self.wait_window(register_window)
         else:
             print("Erro: Cartão não encontrado")
+
+
+    def abrir_modal_renda(self):
+
+        self.modal_renda = ctk.CTkToplevel(self)
+        self.modal_renda.title("Editar Renda Fixa")    
+        centralizar_janela(self.modal_renda, 300, 200) 
+        self.modal_renda.grab_set() 
+        
+        tocar_notificacao('open_w', True)
+
+        ctk.CTkLabel(self.modal_renda, text="Digite a nova Renda Fixa (R$):", font=ctk.CTkFont(weight="bold")).pack(pady=(20, 10))
+    
+        self.entry_nova_renda = ctk.CTkEntry(
+            self.modal_renda, 
+            placeholder_text="Ex: 2500.00", 
+            justify="center",
+            validate='key',
+            validatecommand= self.vcmd_num
+            )
+        self.entry_nova_renda.pack(pady=10)
+        
+        # Botão Salvar
+        btn_salvar = ctk.CTkButton(self.modal_renda, text="Salvar Modificação", fg_color="#27ae60", hover_color="#1e8449", command=self.salvar_renda)
+        btn_salvar.pack(pady=(10, 20))
 
 
 # ---------- chamada de classes forms --------------------

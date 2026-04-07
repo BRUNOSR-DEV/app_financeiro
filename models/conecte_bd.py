@@ -877,6 +877,36 @@ def atualizar_despesa(id_desp, local, valor_total, parcelas, descricao, categori
             desconectar(conn)
 
 
+def atualizar_renda(id_user, nova_renda, conn=None):
+
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+    
+    try:
+        sql = "UPDATE usuarios SET salario_fixo = %s WHERE id = %s"
+        cursor.execute(sql, (nova_renda, id_user))
+        conn.commit()
+
+        print(f"Renda fixa do usuário ID: {id_user} atualizada com sucesso!")
+        return True
+    
+    except MySQLdb.Error as e:
+        print(f"Erro MySQL ao fazer atualização: {e}")
+        conn.rollback()
+        return None 
+    
+    except Exception as e:
+        print(f"Erro inesperado ao atualizar renda fixa: {e}")
+        conn.rollback()
+        return None
+        
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
 #------------------------------------------------------------------------------
 
 # ----------------------------- Deletar ---------------------------------

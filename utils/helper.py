@@ -2,7 +2,12 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import calendar
 
+import re
 
+from utils.audio_helper import tocar_notificacao
+
+
+#-------- opções meses ----------
 def gerar_opcoes_meses():
     meses_nome = {1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril", 
                   5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto", 
@@ -11,7 +16,26 @@ def gerar_opcoes_meses():
     return meses_nome
 
 
+# -------- Validação de entratada ----------
+def check_entry_num(P):
+    """
+    P é o valor que o campo terá SE a tecla for aceita.
+    Retorna True se for válido, False se for inválido.
+    """
+    if P == "": # Permite que o usuário apague tudo com o Backspace
+        return True
+    
+    # Regex: aceita números, opcionalmente um ponto ou vírgula, e mais números
+    padrao = r'^[0-9]*[.,]?[0-9]*$'
+    
+    if re.match(padrao, P):
+        return True
+    else:
+        tocar_notificacao('erro')
+        return False
 
+
+# ---- formatação de datas --------
 def str_para_data(data_str):
     """Converte 'DD/MM/AAAA' para objeto datetime."""
     try:
@@ -21,7 +45,6 @@ def str_para_data(data_str):
         return None
 
 
-
 def data_para_exibicao(data_obj):
     """Converte objeto date/datetime para 'DD/MM/AAAA'."""
     if data_obj:
@@ -29,13 +52,11 @@ def data_para_exibicao(data_obj):
     return ""
 
 
-
 def data_para_mysql(data_obj):
     """Converte objeto date/datetime para 'YYYY-MM-DD'."""
     if data_obj:
         return data_obj.strftime("%Y-%m-%d")
     return None
-
 
 
 def mysql_para_obj(data_mysql):
@@ -52,13 +73,13 @@ def mysql_para_obj(data_mysql):
     return data_mysql
 
 
-
+# --------- formatação de moeda -------------
 def formatar_moeda(valor):
     """Para formatar R$ 1.234,56."""
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-
+# ---------- Centralizar Janela Tkinter ------------
 def centralizar_janela(janela, largura, altura):
     # Pega a largura e altura da tela do PC do usuário
 
@@ -75,7 +96,7 @@ def centralizar_janela(janela, largura, altura):
     janela.geometry(f"{largura}x{altura}+{pos_x}+{pos_y}")
 
 
-
+# ---------- Engine Controle de data e parcelas -----------------
 def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_mes=None, data_atual=None):
     """
     Calcula a parcela atual baseada na data de compra e no fechamento da fatura.
@@ -156,7 +177,6 @@ def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_me
             # Está na janela de pagamento! Vai pra tabela!
             return f"{parcela_atual}/{total_parcelas}", True, data_pagamento
     
-
 
 def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total_parcelas=None, controle_mes=None, data_atual=None):
     """
