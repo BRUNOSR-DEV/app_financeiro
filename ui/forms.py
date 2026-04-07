@@ -18,15 +18,15 @@ import customtkinter as ctk
 ctk.set_appearance_mode('dark')
 
 
+#Filho de Módulo Login (login_app.py)
 class Registro_usuario(ctk.CTkToplevel):
     """Classe para registro: configuração da interface para receber dados e a inserção dos dados no BD. (inserir_usuario)"""
 
-    def __init__(self,  parent=None, login_instance=None):
+    def __init__(self,  parent=None):
         super().__init__(parent)
 
         self.master = parent # A referência à janela pai (opcional, mas útil)
-        self.login_instance = login_instance
-        
+
         self.title("Registrar Novo Usuário")
         self.geometry("350x500")
         self.transient(parent) # Faz a popup aparecer sobre a janela principal e fechar com ela
@@ -107,7 +107,7 @@ class Registro_usuario(ctk.CTkToplevel):
             self.after(3000, lambda: self.status_label.configure(text='')) 
 
 
-
+#Filho de Módulo Receitas (crud_app.py)
 class Cadastrar_receitas(ctk.CTkFrame):
 
     def __init__(self,  parent=None, user_id=None, trocar_mes = None, atualizar_lista= None, *args, **kwargs):
@@ -251,7 +251,7 @@ class Cadastrar_receitas(ctk.CTkFrame):
         self.data_recebimento.set_date(self.sentinela)
 
 
-#Cadastro de despesas
+#Filho de Despesas (crud_app.py)
 class Cadastrar_despesas(ctk.CTkFrame):
 
     def __init__(self,  parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, atualizar_lista=None, *args, **kwargs):
@@ -528,7 +528,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
         self.campo_primeira_dc.set_date(self.sentinela)
         
 
-
+#Filho de Cartões de Crédito (crud_app.py)
 class Cadastrar_car_cred(ctk.CTkFrame):
 
     def __init__(self,  parent=None, user_id=None, nomes_cards =None, att_app= None, atualizar_lista =None, *args, **kwargs):
@@ -583,7 +583,7 @@ class Cadastrar_car_cred(ctk.CTkFrame):
                 self.status_label.configure(text=f'Por favor, Não repitir nome de cartões, tente - ex: *{nome_cc}700', text_color='red')
                 self.update_idletasks()
 
-                self.after(2000, lambda: self.status_label.configure(text=''))
+                self.after(3000, lambda: self.status_label.configure(text=''))
                 return
 
         if not nome_cc or not limite or not dia_f or not dia_v:
@@ -668,7 +668,7 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         self.dia_vencimento.delete(0, ctk.END)
 
 
-
+#Filho de Assinaturas (crud_app.py)
 class Cadastrar_assinaturas(ctk.CTkFrame):
 
     def __init__(self, parent=None, user_id=None, dados_cartoes=None, trocar_mes=None, atualizar_lista = None):
@@ -900,4 +900,5 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
 
         self.data_aquisicao.set_date(self.data_atual)
         self.campo_prim_dp.set_date(self.sentinela)
+
 

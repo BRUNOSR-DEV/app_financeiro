@@ -13,6 +13,7 @@ ctk.set_appearance_mode('dark')
 
 from ui.forms import(Registro_usuario)
 
+#Módulo Login
 class Login(ctk.CTk):
 
     tocar_notificacao("open", True)
@@ -45,6 +46,7 @@ class Login(ctk.CTk):
 
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
         self.status_label.grid(row=5, column=0, pady=5)
+
 
     def quit_and_destroy(self):
         self.quit()    # Para o mainloop com elegância
@@ -88,7 +90,7 @@ class Login(ctk.CTk):
         """ Direciona o usuário para fazer cadastro chamando a classe Registro_usuario"""
         tocar_notificacao("click")
         
-        register_window = Registro_usuario(self, login_instance=self)
+        register_window = Registro_usuario(self)
         #self.status_label.configure(text='Abrindo tela de registro...', text_color='blue')
         
         self.wait_window(register_window) 

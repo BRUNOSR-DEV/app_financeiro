@@ -21,7 +21,7 @@ from CTkToolTip import *
 from decimal import Decimal
 
 
-
+#Filho de Módulo Receitas (crud_app.py)
 class Listar_receitas(ctk.CTkFrame):
 
     def __init__(self,  parent=None, user_id=None, controle_dados= None, trocar_mes=None, *args, **kwargs):
@@ -150,8 +150,7 @@ class Listar_receitas(ctk.CTkFrame):
             tocar_notificacao("erro")
 
             
-
-
+#Filho de Módulo Despesas (crud_app.py)
 class Listar_despesas(ctk.CTkFrame):
 
     def __init__(self,  parent=None, user_id=None, dados_cartoes =None, att_app=None, controle_dados=None, *args, **kwargs):
@@ -300,8 +299,7 @@ class Listar_despesas(ctk.CTkFrame):
             tocar_notificacao("dv_erro", True)
 
 
-
-
+#Filho de Módulo Cartões de Crédito (crud_app.py)
 class Listar_car_cred(ctk.CTkFrame):
 
     def __init__(self,  parent=None, user_id=None, nomes_cards =None, controle_dados = None, att_app = None, *args, **kwargs):
@@ -428,7 +426,8 @@ class Listar_car_cred(ctk.CTkFrame):
             print("Erro ao deletar")
             tocar_notificacao("dv_erro", True)
 
-                
+
+#Filho de Módulo Assinaturas (crud_app.py)      
 class Listar_assinaturas(ctk.CTkFrame):
 
     def __init__(self, parent=None, user_id=None, dados_cartoes=None, controle_dados=None, trocar_mes=None):
@@ -581,6 +580,7 @@ class Listar_assinaturas(ctk.CTkFrame):
 
 #-----------------  Detalhes da fatura dos cartões -----------------------------------------
 
+#Filho de Módulo Faturas (crud_app.py)
 class Listar_faturas_cartao(ctk.CTkFrame):
     
     def __init__(self, parent, id_user, id_card, nome_card, callback=None, *args, **kwargs):

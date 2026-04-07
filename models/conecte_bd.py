@@ -387,6 +387,7 @@ def dados_despesas_full(id_user, conn=None):
         if gerenciar_conn:
             desconectar(conn)
 
+
 def dados_assinaturas_avulsas(id_user, conn=None):
     """
     Busca todas as assinaturas sem cartão de um usuário específico.

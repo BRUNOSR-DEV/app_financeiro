@@ -342,8 +342,6 @@ class Main_app(ctk.CTk):
         self.wait_window(register_window)
 
 
-
-
 # -------------- gráfico e tabela -----------------------
 
     def gerar_grafico_mensal(self, controle_mes= 1):

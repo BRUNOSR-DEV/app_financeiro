@@ -17,7 +17,7 @@ import customtkinter as ctk
 ctk.set_appearance_mode('dark')
 
 
-
+#Módulo Receitas
 class Receitas(ctk.CTkToplevel):
 
     def __init__(self,  parent=None, user_id=None, trocar_mes = None, *args, **kwargs):
@@ -69,7 +69,7 @@ class Receitas(ctk.CTkToplevel):
         self.frame_lista.listar()
         
 
-
+#Módulo Despesas
 class Despesas(ctk.CTkToplevel):
 
     def __init__(self, parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, att_app=None, *args, **kwargs):
@@ -121,7 +121,7 @@ class Despesas(ctk.CTkToplevel):
         self.frame_lista.listar()
 
 
-
+#Módulo Cartões de Crédito
 class Car_cred(ctk.CTkToplevel):
 
     def __init__(self,  parent=None, user_id=None, nomes_cards =None, att_app = None, *args, **kwargs):
@@ -171,7 +171,7 @@ class Car_cred(ctk.CTkToplevel):
         self.frame_lista.listar()
 
 
-
+#Módulo Assinaturas
 class Assinaturas(ctk.CTkToplevel):
 
     def __init__(self, parent=None, user_id=None, dados_cartoes=None, trocar_mes=None):
@@ -231,6 +231,8 @@ class Assinaturas(ctk.CTkToplevel):
 
         
 # --------------------- Detalhes da Fatura de Cartões ----------------------------
+
+#Módulo Faturas
 class Faturas(ctk.CTkToplevel):
     
     def __init__(self, parent, id_user=None, id_card=None, nome_card=None, callback=None, *args, **kwargs):
