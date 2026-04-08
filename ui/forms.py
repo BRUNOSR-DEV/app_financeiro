@@ -121,7 +121,6 @@ class Cadastrar_receitas(ctk.CTkFrame):
         self.data_atual = datetime.now().date()
         self.sentinela = self.data_atual.replace(day=1, month=1, year=2099)
 
-
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
 

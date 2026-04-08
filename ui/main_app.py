@@ -37,7 +37,7 @@ class Main_app(ctk.CTk):
 
         self.usuario_logado = logged_in_username
         self.title("Controle Financeiro")
-        centralizar_janela(self, 1500, 800)
+        centralizar_janela(self, 1300, 800)
 
         self.container_principal = ctk.CTkFrame(self, fg_color="transparent")
         self.container_principal.pack(fill="both", expand=True)
@@ -92,65 +92,64 @@ class Main_app(ctk.CTk):
         # TOP SECTION 
         # ---------------
         self.top_section_frame = ctk.CTkFrame(self.container_principal, fg_color="transparent")
-        self.top_section_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        self.top_section_frame.grid(row=0, column=0, padx=(0, 10), pady=10, sticky="ew")
         
-        self.top_section_frame.grid_columnconfigure(0, weight=0)
-        self.top_section_frame.grid_columnconfigure(1, weight=1) # Empurra o botão pra direita
+        self.top_section_frame.grid_columnconfigure(0, weight=0) # Bem-vindo
+        self.top_section_frame.grid_columnconfigure(1, weight=1) # Renda Fixa (EXPANDE e empurra o resto pra direita)
+        self.top_section_frame.grid_columnconfigure((2, 3, 4, 5,6), weight=0) # Outros botões fixos
 
         texto_boas_vindas = f"Bem-vindo, {self.dados_usuario.get('nome_completo')}!" if self.usuario_logado else "Bem-vindo!"
-        self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame, text=texto_boas_vindas, font=ctk.CTkFont(size=16, weight="bold"))
-        self.nomeusuario_label.grid(row=0, column=0, pady=(0, 10), sticky="w")
+        self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame, text=texto_boas_vindas, font=ctk.CTkFont(size=18, weight="bold"))
+        self.nomeusuario_label.grid(row=0, column=0, padx=5, pady=(0, 10), sticky="w")
 
-        # --- NOVO: DISPLAY DE RENDA FIXA ---
+        # --- DISPLAY DE RENDA FIXA ---
         self.frame_renda = ctk.CTkFrame(self.top_section_frame, fg_color="transparent", width=150, height=100, corner_radius=15, border_width=3)
         self.frame_renda.grid(row=0, column=1, padx=10, pady=(0, 10), sticky="w") # Fica do lado do nome
         
-        # Pega o valor do banco (ajuste a chave 'sal_fixo' pro nome que está no seu banco)
-        
-        self.label_renda = ctk.CTkLabel(self.frame_renda, text=f"Renda Fixa: {formatar_moeda(self.valor_renda)}", text_color="#27ae60", font=ctk.CTkFont(weight="bold"))
+        self.label_renda = ctk.CTkLabel(self.frame_renda, text=f"Renda Fixa: {formatar_moeda(self.valor_renda)}", text_color="#27ae60", font=ctk.CTkFont(size=18,weight="bold"))
         self.label_renda.pack(side="left", padx=(0, 10))
         
         self.btn_edit_renda = ctk.CTkButton(self.frame_renda, text="📝", width=30, height=30, fg_color="transparent", border_width=1, command=self.abrir_modal_renda)
         self.btn_edit_renda.pack(side="left")
-        # --- END Renda Frame renda fixa -----
+        # --- END Renda fixa -----
         
-        self.btn_att_app = ctk.CTkButton(self.top_section_frame, text="Atualizar", command=self.att_app, width=200, border_color="#000000", fg_color="#15038B", hover_color="#011328")
-        self.btn_att_app.grid(row=0, column=2, padx=30, sticky="n")
-        
-        self.mes_vigente_label = ctk.CTkLabel(self.top_section_frame, text=f"Mês : ", font=ctk.CTkFont(size=16, weight="bold"))
-        self.mes_vigente_label.grid(row=0, column=3, padx=10, pady=10, sticky="w")
+        self.mes_vigente_label = ctk.CTkLabel(self.top_section_frame, text=f"Mês: ", font=ctk.CTkFont(size=16, weight="bold"))
+        self.mes_vigente_label.grid(row=0, column=2, padx=10, pady=10, sticky="w")
 
-        self.menu_mes = ctk.CTkOptionMenu(self.top_section_frame, values=self.nomes_datas, command=self.trocar_mes)
-        self.menu_mes.grid(row=0, column=4, padx=10, pady=5)
-            
-        self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, width=200, fg_color="#9E0303", hover_color="#470100")
-        self.botao_sair.grid(row=0, column=5, sticky="e") 
+        self.menu_mes = ctk.CTkOptionMenu(self.top_section_frame, values=self.nomes_datas, command=self.trocar_mes, fg_color="#676666")
+        self.menu_mes.grid(row=0, column=3, padx=10, pady=5, sticky="w")
+
+        self.btn_att_app = ctk.CTkButton(self.top_section_frame, text="Atualizar", command=self.att_app, fg_color="#11007F", hover_color="#050030")
+        self.btn_att_app.grid(row=0, column=4, padx=20, sticky="ew")
+           
+        self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, fg_color="#840000", hover_color="#350100")
+        self.botao_sair.grid(row=0, column=6, padx=(30, 0), sticky="ew") 
         
         
         # ---- FRAME DE BOTÕES DE CADASTRO ----
         self.cadastro_frame = ctk.CTkFrame(self.top_section_frame, fg_color="transparent")
-        self.cadastro_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="ew")
-        self.cadastro_frame.grid_columnconfigure((0, 1, 2, 3, 4), weight=1) 
+        self.cadastro_frame.grid(row=1, column=0, columnspan=6, padx=10, pady=(0, 10), sticky="ew")
+        self.cadastro_frame.grid_columnconfigure((0, 1, 2, 3, 4, 5), weight=1) 
 
-        self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Gerenciar Receitas", command=self.abrir_receitas)
+        self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Receitas", command=self.abrir_receitas, fg_color="#676666", hover_color="#005E02")
         self.btn_receitas.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
-        self.btn_despesas = ctk.CTkButton(self.cadastro_frame, text="Gerenciar Despesas", command=self.abrir_despesas)
+        self.btn_despesas = ctk.CTkButton(self.cadastro_frame, text="Despesas", command=self.abrir_despesas, fg_color="#676666", hover_color="#670000")
         self.btn_despesas.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
 
-        self.btn_cc = ctk.CTkButton(self.cadastro_frame, text="Gerenciar C.Crédito", command=self.abrir_cc)
+        self.btn_cc = ctk.CTkButton(self.cadastro_frame, text="Cartões de Crédito",  command=self.abrir_cc, fg_color="#676666", hover_color="#B56300")
         self.btn_cc.grid(row=1, column=2, padx=5, pady=5, sticky="ew")
 
-        self.btn_assin = ctk.CTkButton(self.cadastro_frame, text="Gerenciar Assinaturas", command=self.abrir_assinaturas)
+        self.btn_assin = ctk.CTkButton(self.cadastro_frame, text="Assinaturas", command=self.abrir_assinaturas, fg_color="#676666", hover_color="#140062")
         self.btn_assin.grid(row=1, column=3, padx=5, pady=5, sticky="ew")
 
         self.label_cc = ctk.CTkLabel(self.cadastro_frame, text="Selecione o Cartão:")
         self.label_cc.grid(row=0, column=4, padx=10, pady=5)
 
-        self.menu_cartoes = ctk.CTkOptionMenu(self.cadastro_frame, values=self.nomes_cartoes, width=80, fg_color="#FF8000")
-        self.menu_cartoes.grid(row=1, column=4, padx=10, pady=5)
+        self.menu_cartoes = ctk.CTkOptionMenu(self.cadastro_frame, values=self.nomes_cartoes, fg_color="#B76500")
+        self.menu_cartoes.grid(row=1, column=4, padx=10, pady=5,  sticky="ew")
 
-        self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=self.abrir_det_cc, width=80, fg_color="#FF8000", hover_color="#813C00")
+        self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=self.abrir_det_cc, fg_color="#B76500", hover_color="#472201")
         self.det_despesas_cc.grid(row=1, column=5, padx=2, pady=2, sticky="ew")
         #---- End frame botões -----
 
@@ -160,15 +159,15 @@ class Main_app(ctk.CTk):
         self.main_content_frame = ctk.CTkFrame(self.container_principal, fg_color="transparent")
         self.main_content_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
-        self.main_content_frame.grid_columnconfigure(0, weight=2) 
-        self.main_content_frame.grid_columnconfigure(1, weight=1) 
+        self.main_content_frame.grid_columnconfigure(0, weight=2) #tabela
+        self.main_content_frame.grid_columnconfigure(1, weight=1) #gráfico
         self.main_content_frame.grid_rowconfigure(0, weight=1)
 
         # FRAME TABELA
         self.tabela_frame = ctk.CTkScrollableFrame(self.main_content_frame, label_text=f"Pagamentos Detalhados: {self.mes_atual_str} / {self.data_atual.year}")
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") 
 
-        total_dividas = self.preencher_total_dividas(self.user_id) # Executa e guarda o valor
+        total_dividas = self.preencher_total_dividas(self.user_id) # Executa e guarda o valor de retorno
 
         # FRAME GRÁFICO
         self.grafico_frame = ctk.CTkFrame(self.main_content_frame)
@@ -179,8 +178,8 @@ class Main_app(ctk.CTk):
         self.gerar_grafico_mensal()
 
         # FRAME SALDO
-        self.frame_resumo = ctk.CTkFrame(self.top_section_frame, width=250, height=100, corner_radius=15, border_width=2 )
-        self.frame_resumo.grid(row=1, column=6, padx=20, pady=10, sticky="n")
+        self.frame_resumo = ctk.CTkFrame(self.top_section_frame, width=200, height=100, corner_radius=15, border_width=2 )
+        self.frame_resumo.grid(row=1, column=6, padx=20, pady=10, sticky="e")
 
         self.label_titulo_resumo = ctk.CTkLabel(self.frame_resumo, text="SALDO DO MÊS", font=ctk.CTkFont(size=12, weight="bold"))
         self.label_titulo_resumo.pack(pady=(10, 0))
@@ -190,6 +189,7 @@ class Main_app(ctk.CTk):
 
         # Chama a função de cores usando o valor retornado
         self.atualizar_cores_saldo(self.valor_renda, total_dividas)
+        # ----- END Frame Saldo ----------
 
 
 # ------------------- Lógica de atualização de dados ----------------------

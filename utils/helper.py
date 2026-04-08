@@ -22,7 +22,14 @@ def check_entry_num(P):
     P é o valor que o campo terá SE a tecla for aceita.
     Retorna True se for válido, False se for inválido.
     """
-    if P == "": # Permite que o usuário apague tudo com o Backspace
+    placeholders_permitidos = [
+        "",             # Permite apagar tudo
+        "R$ 0,00",      # Placeholder de Despesas/Receitas
+        "Ex: 4500.00",  # Placeholder da Renda Fixa
+        "Valor Ganho",
+    ]
+
+    if P == placeholders_permitidos: # Permite que o usuário apague tudo com o Backspace
         return True
     
     # Regex: aceita números, opcionalmente um ponto ou vírgula, e mais números
