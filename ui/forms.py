@@ -250,16 +250,18 @@ class Cadastrar_receitas(ctk.CTkFrame):
         self.data_recebimento.set_date(self.sentinela)
 
 
-#Filho de Despesas (crud_app.py)
+#Filho de Despesas e Simulacao (crud_app.py)
 class Cadastrar_despesas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, atualizar_lista=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, atualizar_lista=None, simulacao=False, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes
         self.trocar_mes = trocar_mes
         self.atualizar_lista = atualizar_lista
+
+        self.simulacao = simulacao
 
         # ---------------- Gerencimento de self ---------------------
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
@@ -327,13 +329,21 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.car_cred.grid(row=10, column=0, padx=20, pady=10, sticky="ew")
             self.car_cred.set("Cadastre Seus Cartões Na Área Destinada")
 
-        #bortão salvar / atualizar
-        self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
-        self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
+        #bortão salvar / atualizar e simular
+        if not self.simulacao:
+            self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
+            self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
+        else:
+            self.botao_salvar = ctk.CTkButton(self, text="Simular", command=self.simular)
+            self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
 
         #status label - campo informativo
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
         self.status_label.grid(row=12, column=0, pady=5)
+
+
+    def simular(self):
+        pass
 
 
     def salvar_dados(self, id_desp=None, atualizar=None):
@@ -383,7 +393,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.after(3000, lambda: self.status_label.configure(text=''))
             return
         
-        tem_cartao = car_cred != "Cartão de Cobrança - Sem Cartão"
+        tem_cartao = car_cred != "Cartão de Cobrança - Sem Cartão" or car_cred != "Cadastre Seus Cartões Na Área Destinada"
         
         if not tem_cartao and not verifica_pri_dc:
             # Se não tem cartão E não tem dia de vencimento, falha!
@@ -507,8 +517,6 @@ class Cadastrar_despesas(ctk.CTkFrame):
             fg_color=["#3B8ED0", "#1F6AA5"], # Cores padrão do CTk
             command=self.salvar_dados # Função original de INSERT
         )
-
-
 
 
     def limpa_campos(self):

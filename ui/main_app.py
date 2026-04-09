@@ -15,7 +15,7 @@ from utils.helper import(
 
 from utils.audio_helper import tocar_notificacao 
 from ui.crud_app import (
-    Faturas, Receitas, Despesas, Car_cred, Assinaturas
+    Faturas, Receitas, Despesas, Car_cred, Assinaturas, Simulacao
 )
 
 
@@ -49,6 +49,8 @@ class Main_app(ctk.CTk):
         # Carrega os dados e monta a tela pela PRIMEIRA vez
         self.buscar_dados_banco()
         self.montar_dashboard()
+
+        self.configure(fg_color="#212121")
 
 
     def buscar_dados_banco(self):
@@ -113,18 +115,23 @@ class Main_app(ctk.CTk):
         self.btn_edit_renda.pack(side="left")
         # --- END Renda fixa -----
         
+        # ----- Top section botões func ---------
+
+        self.btn_simulacao = ctk.CTkButton(self.top_section_frame, text='Simulação', command=self.abrir_simulacao, fg_color="#F87979", hover_color="#823737")
+        self.btn_simulacao.grid(row=0, column=2, padx=10, pady=10, sticky="ew")
+
         self.mes_vigente_label = ctk.CTkLabel(self.top_section_frame, text=f"Mês: ", font=ctk.CTkFont(size=16, weight="bold"))
-        self.mes_vigente_label.grid(row=0, column=2, padx=10, pady=10, sticky="w")
+        self.mes_vigente_label.grid(row=0, column=3, padx=10, pady=10, sticky="w")
 
         self.menu_mes = ctk.CTkOptionMenu(self.top_section_frame, values=self.nomes_datas, command=self.trocar_mes, fg_color="#676666")
-        self.menu_mes.grid(row=0, column=3, padx=10, pady=5, sticky="w")
+        self.menu_mes.grid(row=0, column=4, padx=10, pady=5, sticky="w")
 
-        self.btn_att_app = ctk.CTkButton(self.top_section_frame, text="Atualizar", command=self.att_app, fg_color="#11007F", hover_color="#050030")
-        self.btn_att_app.grid(row=0, column=4, padx=20, sticky="ew")
+        self.btn_att_app = ctk.CTkButton(self.top_section_frame, text="Atualizar", command=self.att_app, fg_color="#18123F", hover_color="#0A0720")
+        self.btn_att_app.grid(row=0, column=5, padx=10, sticky="ew")
            
         self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, fg_color="#840000", hover_color="#350100")
         self.botao_sair.grid(row=0, column=6, padx=(30, 0), sticky="ew") 
-        
+        # ----END Secton botões func ---------
         
         # ---- FRAME DE BOTÕES DE CADASTRO ----
         self.cadastro_frame = ctk.CTkFrame(self.top_section_frame, fg_color="transparent")
@@ -164,7 +171,7 @@ class Main_app(ctk.CTk):
         self.main_content_frame.grid_rowconfigure(0, weight=1)
 
         # FRAME TABELA
-        self.tabela_frame = ctk.CTkScrollableFrame(self.main_content_frame, label_text=f"Pagamentos Detalhados: {self.mes_atual_str} / {self.data_atual.year}")
+        self.tabela_frame = ctk.CTkScrollableFrame(self.main_content_frame, label_text=f"Despesas Detalhadas: {self.mes_atual_str} / {self.data_atual.year}")
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") 
 
         total_dividas = self.preencher_total_dividas(self.user_id) # Executa e guarda o valor de retorno
@@ -313,6 +320,7 @@ class Main_app(ctk.CTk):
 
 
 
+
 # ------------- Fecha janela e volta para login -------------
     def voltar_Plogin(self):
         """ Método para voltar para a tela de login (botão 'Sair')"""
@@ -379,6 +387,14 @@ class Main_app(ctk.CTk):
         btn_salvar = ctk.CTkButton(self.modal_renda, text="Salvar Modificação", fg_color="#27ae60", hover_color="#1e8449", command=self.salvar_renda)
         btn_salvar.pack(pady=(10, 20))
 
+
+# ---------------- simulação -----------------------
+    def abrir_simulacao(self):
+
+        tocar_notificacao('open_w', True)
+        register_window = Simulacao(self, self.user_id, self.dados_cartoes, grafico_mensal=self.gerar_grafico_mensal, preencher_dividas=self.preencher_total_dividas)
+
+        self.wait_window(register_window) 
 
 # ---------- chamada de classes forms --------------------
     def abrir_receitas(self):
@@ -533,7 +549,7 @@ class Main_app(ctk.CTk):
         canvas.draw()
 
     
-    def preencher_total_dividas(self, id_user, controle_mes = 1):
+    def preencher_total_dividas(self, id_user=None, controle_mes = 1):
 
         print(f"Calculando dados: Está {controle_mes}")
 

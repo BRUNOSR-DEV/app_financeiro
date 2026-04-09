@@ -21,10 +21,14 @@ Este projeto não é apenas um CRUD. Ele foi construído utilizando conceitos mo
 ## 🛠️ Tecnologias e Bibliotecas
 
 * **Ideação e Arquitetura:** Colaboração técnica via Gemini AI (Google).
-* **Gestão Ágil:** Kanban via Trello (Documentado em `/DOCS` (https://trello.com/b/PaYLzi3t/appfinanceiro)).
+* **Gestão Ágil:** Kanban via Trello (Documentado em `/DOCS` [Quadro Trello](https://trello.com/b/PaYLzi3t/appfinanceiro)).
 * **Design de Banco de Dados:** MySQL Workbench.
 * **GUI:** [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) (Visual Dark Mode moderno).
 * **Áudio:** Pygame (Feedback sonoro para operações do sistema).
+
+## 📈 Metodologia de Desenvolvimento
+
+Foi utilizada a metodologia Kanban para o mapeamento de ciclo de vida das tarefas, garantindo rastreabilidade e foco em entrega de valor incremental. Este projeto contou com o suporte técnico e consultoria de arquitetura da Gemini (Google AI), auxiliando na estruturação de padrões de projeto (Mediator, DAL), refino de UX/UI e lógica de banco de dados.
 
 ---
 ## 📁 Estrutura do Projeto
@@ -39,15 +43,10 @@ APP_FINANCEIRO/
 └── main.py         # Bootstrapper e Gerenciador de Ciclo de Vida
 
 ---
-## 📈 Metodologia de Desenvolvimento
-
-Foi utilizado a metodologia Kanban para o mapeamento de ciclo de vida das tarefas, garantindo rastreabilidade e foco em entrega de valor incremental.
-
-
 🔧 Como Rodar o Projeto
 Clone o repositório:
 
-Bash: git clone [https://github.com/BRUNOSR-DEV/app_financeiro.git](https://github.com/BRUNOSR-DEV/app_financeiro.git)
+Bash: git clone [Link](https://github.com/BRUNOSR-DEV/app_financeiro.git)
 
 Ative o ambiente virtual (venv):
 Bash: No Windows .\avir_af\Scripts\activate Instale as dependências:

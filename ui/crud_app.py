@@ -194,16 +194,14 @@ class Assinaturas(ctk.CTkToplevel):
 
 
         # --------------- Configuração da janela/'labels' -----------------------
-        #coluna o - formulário
-        self.grid_columnconfigure(0, weight=1) 
-        #coluna 1 - Lista
-        self.grid_columnconfigure(1, weight=4) 
+
+        self.grid_columnconfigure(0, weight=1) #coluna o - formulário
+        self.grid_columnconfigure(1, weight=4) #coluna 1 - Lista
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
         self.frame_cadastro = Cadastrar_assinaturas(self, self.user_id, self.dados_cartoes, self.trocar_mes, self.atualizar_lista)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
-
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
         self.frame_lista = Listar_assinaturas(self, self.user_id, self.dados_cartoes, self.controle_dados, self.trocar_mes )
@@ -247,7 +245,7 @@ class Faturas(ctk.CTkToplevel):
         self.title(f"Detalhes: {nome_card}")
         centralizar_janela(self, 1000, 800)
         self.transient(parent)
-        self.attributes("-topmost", True) 
+        self.focus_set() 
 
         self.grid_columnconfigure(0, weight=0) 
         self.grid_columnconfigure(1, weight=1) 
@@ -258,7 +256,59 @@ class Faturas(ctk.CTkToplevel):
         self.frame_tabelas = Listar_faturas_cartao(self, self.id_user, self.id_card, self.nome_card, callback=self.calback)
         self.frame_tabelas.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
+
+
+#Módulo Simulação
+class Simulacao(ctk.CTkToplevel):
+
+    def __init__(self, parent, id_user=None, dados_cartoes=None, grafico_mensal=None, preencher_dividas=None, *args, **kwargs):
+
+        """self.simulacao = kwargs.pop('simulacao', False)
+        self.callback_grafico = kwargs.pop('grafico_mensal', None)
+        self.callback_dividas = kwargs.pop('preencher_dividas', None)"""
+
+        super().__init__(parent, *args, **kwargs)
+
+        self.id_user = id_user
+        self.dados_cartoes = dados_cartoes
+
+        self.preencher_dividas = preencher_dividas
+        self.grafico_mensal = grafico_mensal
+
+
+        # ---------------- Gerencimento de self ---------------------
+        self.data_atual = datetime.now().date()
+
+        # --------------- Configuração da janela/'labels' -----------------------
+        self.title(f"Simulação de Despesas")
+        centralizar_janela(self, 1500, 800)
+        self.transient(parent)
+        self.grab_set()
+        self.focus_set() 
+
+        self.configure(fg_color="#823737") #muda a cor da jabe
+
+
+        self.container_principal = ctk.CTkFrame(self, fg_color="transparent")
+        self.container_principal.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+
+
+        self.grid_columnconfigure(0, weight=1) 
+        self.grid_columnconfigure(1, weight=2) 
+        self.grid_columnconfigure(2, weight=2) 
+        self.grid_rowconfigure(0, weight=1)
+
+
+        # ---------------- formulário de cadastro -----------------------
+        self.frame_cadastro = Cadastrar_despesas(self.container_principal, self.id_user, self.dados_cartoes, simulacao=True )
+        self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+
+
+        # FRAME TABELA
+        self.tabela_frame = ctk.CTkScrollableFrame(self.container_principal, label_text=f"Despesas Detalhados: {self.mes_atual_str} / {self.data_atual.year}")
+        self.tabela_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew") 
+
+        total_dividas = self.preencher_dividas(self.id_user)
+
         
-
-
 
