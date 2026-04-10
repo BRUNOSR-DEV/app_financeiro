@@ -4,7 +4,7 @@ from models.conecte_bd import (
      )
 
 from utils.helper import(
-    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, centralizar_janela
+    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, centralizar_janela, controle_data_parc,
 )
 
 from utils.audio_helper import tocar_notificacao 
@@ -19,6 +19,7 @@ ctk.set_appearance_mode('dark')
 from CTkToolTip import *
 
 from decimal import Decimal
+from collections import defaultdict 
 
 
 #Filho de Módulo Receitas (crud_app.py)
@@ -430,8 +431,8 @@ class Listar_car_cred(ctk.CTkFrame):
 #Filho de Módulo Assinaturas (crud_app.py)      
 class Listar_assinaturas(ctk.CTkFrame):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, controle_dados=None, trocar_mes=None):
-        super().__init__(parent)
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None, controle_dados=None, trocar_mes=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes 
@@ -578,6 +579,241 @@ class Listar_assinaturas(ctk.CTkFrame):
             tocar_notificacao("dv_erro", True)
 
 
+# ------------------- Detalhamento Tabela e Gráfico - DASHBOARD -------------------------------
+
+#Filho de módulo Main_app e Simulação
+class Listar_desp_tabela(ctk.CTkFrame):
+
+    def __init__(self, parent=None, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_tabela=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+    
+        self.id_user = id_user
+        self.despesas_avulsas = despesas_avulsas #------ return: dict de despesas avulsas=(sem cartão)
+        self.dados_cartoes = dados_cartoes # -------- return: dict de dados cartoes
+        self.assinaturas_avulsas = assinaturas_avulsas # -----------return: dict de assinaturas avulsas
+
+        self.dados_tabela = dados_tabela
+
+        #???????????/???????
+        #self.desp_cartoes = desp_cartoes # ---------- return: dict de despesas no cartão
+        #self.assin_cartoes = assin_cartoes # ---------- return: dict de assinaturas no cartão 
+
+        self.data_atual = datetime.now()
+        self.mes_atual = self.data_atual.month
+        self.prox_mes =  (self.data_atual + relativedelta(months=1)).month
+        self.seg_prox_mes =  (self.data_atual + relativedelta(months=2)).month
+
+        opcoes = gerar_opcoes_meses()
+        self.mes_atual_str = opcoes.get(self.mes_atual)
+        self.prox_mes_str = opcoes.get(self.prox_mes)
+        self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
+
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        # FRAME TABELA
+        self.tabela_frame = ctk.CTkScrollableFrame(self, label_text=f"Despesas Detalhadas: {self.mes_atual_str} / {self.data_atual.year}")
+        self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") 
+
+        self.tabela_frame.grid_columnconfigure((0, 1, 2, 3), weight=0) # valores/colunas fixas
+        #self.tabela_frame.grid_columnconfigure(4, weight=1) #Descriçao estica
+
+    
+
+    def renderizar(self, controle_mes):
+
+        print(f"Renderizando tabela: Está em {gerar_opcoes_meses().get(controle_mes)}")
+
+        for widget in self.tabela_frame.winfo_children():
+            widget.destroy()
+
+        despesas = self.despesas_avulsas
+        cartoes = self.dados_cartoes
+        assin = self.assinaturas_avulsas
+
+        total_avulsas = Decimal('0.0')
+        total_cards = Decimal('0.0')
+        #Lógica para montar lista com o total de cada cartão
+
+        lista_faturas_resumo = []
+
+        if cartoes:
+            
+            for cartao in cartoes:
+                nome_cartao = cartao.get('nome_cartao')
+                id_cartao = cartao.get('id_cartao') 
+            
+                #despesas_do_cartao = self.desp_cartoes
+                #assin_card = self.assin_cartoes ?????????????????
+                
+                despesas_do_cartao = pega_despesas_cartao(self.id_user, id_cartao)
+                assin_card = dados_assinaturas_cartao(self.id_user, id_cartao)
+            
+                total_deste_cartao = Decimal('0.0')
+                data_vencimento_fatura = None
+
+                if assin_card:
+                    for ass in assin_card:
+
+                        dia_f = ass.get('dia_fechamento_cc')
+                        dia_v = ass.get('dia_vencimento_cc')
+                        data_aquisicao = ass.get('data_aquisicao')
+
+                        resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes= controle_mes)
+                        _, entra_na_fatura, _ = resultado
+
+                        if entra_na_fatura:
+                            valor = Decimal(str(ass.get('valor')))
+                            total_deste_cartao += valor
+
+                if despesas_do_cartao:
+
+                    for desp in despesas_do_cartao:
+
+                        data_compra = mysql_para_obj(desp.get('data_compra'))
+                        dia_venc = desp.get('vencimento_fatura')
+                        fechamento = desp.get('fechamento_fatura')
+                        parcelas = desp.get('parcelas')
+
+
+                        resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes= controle_mes)
+                        _, entra_na_fatura, controle_data = resultado
+
+                        if entra_na_fatura:
+                            valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
+                            total_deste_cartao += valor_mensal
+                            data_vencimento_fatura = controle_data 
+
+                        
+
+                # Se o cartão tem fatura para pagar, guardamos na lista
+                if total_deste_cartao > Decimal('0.0'):
+                    lista_faturas_resumo.append({
+                        'local': f"Fatura - {nome_cartao}",
+                        'valor': total_deste_cartao,
+                        'vencimento': data_vencimento_fatura
+                    })
+
+    
+        # Se tiver despesas avulsas OU tiver faturas de cartão, a gente desenha a tabela
+        if despesas or lista_faturas_resumo or assin:
+        
+            # Cabeçalho
+            ctk.CTkLabel(self.tabela_frame, text="Local/Nome", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.tabela_frame, text="Mensalidade/Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="e")
+            ctk.CTkLabel(self.tabela_frame, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+
+            linha = 1
+
+            total_ass_avulcas = Decimal('0.0')
+
+            if assin: 
+                
+                for ass in assin:
+
+                        data_pp = mysql_para_obj(ass.get('data_pp'))
+                        dia_venc = ass.get('dia_vencimento')
+                        nome = ass.get('nome')
+                        valor = ass.get('valor')
+
+                        resultado = controle_data_parc(data_pp, dia_venc, total_parcelas=None, controle_mes = controle_mes )
+                        str_sit, entra_no_mes, data_vencimento = resultado
+
+                        if entra_no_mes:
+
+                            total_ass_avulcas += Decimal(str(valor))
+
+                            ctk.CTkLabel(self.tabela_frame, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                            ctk.CTkLabel(self.tabela_frame, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                            ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                            ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+
+
+                        linha += 1
+
+
+            if despesas:
+
+                for _, dados in enumerate(despesas):
+                    primeira_parc = mysql_para_obj(dados.get('primeira_parc'))
+                    dia_venc = primeira_parc.day
+                
+                    resultado_avulso = controle_data_parc(primeira_parc, dia_venc, dados.get('parcelas'), controle_mes= controle_mes)
+
+                    str_parcela, control_parc, data_vencimento = resultado_avulso
+
+                    dia_venc = int(primeira_parc.day)
+
+                    if data_vencimento:
+                        data_fatura = data_vencimento
+                    else:
+                        data_fatura = datetime.now().replace(day=dia_venc)
+
+                    if control_parc:
+                        valor_mensal = Decimal(str(dados.get('valor_total'))) / dados.get('parcelas')
+                    
+                        ctk.CTkLabel(self.tabela_frame, text=dados.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=str_parcela).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor_mensal), justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                        ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_fatura)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+
+                        total_avulsas += valor_mensal
+                    
+                        linha += 1
+          
+            # Desenha o Resumo das Faturas dos Cartões
+            for fatura in lista_faturas_resumo:
+
+                ctk.CTkLabel(self.tabela_frame, text=fatura['local']).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.tabela_frame, text="-").grid(row=linha, column=1, padx=3, pady=1, sticky="w") 
+                ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(fatura['valor']), justify=ctk.LEFT, text_color="orange").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+            
+                # Formata a data se ela não vier vazia
+                venc_str = data_para_exibicao(fatura['vencimento']) if fatura['vencimento'] else "N/A"
+                ctk.CTkLabel(self.tabela_frame, text=venc_str).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+
+                total_cards += fatura['valor']
+
+                linha += 1
+
+            ctk.CTkLabel(
+                self.tabela_frame, 
+                text="TOTAL DESPESAS:", 
+                font=ctk.CTkFont(weight="bold", size=14)
+            ).grid(row=linha, column=0, columnspan=2, padx=5, pady=(20, 5), sticky="e")
+
+            ctk.CTkLabel(
+                self.tabela_frame, 
+                text=formatar_moeda((total_avulsas + total_cards + total_ass_avulcas)), 
+                font=ctk.CTkFont(weight="bold", size=14), 
+                text_color="red" 
+            ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
+
+            self.tabela_frame.grid_columnconfigure(2, weight=1)
+            
+            tt_dividas = (total_avulsas + total_cards + total_ass_avulcas)
+
+            if tt_dividas:
+                self.dados_tabela(tt_dividas)
+
+        else:
+            ctk.CTkLabel(self.tabela_frame, text="Nenhum pagamento previsto.").grid(row=0, column=0, padx=10, pady=10)
+            self.tabela_frame.grid_columnconfigure(2, weight=1)
+
+
+#Filho de módulo Main_app e Simulação
+class Listar_cat_grafico(ctk.CTkFrame):
+
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None, controle_dados=None, trocar_mes=None):
+        super().__init__(parent)
+
+
+
+
+    def renderizar(self, controle_mes=1):
+        pass
 #-----------------  Detalhes da fatura dos cartões -----------------------------------------
 
 #Filho de Módulo Faturas (crud_app.py)

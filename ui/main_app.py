@@ -14,8 +14,13 @@ from utils.helper import(
 )
 
 from utils.audio_helper import tocar_notificacao 
+
 from ui.crud_app import (
     Faturas, Receitas, Despesas, Car_cred, Assinaturas, Simulacao
+)
+
+from ui.detalhar import(
+    Listar_desp_tabela, Listar_cat_grafico
 )
 
 
@@ -52,6 +57,8 @@ class Main_app(ctk.CTk):
 
         self.configure(fg_color="#212121")
 
+        self.tt_dividas = 0
+
 
     def buscar_dados_banco(self):
         """ Função exclusiva para buscar/calcular dados. """
@@ -77,6 +84,17 @@ class Main_app(ctk.CTk):
 
         self.dados_cartoes = dados_card(self.user_id)
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
+
+        self.despesas_avulsas = pega_despesas(self.user_id)
+        self.assinaturas_avulsas = dados_assinaturas_avulsas(self.user_id)
+
+
+    def dados_tabela(self, tt_divida):
+
+        if tt_divida:
+            self.tt_dividas = tt_divida
+        else:
+            print('ERRO: Detalhar não enviou total dividas para mãe')
 
 
     def montar_dashboard(self):
@@ -169,16 +187,24 @@ class Main_app(ctk.CTk):
         self.main_content_frame.grid_columnconfigure(0, weight=2) #tabela
         self.main_content_frame.grid_columnconfigure(1, weight=1) #gráfico
         self.main_content_frame.grid_rowconfigure(0, weight=1)
-
+        """
         # FRAME TABELA
         self.tabela_frame = ctk.CTkScrollableFrame(self.main_content_frame, label_text=f"Despesas Detalhadas: {self.mes_atual_str} / {self.data_atual.year}")
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") 
 
-        total_dividas = self.preencher_total_dividas(self.user_id) # Executa e guarda o valor de retorno
+        total_dividas = self.preencher_total_dividas(self.user_id) # Executa e guarda o valor de retorno"""
+
+        # FRAME TABELA - Chamando do detalhar
+
+        self.frame_tabela = Listar_desp_tabela(parent=self.main_content_frame, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_tabela=self.dados_tabela)
+        self.frame_tabela.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+
+        self.frame_tabela.renderizar(controle_mes=1)
 
         # FRAME GRÁFICO
         self.grafico_frame = ctk.CTkFrame(self.main_content_frame)
         self.grafico_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+
         self.grafico_frame.grid_columnconfigure(0, weight=2)
         self.grafico_frame.grid_rowconfigure(1, weight=1)
 
@@ -195,7 +221,7 @@ class Main_app(ctk.CTk):
         self.label_valor_saldo.pack(pady=(0, 10), padx=20)
 
         # Chama a função de cores usando o valor retornado
-        self.atualizar_cores_saldo(self.valor_renda, total_dividas)
+        #self.atualizar_cores_saldo(self.valor_renda, tt_dividas=2500)
         # ----- END Frame Saldo ----------
 
 
