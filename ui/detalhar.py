@@ -584,15 +584,13 @@ class Listar_assinaturas(ctk.CTkFrame):
 #Filho de módulo Main_app e Simulação
 class Listar_desp_tabela(ctk.CTkFrame):
 
-    def __init__(self, parent=None, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_tabela=None, *args, **kwargs):
+    def __init__(self, parent=None, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
     
         self.id_user = id_user
         self.despesas_avulsas = despesas_avulsas #------ return: dict de despesas avulsas=(sem cartão)
         self.dados_cartoes = dados_cartoes # -------- return: dict de dados cartoes
         self.assinaturas_avulsas = assinaturas_avulsas # -----------return: dict de assinaturas avulsas
-
-        self.dados_tabela = dados_tabela
 
         #???????????/???????
         #self.desp_cartoes = desp_cartoes # ---------- return: dict de despesas no cartão
@@ -621,9 +619,9 @@ class Listar_desp_tabela(ctk.CTkFrame):
 
     
 
-    def renderizar(self, controle_mes):
+    def renderizar(self, controle_mes=1, escolha=None):
 
-        print(f"Renderizando tabela: Está em {gerar_opcoes_meses().get(controle_mes)}")
+        print(f"Renderizando tabela: Mês informado: {escolha}")
 
         for widget in self.tabela_frame.winfo_children():
             widget.destroy()
@@ -795,8 +793,12 @@ class Listar_desp_tabela(ctk.CTkFrame):
             
             tt_dividas = (total_avulsas + total_cards + total_ass_avulcas)
 
-            if tt_dividas:
-                self.dados_tabela(tt_dividas)
+            
+            if escolha:
+                self.tabela_frame.configure(label_text=f"Pagamentos Detalhados: {escolha} / {self.data_atual.year}")
+
+
+            return tt_dividas
 
         else:
             ctk.CTkLabel(self.tabela_frame, text="Nenhum pagamento previsto.").grid(row=0, column=0, padx=10, pady=10)

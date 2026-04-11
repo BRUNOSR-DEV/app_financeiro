@@ -89,13 +89,6 @@ class Main_app(ctk.CTk):
         self.assinaturas_avulsas = dados_assinaturas_avulsas(self.user_id)
 
 
-    def dados_tabela(self, tt_divida):
-
-        if tt_divida:
-            self.tt_dividas = tt_divida
-        else:
-            print('ERRO: Detalhar não enviou total dividas para mãe')
-
 
     def montar_dashboard(self):
         """ Função exclusiva para desenhar a interface. """
@@ -196,10 +189,10 @@ class Main_app(ctk.CTk):
 
         # FRAME TABELA - Chamando do detalhar
 
-        self.frame_tabela = Listar_desp_tabela(parent=self.main_content_frame, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_tabela=self.dados_tabela)
+        self.frame_tabela = Listar_desp_tabela(parent=self.main_content_frame, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes)
         self.frame_tabela.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
-        self.frame_tabela.renderizar(controle_mes=1)
+        ret = self.frame_tabela.renderizar()
 
         # FRAME GRÁFICO
         self.grafico_frame = ctk.CTkFrame(self.main_content_frame)
@@ -221,7 +214,7 @@ class Main_app(ctk.CTk):
         self.label_valor_saldo.pack(pady=(0, 10), padx=20)
 
         # Chama a função de cores usando o valor retornado
-        #self.atualizar_cores_saldo(self.valor_renda, tt_dividas=2500)
+        self.atualizar_cores_saldo(self.valor_renda, ret)
         # ----- END Frame Saldo ----------
 
 
@@ -231,35 +224,29 @@ class Main_app(ctk.CTk):
 
         tocar_notificacao('open_w', True)
         
-        for widget in self.tabela_frame.winfo_children():
-            widget.destroy()
-
-        for widget in self.grafico_frame.winfo_children():
-            widget.destroy()
-        
         if self.mes_atual_str == escolha:
             controle_mes = 1
-            att_mes = self.preencher_total_dividas(self.user_id)
-            self.gerar_grafico_mensal()
+            ttf_mes = self.frame_tabela.renderizar(escolha=escolha)
+            #self.frame_grafico.renderizar()
 
         elif self.prox_mes_str == escolha:
             controle_mes = 2
-            att_mes = self.preencher_total_dividas(self.user_id, controle_mes)
-            self.gerar_grafico_mensal(controle_mes=2)
+            ttf_mes = self.frame_tabela.renderizar(controle_mes, escolha=escolha)
+            #self.frame_grafico.renderizar(controle_mes)
 
         elif self.seg_prox_mes_str == escolha:
             controle_mes = 3
-            att_mes = self.preencher_total_dividas(self.user_id, controle_mes)
-            self.gerar_grafico_mensal(controle_mes=3)
+            ttf_mes = self.frame_tabela.renderizar(controle_mes, escolha=escolha)
+            #self.frame_grafico.renderizar(controle_mes)
             
         else:
             controle_mes = 1
-            att_mes = self.preencher_total_dividas(self.user_id)
-            self.gerar_grafico_mensal()
+            ttf_mes = self.frame_tabela.renderizar(escolha=escolha)
+            #self.frame_grafico.renderizar()
 
-        self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), att_mes, controle_mes)
+        self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), ttf_mes, controle_mes)
 
-        self.tabela_frame._label.configure(text=f"Pagamentos Detalhados: {escolha} / {self.data_atual.year}")
+        
 
 
     def att_app(self):
