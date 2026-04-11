@@ -9,7 +9,6 @@ from utils.helper import(
 
 from utils.audio_helper import tocar_notificacao 
 
-
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 
@@ -17,6 +16,10 @@ import customtkinter as ctk
 ctk.set_appearance_mode('dark')
 
 from CTkToolTip import *
+
+#gráficos
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from decimal import Decimal
 from collections import defaultdict 
@@ -607,14 +610,17 @@ class Listar_desp_tabela(ctk.CTkFrame):
         self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
 
 
-        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=2)
         self.grid_rowconfigure(0, weight=1)
 
         # FRAME TABELA
         self.tabela_frame = ctk.CTkScrollableFrame(self, label_text=f"Despesas Detalhadas: {self.mes_atual_str} / {self.data_atual.year}")
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew") 
 
-        self.tabela_frame.grid_columnconfigure((0, 1, 2, 3), weight=0) # valores/colunas fixas
+        self.tabela_frame.grid_columnconfigure(0, weight=1)
+        self.tabela_frame.grid_rowconfigure(0, weight=1)
+
+        #self.tabela_frame.grid_columnconfigure((0, 1, 2, 3), weight=0) # valores/colunas fixas
         #self.tabela_frame.grid_columnconfigure(4, weight=1) #Descriçao estica
 
     
@@ -808,14 +814,145 @@ class Listar_desp_tabela(ctk.CTkFrame):
 #Filho de módulo Main_app e Simulação
 class Listar_cat_grafico(ctk.CTkFrame):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, controle_dados=None, trocar_mes=None):
-        super().__init__(parent)
+    def __init__(self, parent=None, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
 
+        self.id_user = id_user
+        self.despesas_avulsas = despesas_avulsas
+        self.dados_cartoes = dados_cartoes
+        self.assinaturas_avulsas = assinaturas_avulsas
 
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
+        #FRAME GRÁFICO
+        self.grafico_frame = ctk.CTkFrame(self)
+        self.grafico_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.grafico_frame.grid_columnconfigure(0, weight=1)
+        self.grafico_frame.grid_rowconfigure(0, weight=1)
+
+        
 
     def renderizar(self, controle_mes=1):
-        pass
+        
+
+        print(f"Renderizando gráfico")
+
+        for widget in self.grafico_frame.winfo_children():
+            widget.destroy()
+
+        assin = self.assinaturas_avulsas
+
+        gastos_por_categoria = defaultdict(Decimal)
+        total_previsto = Decimal('0.0')
+    
+        # Pegamos os dados necessários
+        id_cartoes = [d.get('id_cartao') for d in self.dados_cartoes]
+        desp_avulsas = self.despesas_avulsas
+        
+
+        #DESPESAS DE CARTÃO
+        for id_cc in id_cartoes:
+
+            desp_cc = pega_despesas_cartao(self.id_user, id_cc)
+            assin_card = dados_assinaturas_cartao(self.id_user, id_cc)
+
+            for ass in assin_card:
+                dia_f = ass.get('dia_fechamento_cc')
+                dia_v = ass.get('dia_vencimento_cc')
+                data_aquisicao = ass.get('data_aquisicao')
+
+                resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes= controle_mes)
+                _, entra_na_fatura, _ = resultado
+
+                if entra_na_fatura:
+                    valor = Decimal(str(ass.get('valor')))
+                    # SOMA NO DICIONÁRIO USANDO A CATEGORIA
+                    categoria = ass.get('categoria', 'Outros')
+                    gastos_por_categoria[categoria] += valor
+                    total_previsto += valor
+        
+            for desp in desp_cc:
+                data_compra = mysql_para_obj(desp.get('data_compra'))
+                dia_venc = desp.get('vencimento_fatura')
+                fechamento = desp.get('fechamento_fatura')
+                parcelas = desp.get('parcelas')
+
+                # Verifica se entra na fatura atual
+                resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes= controle_mes)
+                _, entra_na_fatura, _ = resultado
+
+                if entra_na_fatura:
+                    valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
+                    # SOMA NO DICIONÁRIO USANDO A CATEGORIA
+                    categoria = desp.get('categoria', 'Outros')
+                    gastos_por_categoria[categoria] += valor_mensal
+                    total_previsto += valor_mensal
+
+
+
+        # parte avulsas
+        for desp in desp_avulsas:
+            primeira_parc = mysql_para_obj(desp.get('primeira_parc'))
+            parcelas = desp.get('parcelas')
+            dia_venc = desp.get('dia_vencimento')
+        
+            # Usando sua função de controle para avulsas
+            resultado = controle_data_parc(primeira_parc, dia_venc , parcelas, controle_mes = controle_mes)
+            _, entra_no_mes, _ = resultado
+
+            if entra_no_mes:
+                valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
+                categoria = desp.get('categoria', 'Outros')
+                gastos_por_categoria[categoria] += valor_mensal
+                total_previsto += valor_mensal
+
+                
+        for ass in assin:
+
+            data_pp = mysql_para_obj(ass.get('data_pp'))
+            dia_venc = ass.get('dia_vencimento')
+            valor = ass.get('valor')
+
+            resultado = controle_data_parc(data_pp, dia_venc, controle_mes = controle_mes)
+            _, entra_no_mes, _ = resultado
+
+            if entra_no_mes:
+                total_previsto += valor
+                categoria = ass.get('categoria', 'Outros')
+                gastos_por_categoria[categoria] += valor
+            
+        #Verifica se tem algo para mostrar
+        if total_previsto == Decimal('0.0'):
+            ctk.CTkLabel(self.grafico_frame, text="Nenhum gasto para este mês.").grid(row=0, column=0, padx=20, pady=20)
+            return
+
+        # Prepara os dados para o Matplotlib
+        categorias = list(gastos_por_categoria.keys())
+        totais = list(gastos_por_categoria.values())
+
+        # 5. Criação do Gráfico
+        fig, ax = plt.subplots(figsize=(5, 5), facecolor='#2b2b2b') # Cor de fundo igual ao CTk
+        ax.pie(
+            totais, 
+            labels=categorias, 
+            autopct='%1.1f%%', 
+            startangle=90,
+            textprops={'fontsize': 8, 'color': 'white'}
+        )
+        ax.axis('equal')
+    
+        # Título (Ajuste o gerar_opcoes_meses conforme sua estrutura)
+        ax.set_title(f"Distribuição de Gastos\nTotal: {formatar_moeda(total_previsto)}", color='white', fontsize=12)
+
+        # 6. Renderização no CustomTkinter
+        canvas = FigureCanvasTkAgg(fig, master=self.grafico_frame)
+        canvas_widget = canvas.get_tk_widget()
+        canvas_widget.grid(row=0, column=0, sticky="nsew")
+        canvas.draw()
+
+
 #-----------------  Detalhes da fatura dos cartões -----------------------------------------
 
 #Filho de Módulo Faturas (crud_app.py)
