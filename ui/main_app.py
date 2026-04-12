@@ -394,7 +394,7 @@ class Main_app(ctk.CTk):
     def abrir_simulacao(self):
 
         tocar_notificacao('open_w', True)
-        register_window = Simulacao(self, self.user_id, self.dados_cartoes, grafico_mensal=self.gerar_grafico_mensal, preencher_dividas=self.preencher_total_dividas)
+        register_window = Simulacao(self, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes)
 
         self.wait_window(register_window) 
 

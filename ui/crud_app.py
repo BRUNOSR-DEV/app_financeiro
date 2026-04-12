@@ -7,7 +7,7 @@ from ui.forms import(
 )
 
 from ui.detalhar import(
-    Listar_receitas, Listar_despesas, Listar_car_cred, Listar_assinaturas, Listar_faturas_cartao
+    Listar_receitas, Listar_despesas, Listar_car_cred, Listar_assinaturas, Listar_faturas_cartao, Listar_cat_grafico, Listar_desp_tabela
 )   
 
 from dateutil.relativedelta import relativedelta
@@ -261,19 +261,13 @@ class Faturas(ctk.CTkToplevel):
 #Módulo Simulação
 class Simulacao(ctk.CTkToplevel):
 
-    def __init__(self, parent, id_user=None, dados_cartoes=None, grafico_mensal=None, preencher_dividas=None, *args, **kwargs):
-
-        """self.simulacao = kwargs.pop('simulacao', False)
-        self.callback_grafico = kwargs.pop('grafico_mensal', None)
-        self.callback_dividas = kwargs.pop('preencher_dividas', None)"""
-
+    def __init__(self, parent, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
+        self.despesas_avulsas = despesas_avulsas
         self.dados_cartoes = dados_cartoes
-
-        self.preencher_dividas = preencher_dividas
-        self.grafico_mensal = grafico_mensal
+        self.assinaturas_avulsas = assinaturas_avulsas
 
 
         # ---------------- Gerencimento de self ---------------------
@@ -281,34 +275,59 @@ class Simulacao(ctk.CTkToplevel):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Simulação de Despesas")
-        centralizar_janela(self, 1500, 800)
+        centralizar_janela(self, 1600, 900)
         self.transient(parent)
         self.grab_set()
         self.focus_set() 
 
         self.configure(fg_color="#823737") #muda a cor da jabe
 
-
-        self.container_principal = ctk.CTkFrame(self, fg_color="transparent")
-        self.container_principal.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
-
-
-        self.grid_columnconfigure(0, weight=1) 
-        self.grid_columnconfigure(1, weight=2) 
-        self.grid_columnconfigure(2, weight=2) 
+        self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
+        self.container_principal = ctk.CTkFrame(self, fg_color="transparent")
+        self.container_principal.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.container_principal.grid_columnconfigure(0, weight=1) 
+        self.container_principal.grid_rowconfigure(1, weight=1) 
+
+        # ---------- Top section ----------------------
+        
+        self.top_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
+        self.top_section.grid(row=0, column=0, padx=(0, 10), pady=10, sticky="ew")
+        
+        self.top_section.grid_columnconfigure(0, weight=1) # Bem-vindo
+        self.top_section.grid_rowconfigure(0, weight=1) 
+        
+
+        # --------------- Main section ----------------------------------
+        self.main_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
+        self.main_section.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.main_section.grid_columnconfigure(0, weight=2) #formulário
+        self.main_section.grid_columnconfigure(1, weight=5) #tabela
+        self.main_section.grid_columnconfigure(2, weight=1) #gráfico
+        self.main_section.grid_rowconfigure(0, weight=1)
 
         # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_despesas(self.container_principal, self.id_user, self.dados_cartoes, simulacao=True )
-        self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+        self.frame_cadastro = Cadastrar_despesas(self.main_section, self.id_user, self.dados_cartoes, simulacao=True )
 
+        self.frame_cadastro.grid(row=0, column=0, padx=10, pady=20, sticky="ns")
 
-        # FRAME TABELA
-        self.tabela_frame = ctk.CTkScrollableFrame(self.container_principal, label_text=f"Despesas Detalhados: {self.mes_atual_str} / {self.data_atual.year}")
-        self.tabela_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew") 
+        # ------------------- FRAME TABELA -----------------------------
+        self.tabela_frame = Listar_desp_tabela(parent=self.main_section, id_user=self.id_user, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes)
 
-        total_dividas = self.preencher_dividas(self.id_user)
+        self.tabela_frame.grid(row=0, column=1, padx=10, pady=20, sticky="nsew") 
+
+        self.tabela_frame.renderizar()
+
+        # -------------------- FRAME GRÁFICO ------------------------------
+        self.frame_grafico = Listar_cat_grafico(parent=self.main_section, id_user=self.id_user, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes )
+
+        self.frame_grafico.grid(row=0, column=2, padx=20, pady=20, sticky="nsew")
+
+        self.frame_grafico.renderizar()
+
 
         
 

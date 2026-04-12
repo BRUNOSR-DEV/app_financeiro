@@ -271,6 +271,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
 
         ctk.CTkLabel(self, text="Cadastre Suas Despesas", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=(20,15))
@@ -334,7 +335,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
             self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
         else:
-            self.botao_salvar = ctk.CTkButton(self, text="Simular", command=self.simular)
+            self.botao_salvar = ctk.CTkButton(self, text="Simular despesa", command=self.simular)
             self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
 
         #status label - campo informativo
