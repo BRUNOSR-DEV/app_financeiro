@@ -280,7 +280,7 @@ class Simulacao(ctk.CTkToplevel):
         self.grab_set()
         self.focus_set() 
 
-        self.configure(fg_color="#823737") #muda a cor da jabe
+        self.configure(fg_color="#823737") #muda a cor da janela
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -291,8 +291,7 @@ class Simulacao(ctk.CTkToplevel):
         self.container_principal.grid_columnconfigure(0, weight=1) 
         self.container_principal.grid_rowconfigure(1, weight=1) 
 
-        # ---------- Top section ----------------------
-        
+        # ----------------- Top section ---------------------------------
         self.top_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
         self.top_section.grid(row=0, column=0, padx=(0, 10), pady=10, sticky="ew")
         
@@ -310,7 +309,7 @@ class Simulacao(ctk.CTkToplevel):
         self.main_section.grid_rowconfigure(0, weight=1)
 
         # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_despesas(self.main_section, self.id_user, self.dados_cartoes, simulacao=True )
+        self.frame_cadastro = Cadastrar_despesas(self.main_section, self.id_user, self.dados_cartoes, simulacao=True, controle_dados=self.controle_dados)
 
         self.frame_cadastro.grid(row=0, column=0, padx=10, pady=20, sticky="ns")
 
@@ -329,5 +328,39 @@ class Simulacao(ctk.CTkToplevel):
         self.frame_grafico.renderizar()
 
 
+
+    def controle_dados(self, dados):
+
+        if dados:
+            pacote_dados = [dados, ]
+
+            for dado in dados:
+                cartao = dado.get('cartao')
+
+                if cartao:
+                    for card in self.dados_cartoes:
+                        if card.get('nome') == cartao:
+                           id_card = card.get('id_cartao')
+                           fech = card.get('fechamento_fatura')
+                           venc = card.get('vencimento_fatura')
+
+                           dados_card = {
+                               'id_cartao': {id_card},
+                               'nome_cartao': {cartao},
+                               'fechamento': {fech},
+                               'vencimento': {venc},
+                           }
+
+                    if dados_card:
+                        pacote_dados.append(dados_card)
+                    else:
+                        pacote_dados.append(None)
+
+            # manipular as datas de compra e fechamento, considerar em qual fatura a compra aparece
+
+
+            self.tabela_frame.renderizar(dados_simulacao=pacote_dados)
+        else:
+            print('ERRO: Forms não envio os dados esperados!')
         
 

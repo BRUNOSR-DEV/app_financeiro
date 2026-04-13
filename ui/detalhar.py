@@ -625,7 +625,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
 
     
 
-    def renderizar(self, controle_mes=1, escolha=None):
+    def renderizar(self, controle_mes=1, escolha=None, dados_simulacao=None):
 
         print(f"Renderizando tabela: Mês informado: {escolha}")
 
@@ -689,7 +689,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                             total_deste_cartao += valor_mensal
                             data_vencimento_fatura = controle_data 
 
-                        
+                        #"local","valor_total","parcelas","descricao","categoria","data_compra","prim_data_pag","cartao"
 
                 # Se o cartão tem fatura para pagar, guardamos na lista
                 if total_deste_cartao > Decimal('0.0'):

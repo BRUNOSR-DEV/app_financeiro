@@ -253,7 +253,7 @@ class Cadastrar_receitas(ctk.CTkFrame):
 #Filho de Despesas e Simulacao (crud_app.py)
 class Cadastrar_despesas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, atualizar_lista=None, simulacao=False, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, atualizar_lista=None, simulacao=False, controle_dados=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
@@ -261,7 +261,8 @@ class Cadastrar_despesas(ctk.CTkFrame):
         self.trocar_mes = trocar_mes
         self.atualizar_lista = atualizar_lista
 
-        self.simulacao = simulacao
+        self.simulacao = simulacao #boolean passado por mãe Simulacao
+        self.controle_dados = controle_dados #métoddo callback de mãe Simulacao (crud_app.py)
 
         # ---------------- Gerencimento de self ---------------------
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
@@ -335,7 +336,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
             self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
         else:
-            self.botao_salvar = ctk.CTkButton(self, text="Simular despesa", command=self.simular)
+            self.botao_salvar = ctk.CTkButton(self, text="Simular despesa", command=self.salvar_dados(simulacao=True))
             self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
 
         #status label - campo informativo
@@ -347,7 +348,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
         pass
 
 
-    def salvar_dados(self, id_desp=None, atualizar=None):
+    def salvar_dados(self, id_desp=None, atualizar=None, simulacao =False):
         """ Verifica e salva os dados no BD """
 
         dia_venc = None
@@ -435,6 +436,24 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.update_idletasks()
             self.after(3000, lambda: self.status_label.configure(text=''))
 
+        #simulação
+        if simulacao:
+
+            dict_dados = {
+                "local": {local},
+                "valor_total": {valor_total},
+                "parcelas": {menu_parcelas_str},
+                "descricao": {descricao},
+                "categoria": {categoria},
+                "data_compra": {self.dc_select},
+                "prim_data_pag": {self.prim_dc_select},
+                "cartao": {car_cred},
+            }  
+
+            if self.controle_dados:
+                self.controle_dados(dict_dados)
+            
+        #atualização e inserção
         if not atualizar:
             if verifica:
                 sucesso = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
