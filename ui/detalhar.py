@@ -707,7 +707,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                     local_simulacao = dados_forms.get('local')
                     data_compra_simulacao = dados_forms.get('data_compra')
                     data_pp_simulacao = dados_forms.get('data_prim_pag')
-                    parcelas_simulacao = dados_forms.get('parcelas')
+                    parcelas_simulacao = int(dados_forms.get('parcelas'))
 
                     id_card = dados_card_simulacao.get('id_cartao')
                     venc_card_simulacao = dados_card_simulacao.get('vencimento')
@@ -822,7 +822,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                 local_simulacao = dados_forms.get('local')
                 data_compra_simulacao = dados_forms.get('data_compra')
                 data_pp_simulacao = dados_forms.get('data_prim_pag')
-                parcelas_simulacao = dados_forms.get('parcelas')
+                parcelas_simulacao = int(dados_forms.get('parcelas'))
 
                 dia_venc_simulacao = data_pp_simulacao.day
 

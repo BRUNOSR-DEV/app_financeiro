@@ -334,18 +334,19 @@ class Simulacao(ctk.CTkToplevel):
         if dados:
             pacote_dados = [dados, ]
             dados_card = None
-            controle_mes = 1
+            controle_mes = None
 
             cartao = dados.get('cartao')
             data_compra = dados.get('data_compra')
             data_pp = dados.get('data_prim_pag)')
 
-
             if cartao and cartao != "Cartão de Cobrança - Sem Cartão" and cartao != "Cadastre Seus Cartões Na Área Destinada":
-
+                    
                     for card in self.dados_cartoes:
 
-                        if card.get('nome_cartao') == cartao:
+                        nome_card = card.get('nome_cartao')
+
+                        if nome_card == cartao:
                             id_card = card.get('id_cartao')
                             fech = card.get('fechamento_fatura')
                             venc = card.get('vencimento_fatura')
@@ -355,10 +356,10 @@ class Simulacao(ctk.CTkToplevel):
 
 
                             dados_card = {
-                                'id_cartao': {id_card},
-                                'nome_cartao': {cartao},
-                                'fechamento': {fech},
-                                'vencimento': {venc},
+                                'id_cartao': id_card,
+                                'nome_cartao': cartao,
+                                'fechamento': fech,
+                                'vencimento': venc,
                             }
                             break
 
@@ -366,7 +367,7 @@ class Simulacao(ctk.CTkToplevel):
                     pacote_dados.append(dados_card)
   
             else: #Despesa avulsa
-                controle_mes = int(data_pp.month)
+                controle_mes = data_pp.month
                 pacote_dados.append(None)
 
 

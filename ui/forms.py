@@ -440,14 +440,14 @@ class Cadastrar_despesas(ctk.CTkFrame):
         if simulacao:
 
             dict_dados = {
-                "local": {local},
-                "valor_total": {valor_total},
-                "parcelas": {menu_parcelas_str},
-                "descricao": {descricao},
-                "categoria": {categoria},
-                "data_compra": {self.dc_select},
-                "prim_data_pag": {self.prim_dc_select},
-                "cartao": {car_cred},
+                "local": local,
+                "valor_total": valor_total,
+                "parcelas": menu_parcelas_str,
+                "descricao": descricao,
+                "categoria": categoria,
+                "data_compra": self.dc_select,
+                "prim_data_pag": self.prim_dc_select,
+                "cartao": car_cred,
             }  
 
             print(dict_dados)

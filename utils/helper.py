@@ -194,6 +194,7 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
     """
     Returns: 
     """
+
     if data_atual is None:
         data_atual = datetime.now().date()
 
@@ -207,16 +208,15 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
     seg_prox_mes = (data_atual + relativedelta(months=2)).month
 
     data_alvo = None
-
     # Define qual é a FATURA ALVO (Mês Atual ou Próximo Mês)
     if controle_mes == mes_vigente:
         data_alvo = data_atual
 
     elif controle_mes == prox_mes:
-        data_alvo = data_atual + relativedelta(months=1)
+        data_alvo = (data_atual + relativedelta(months=1))
         
     elif controle_mes == seg_prox_mes:
-        data_alvo = data_atual + relativedelta(months=2)
+        data_alvo = (data_atual + relativedelta(months=2))
         
     
     # Descobre a Fatura da PRIMEIRA cobrança (com base no fechamento)

@@ -24,10 +24,6 @@ from ui.detalhar import(
 )
 
 
-#gráficos
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
 import customtkinter as ctk
 ctk.set_appearance_mode('dark')
 
