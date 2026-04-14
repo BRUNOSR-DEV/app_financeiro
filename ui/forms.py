@@ -253,7 +253,7 @@ class Cadastrar_receitas(ctk.CTkFrame):
 #Filho de Despesas e Simulacao (crud_app.py)
 class Cadastrar_despesas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, atualizar_lista=None, simulacao=False, controle_dados=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, atualizar_lista=None, simulacao=None, controle_dados=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
@@ -336,7 +336,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
             self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
         else:
-            self.botao_salvar = ctk.CTkButton(self, text="Simular despesa", command=self.salvar_dados(simulacao=True))
+            self.botao_salvar = ctk.CTkButton(self, text="Simular despesa", command=lambda: self.salvar_dados(simulacao=True))
             self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
 
         #status label - campo informativo
@@ -348,7 +348,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
         pass
 
 
-    def salvar_dados(self, id_desp=None, atualizar=None, simulacao =False):
+    def salvar_dados(self, id_desp=None, atualizar=None, simulacao=False):
         """ Verifica e salva os dados no BD """
 
         dia_venc = None
@@ -421,7 +421,6 @@ class Cadastrar_despesas(ctk.CTkFrame):
             mes_vencimento = self.prim_dc_select.month
 
 
-        #Chama o método para inserir no bd - retorna se tiver sucesso condição para evitar valores desnecessrios no bd
         verifica = tem_cartao is True and verifica_pri_dc is True
 
         if verifica:
@@ -436,7 +435,8 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.update_idletasks()
             self.after(3000, lambda: self.status_label.configure(text=''))
 
-        #simulação
+
+        #----------------- simulação ---------------------------
         if simulacao:
 
             dict_dados = {
@@ -450,15 +450,21 @@ class Cadastrar_despesas(ctk.CTkFrame):
                 "cartao": {car_cred},
             }  
 
+            print(dict_dados)
+
             if self.controle_dados:
                 self.controle_dados(dict_dados)
-            
-        #atualização e inserção
+
+                self.limpa_campos()
+                return
+     
+        #-------------- atualização e inserção --------------------
         if not atualizar:
             if verifica:
                 sucesso = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
             else:
                 sucesso = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+
             msg_ok = 'INSERIDOS'
             msg_erro = "SALVAR"
         else:

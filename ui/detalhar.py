@@ -632,6 +632,12 @@ class Listar_desp_tabela(ctk.CTkFrame):
         for widget in self.tabela_frame.winfo_children():
             widget.destroy()
 
+        if dados_simulacao:
+            dados_forms, dados_card_simulacao = dados_simulacao
+        else:
+            dados_card_simulacao = None
+            dados_forms = None
+
         despesas = self.despesas_avulsas
         cartoes = self.dados_cartoes
         assin = self.assinaturas_avulsas
@@ -690,12 +696,37 @@ class Listar_desp_tabela(ctk.CTkFrame):
                             data_vencimento_fatura = controle_data 
 
                         #"local","valor_total","parcelas","descricao","categoria","data_compra","prim_data_pag","cartao"
+                
+
+
+                #---------- simulação - Inserindo o valor na fatura do cartão informado ----------------------
+                mensalidade_simulacao_card  = Decimal('0.0')
+
+                if dados_card_simulacao:
+
+                    local_simulacao = dados_forms.get('local')
+                    data_compra_simulacao = dados_forms.get('data_compra')
+                    data_pp_simulacao = dados_forms.get('data_prim_pag')
+                    parcelas_simulacao = dados_forms.get('parcelas')
+
+                    id_card = dados_card_simulacao.get('id_cartao')
+                    venc_card_simulacao = dados_card_simulacao.get('vencimento')
+                    fech_card_simulacao = dados_card_simulacao.get('fechamento')
+
+                    if id_card == id_cartao:
+                        resultado = controle_data_parc_cc(data_compra_simulacao, fech_card_simulacao, venc_card_simulacao, parcelas_simulacao, controle_mes= controle_mes)
+
+                        _, entra_na_fatura, controle_data = resultado
+
+                        if entra_na_fatura:
+                            mensalidade_simulacao_card = Decimal(str(dados_forms.get('valor_total'))) / parcelas_simulacao
+
 
                 # Se o cartão tem fatura para pagar, guardamos na lista
                 if total_deste_cartao > Decimal('0.0'):
                     lista_faturas_resumo.append({
                         'local': f"Fatura - {nome_cartao}",
-                        'valor': total_deste_cartao,
+                        'valor': (total_deste_cartao + mensalidade_simulacao_card),
                         'vencimento': data_vencimento_fatura
                     })
 
@@ -781,6 +812,44 @@ class Listar_desp_tabela(ctk.CTkFrame):
                 total_cards += fatura['valor']
 
                 linha += 1
+
+
+            # -------------- SIMULAÇÃO - DESENHANDO LINHA AVULSA COM OS DADOS INFORMADOS NO FORMS -----------
+
+
+            if dados_card_simulacao is None and dados_forms is True:
+
+                local_simulacao = dados_forms.get('local')
+                data_compra_simulacao = dados_forms.get('data_compra')
+                data_pp_simulacao = dados_forms.get('data_prim_pag')
+                parcelas_simulacao = dados_forms.get('parcelas')
+
+                dia_venc_simulacao = data_pp_simulacao.day
+
+                if data_pp_simulacao:
+
+                    resultado_avulso_sim = controle_data_parc(data_pp_simulacao, dia_venc_simulacao, parcelas_simulacao, controle_mes= controle_mes)
+
+                    str_parcela, control_parc, data_vencimento = resultado_avulso_sim
+
+                    if data_vencimento:
+                        data_fatura = data_vencimento
+                    else:
+                        data_fatura = datetime.now().replace(day=dia_venc)
+
+                    if control_parc:
+                        mensalidade_simulacao_avulsa = Decimal(str(dados_forms.get('valor_total'))) / parcelas_simulacao
+
+                        ctk.CTkLabel(self.tabela_frame, text=local_simulacao).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=str_parcela).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(mensalidade_simulacao_avulsa), justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                        ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_fatura)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+
+                        total_avulsas += mensalidade_simulacao_avulsa
+
+                        linha += 1
+
+   
 
             ctk.CTkLabel(
                 self.tabela_frame, 

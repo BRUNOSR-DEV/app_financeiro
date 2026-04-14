@@ -333,30 +333,32 @@ class Simulacao(ctk.CTkToplevel):
 
         if dados:
             pacote_dados = [dados, ]
+            dados_card = None
 
-            for dado in dados:
-                cartao = dado.get('cartao')
+            cartao = dados.get('cartao')
 
-                if cartao:
+            if cartao and cartao != "Cartão de Cobrança - Sem Cartão" and cartao != "Cadastre Seus Cartões Na Área Destinada":
+
                     for card in self.dados_cartoes:
+
                         if card.get('nome') == cartao:
-                           id_card = card.get('id_cartao')
-                           fech = card.get('fechamento_fatura')
-                           venc = card.get('vencimento_fatura')
+                            id_card = card.get('id_cartao')
+                            fech = card.get('fechamento_fatura')
+                            venc = card.get('vencimento_fatura')
 
-                           dados_card = {
-                               'id_cartao': {id_card},
-                               'nome_cartao': {cartao},
-                               'fechamento': {fech},
-                               'vencimento': {venc},
-                           }
+                            dados_card = {
+                                'id_cartao': {id_card},
+                                'nome_cartao': {cartao},
+                                'fechamento': {fech},
+                                'vencimento': {venc},
+                            }
+                            break
 
-                    if dados_card:
-                        pacote_dados.append(dados_card)
-                    else:
-                        pacote_dados.append(None)
 
-            # manipular as datas de compra e fechamento, considerar em qual fatura a compra aparece
+                    pacote_dados.append(dados_card)
+  
+            else:
+                pacote_dados.append(None)
 
 
             self.tabela_frame.renderizar(dados_simulacao=pacote_dados)
