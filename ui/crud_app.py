@@ -334,17 +334,25 @@ class Simulacao(ctk.CTkToplevel):
         if dados:
             pacote_dados = [dados, ]
             dados_card = None
+            controle_mes = 1
 
             cartao = dados.get('cartao')
+            data_compra = dados.get('data_compra')
+            data_pp = dados.get('data_prim_pag)')
+
 
             if cartao and cartao != "Cartão de Cobrança - Sem Cartão" and cartao != "Cadastre Seus Cartões Na Área Destinada":
 
                     for card in self.dados_cartoes:
 
-                        if card.get('nome') == cartao:
+                        if card.get('nome_cartao') == cartao:
                             id_card = card.get('id_cartao')
                             fech = card.get('fechamento_fatura')
                             venc = card.get('vencimento_fatura')
+
+                            if data_compra.day >= fech:
+                                controle_mes = (data_compra + relativedelta(months=1)).month
+
 
                             dados_card = {
                                 'id_cartao': {id_card},
@@ -357,11 +365,12 @@ class Simulacao(ctk.CTkToplevel):
 
                     pacote_dados.append(dados_card)
   
-            else:
+            else: #Despesa avulsa
+                controle_mes = int(data_pp.month)
                 pacote_dados.append(None)
 
 
-            self.tabela_frame.renderizar(dados_simulacao=pacote_dados)
+            self.tabela_frame.renderizar(controle_mes=controle_mes, dados_simulacao=pacote_dados)
         else:
             print('ERRO: Forms não envio os dados esperados!')
         

@@ -624,8 +624,8 @@ class Listar_desp_tabela(ctk.CTkFrame):
         #self.tabela_frame.grid_columnconfigure(4, weight=1) #Descriçao estica
 
     
-
-    def renderizar(self, controle_mes=1, escolha=None, dados_simulacao=None):
+    controle_mes = int(datetime.now().month)
+    def renderizar(self, controle_mes=controle_mes, escolha=None, dados_simulacao=None):
 
         print(f"Renderizando tabela: Mês informado: {escolha}")
 
@@ -902,8 +902,8 @@ class Listar_cat_grafico(ctk.CTkFrame):
         self.grafico_frame.grid_rowconfigure(0, weight=1)
 
         
-
-    def renderizar(self, controle_mes=1):
+    controle_mes = datetime.now().month
+    def renderizar(self, controle_mes=controle_mes):
         
 
         print(f"Renderizando gráfico")
@@ -1086,8 +1086,8 @@ class Listar_faturas_cartao(ctk.CTkFrame):
         self.tabela_prox(id_user, id_card)
 
 
-
-    def tabela_vigente(self, id_user, id_card, controle_mes = 1):
+    controle_mes = datetime.now().month
+    def tabela_vigente(self, id_user, id_card, controle_mes = controle_mes):
 
 
         for widget in self.tabela_frame.winfo_children():
@@ -1183,8 +1183,9 @@ class Listar_faturas_cartao(ctk.CTkFrame):
         self.tabela_frame.grid_columnconfigure((1, 2, 3), weight=1)
 
 
+    controle_mes = (datetime.now().date() + relativedelta(months=1)).month
 
-    def tabela_prox(self, id_user, id_card, controle_mes = 2):
+    def tabela_prox(self, id_user, id_card, controle_mes = controle_mes):
 
         for widget in self.tabela_frame_prox.winfo_children():
             widget.destroy()

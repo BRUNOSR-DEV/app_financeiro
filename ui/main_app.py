@@ -218,22 +218,25 @@ class Main_app(ctk.CTk):
         tocar_notificacao('open_w', True)
         
         if self.mes_atual_str == escolha:
-            controle_mes = 1
+            controle_mes = self.data_atual.month
+
             ttf_mes = self.frame_tabela.renderizar(escolha=escolha)
             self.frame_grafico.renderizar()
 
         elif self.prox_mes_str == escolha:
-            controle_mes = 2
+            controle_mes = (self.data_atual + relativedelta(months=1)).month
+
             ttf_mes = self.frame_tabela.renderizar(controle_mes, escolha=escolha)
             self.frame_grafico.renderizar(controle_mes)
 
         elif self.seg_prox_mes_str == escolha:
-            controle_mes = 3
+            controle_mes = (self.data_atual + relativedelta(months=2)).month
+
             ttf_mes = self.frame_tabela.renderizar(controle_mes, escolha=escolha)
             self.frame_grafico.renderizar(controle_mes)
             
         else:
-            controle_mes = 1
+            controle_mes = self.data_atual.month
             ttf_mes = self.frame_tabela.renderizar(escolha=escolha)
             self.frame_grafico.renderizar()
 
@@ -255,29 +258,35 @@ class Main_app(ctk.CTk):
         print("Dashboard atualizado in-place com sucesso! 🚀")
 
 
-    def atualizar_cores_saldo(self, sal_fixo, despesa, controle_mes=1):
+    controle_mes = datetime.now().month
+    def atualizar_cores_saldo(self, sal_fixo, despesa, controle_mes=controle_mes):
 
         receitas = dados_receita(self.user_id)
         receitas_fornecidas = Decimal('0.0')
 
-        prox_mes =  (self.data_atual + relativedelta(months=1))
-        seg_prox_mes =  (self.data_atual + relativedelta(months=2))
+        mes_vigente = self.data_atual.month
+        prox_mes = (self.data_atual + relativedelta(months=1)).month
+        seg_prox_mes = (self.data_atual + relativedelta(months=2)).month
+
+
+        data_prox_mes =  (self.data_atual + relativedelta(months=1))
+        data_seg_prox_mes =  (self.data_atual + relativedelta(months=2))
         
 
         for dado in receitas:
             data_obj = mysql_para_obj(dado.get('data'))
             valor = Decimal(str(dado.get('valor_recebido')))
 
-            if controle_mes == 1: #mes_atual
+            if controle_mes == mes_vigente: #mes_atual
                 if self.data_atual.month == data_obj.month and self.data_atual.year == data_obj.year:
                     receitas_fornecidas += valor
 
-            elif controle_mes == 2: #prox_mes
-                if prox_mes.month == data_obj.month and prox_mes.year == data_obj.year:
+            elif controle_mes == prox_mes: #prox_mes
+                if data_prox_mes.month == data_obj.month and data_prox_mes.year == data_obj.year:
                     receitas_fornecidas += valor
 
-            elif controle_mes == 3: #seg_prox_mes
-                if seg_prox_mes.month == data_obj.month and seg_prox_mes.year == data_obj.year:
+            elif controle_mes == seg_prox_mes: #seg_prox_mes
+                if data_seg_prox_mes.month == data_obj.month and data_seg_prox_mes.year == data_obj.year:
                     receitas_fornecidas += valor
 
 

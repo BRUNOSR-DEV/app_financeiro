@@ -118,13 +118,18 @@ def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_me
     if total_parcelas is None:
         assinatura = True
 
-    if controle_mes == 1:
+
+    mes_vigente = data_atual.month
+    prox_mes = (data_atual + relativedelta(months=1)).month
+    seg_prox_mes = (data_atual + relativedelta(months=2)).month
+
+    if controle_mes == mes_vigente:
         data_alvo = data_atual
 
-    elif controle_mes == 2:
+    elif controle_mes == prox_mes:
         data_alvo = data_atual + relativedelta(months=1)
 
-    elif controle_mes == 3:
+    elif controle_mes == seg_prox_mes:
         data_alvo = data_atual + relativedelta(months=2)
         
     """   # 1. Descobre o mês da PRIMEIRA cobrança
@@ -196,15 +201,21 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
 
     if total_parcelas is None:
         assinatura = True
-        
+    
+    mes_vigente = data_atual.month
+    prox_mes = (data_atual + relativedelta(months=1)).month
+    seg_prox_mes = (data_atual + relativedelta(months=2)).month
+
+    data_alvo = None
+
     # Define qual é a FATURA ALVO (Mês Atual ou Próximo Mês)
-    if controle_mes == 1:
+    if controle_mes == mes_vigente:
         data_alvo = data_atual
 
-    elif controle_mes == 2:
+    elif controle_mes == prox_mes:
         data_alvo = data_atual + relativedelta(months=1)
         
-    elif controle_mes == 3:
+    elif controle_mes == seg_prox_mes:
         data_alvo = data_atual + relativedelta(months=2)
         
     
