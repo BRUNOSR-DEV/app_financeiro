@@ -336,7 +336,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
             self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
         else:
-            self.botao_salvar = ctk.CTkButton(self, text="Simular despesa", command=lambda: self.salvar_dados(simulacao=True))
+            self.botao_salvar = ctk.CTkButton(self, text="Simular despesa", command=lambda: self.salvar_dados(simulacao=True, dados_select=self.dados_select))
             self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
 
         #status label - campo informativo
@@ -348,7 +348,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
         pass
 
 
-    def salvar_dados(self, id_desp=None, atualizar=None, simulacao=False):
+    def salvar_dados(self, id_desp=None, atualizar=None, simulacao=False, dados_select=None):
         """ Verifica e salva os dados no BD """
 
         dia_venc = None
@@ -449,11 +449,10 @@ class Cadastrar_despesas(ctk.CTkFrame):
                 "prim_data_pag": self.prim_dc_select,
                 "cartao": car_cred,
             }  
-
-            print(dict_dados)
+            dados_select.append(dict_dados)
 
             if self.controle_dados:
-                self.controle_dados(dict_dados)
+                self.controle_dados(dados_select)
 
                 self.limpa_campos()
                 return

@@ -273,6 +273,9 @@ class Simulacao(ctk.CTkToplevel):
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
 
+        self.dados_select = []
+        self.met_pag = []
+
         # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Simulação de Despesas")
         centralizar_janela(self, 1600, 900)
@@ -309,7 +312,7 @@ class Simulacao(ctk.CTkToplevel):
         self.main_section.grid_rowconfigure(0, weight=1)
 
         # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_despesas(self.main_section, self.id_user, self.dados_cartoes, simulacao=True, controle_dados=self.controle_dados)
+        self.frame_cadastro = Cadastrar_despesas(self.main_section, self.id_user, self.dados_cartoes, simulacao=True, dados_select= self.dados_select, controle_dados=self.controle_dados)
 
         self.frame_cadastro.grid(row=0, column=0, padx=10, pady=20, sticky="ns")
 
@@ -334,13 +337,16 @@ class Simulacao(ctk.CTkToplevel):
         if dados:
             pacote_dados = [dados, ]
             dados_card = None
-            controle_mes = None
+            controle_mes = (datetime.now().date()).month #mês vigênte
 
-            cartao = dados.get('cartao')
-            data_compra = dados.get('data_compra')
-            data_pp = dados.get('data_prim_pag)')
 
-            if cartao and cartao != "Cartão de Cobrança - Sem Cartão" and cartao != "Cadastre Seus Cartões Na Área Destinada":
+            for dado in dados:
+
+                cartao = dado.get('cartao')
+                data_compra = dado.get('data_compra')
+                data_pp = dado.get('prim_data_pag')
+
+                if cartao and cartao != "Cartão de Cobrança - Sem Cartão" and cartao != "Cadastre Seus Cartões Na Área Destinada":
                     
                     for card in self.dados_cartoes:
 
@@ -361,17 +367,23 @@ class Simulacao(ctk.CTkToplevel):
                                 'fechamento': fech,
                                 'vencimento': venc,
                             }
+                            self.met_pag.append(dados_card)
                             break
 
 
-                    pacote_dados.append(dados_card)
+                    pacote_dados.append(self.met_pag)
   
             else: #Despesa avulsa
                 controle_mes = data_pp.month
-                pacote_dados.append(None)
+                self.met_pag.append(None)
 
 
             self.tabela_frame.renderizar(controle_mes=controle_mes, dados_simulacao=pacote_dados)
+
+            self.dados_select = dados
+
+            self.met_pag = self.met_pag
+
         else:
             print('ERRO: Forms não envio os dados esperados!')
         
