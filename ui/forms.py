@@ -253,7 +253,7 @@ class Cadastrar_receitas(ctk.CTkFrame):
 #Filho de Despesas e Simulacao (crud_app.py)
 class Cadastrar_despesas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, atualizar_lista=None, simulacao=None, controle_dados=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, atualizar_lista=None, simulacao=None, dados_select=None, controle_dados=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
@@ -261,6 +261,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
         self.trocar_mes = trocar_mes
         self.atualizar_lista = atualizar_lista
 
+        self.dados_select = dados_select
         self.simulacao = simulacao #boolean passado por mãe Simulacao
         self.controle_dados = controle_dados #métoddo callback de mãe Simulacao (crud_app.py)
 

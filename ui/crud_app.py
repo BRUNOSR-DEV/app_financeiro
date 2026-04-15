@@ -274,7 +274,6 @@ class Simulacao(ctk.CTkToplevel):
         self.data_atual = datetime.now().date()
 
         self.dados_select = []
-        self.met_pag = []
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Simulação de Despesas")
@@ -334,57 +333,47 @@ class Simulacao(ctk.CTkToplevel):
 
     def controle_dados(self, dados):
 
-        if dados:
-            pacote_dados = [dados, ]
-            dados_card = None
-            controle_mes = (datetime.now().date()).month #mês vigênte
+        if not dados:
+            print('ERRO: Forms não enviou os dados!')
+            return
+
+            
+        controle_mes = (datetime.now().date()).month #mês vigênte
 
 
-            for dado in dados:
+        for dado in dados:
 
-                cartao = dado.get('cartao')
-                data_compra = dado.get('data_compra')
-                data_pp = dado.get('prim_data_pag')
+            cartao = dado.get('cartao')
+            
+            dado['info_cartao'] = None    
 
-                if cartao and cartao != "Cartão de Cobrança - Sem Cartão" and cartao != "Cadastre Seus Cartões Na Área Destinada":
+            if cartao and cartao != "Cartão de Cobrança - Sem Cartão" and cartao != "Cadastre Seus Cartões Na Área Destinada":
                     
-                    for card in self.dados_cartoes:
-
-                        nome_card = card.get('nome_cartao')
-
-                        if nome_card == cartao:
+                for card in self.dados_cartoes:
+                        
+                        if card.get('nome_cartao') == cartao:
                             id_card = card.get('id_cartao')
                             fech = card.get('fechamento_fatura')
                             venc = card.get('vencimento_fatura')
-
+                            
+                            data_compra = dado.get('data_compra')
                             if data_compra.day >= fech:
                                 controle_mes = (data_compra + relativedelta(months=1)).month
 
-
-                            dados_card = {
+                            dado['info_cartao'] = {
                                 'id_cartao': id_card,
                                 'nome_cartao': cartao,
                                 'fechamento': fech,
                                 'vencimento': venc,
                             }
-                            self.met_pag.append(dados_card)
                             break
-
-
-                    pacote_dados.append(self.met_pag)
   
             else: #Despesa avulsa
+                data_pp = dado.get('prim_data_pag')
                 controle_mes = data_pp.month
-                self.met_pag.append(None)
 
 
-            self.tabela_frame.renderizar(controle_mes=controle_mes, dados_simulacao=pacote_dados)
+            self.tabela_frame.renderizar(controle_mes=controle_mes, dados_simulacao=dados)
 
-            self.dados_select = dados
-
-            self.met_pag = self.met_pag
-
-        else:
-            print('ERRO: Forms não envio os dados esperados!')
         
 
