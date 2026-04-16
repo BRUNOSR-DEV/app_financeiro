@@ -354,6 +354,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
 
         dia_venc = None
         verifica_pri_dc = False
+        id_card = None
 
         local = self.local.get().strip()
         valor_total = self.valor_total.get().strip()
@@ -397,7 +398,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
             return
         
         tem_cartao = car_cred != "Cartão de Cobrança - Sem Cartão" or car_cred != "Cadastre Seus Cartões Na Área Destinada"
-        
+
         if not tem_cartao and not verifica_pri_dc:
             # Se não tem cartão E não tem dia de vencimento, falha!
             self.status_label.configure(text='Informe um Cartão OU Data do primeiro pagamento', text_color='red')
@@ -405,21 +406,16 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.after(3000, lambda: self.status_label.configure(text=''))
             return 
 
-        id_card = None
-        
         if tem_cartao:
-            mes_vencimento = None
             for dado in self.dados_cartoes:
                 if dado.get('nome_cartao') == car_cred:
                     id_card = dado.get('id_cartao')
                     dia_fechamento = dado.get('fechamento_fatura')
             
-            if self.dc_select.day >= dia_fechamento:
-                mes_vencimento = (self.dc_select + relativedelta(months=1)).month
-            else:
-                mes_vencimento = self.dc_select.month
+                    if self.dc_select.day >= dia_fechamento:
+                        controle_mes = (self.dc_select + relativedelta(months=1)).month
         else:
-            mes_vencimento = self.prim_dc_select.month
+            controle_mes = self.prim_dc_select.month
 
 
         verifica = tem_cartao is True and verifica_pri_dc is True
@@ -449,6 +445,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
                 "data_compra": self.dc_select,
                 "prim_data_pag": self.prim_dc_select,
                 "cartao": car_cred,
+                "info_cartao": None,
             }  
             dados_select.append(dict_dados)
 
@@ -480,7 +477,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.update_idletasks()
 
             if self.trocar_mes:
-                self.trocar_mes(gerar_opcoes_meses().get(mes_vencimento))
+                self.trocar_mes(gerar_opcoes_meses().get(controle_mes))
 
             self.controla_campos(None)
 

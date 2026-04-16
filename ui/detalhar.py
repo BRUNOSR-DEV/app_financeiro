@@ -698,8 +698,8 @@ class Listar_desp_tabela(ctk.CTkFrame):
                 if dados_simulacao:
                     
                     for _, dado in enumerate(dados_simulacao):
+                        
                         info_card = dado['info_cartao']
-
 
                         if isinstance(info_card, dict):  #if type(met_pag) is dict: 
 

@@ -1,6 +1,10 @@
 
 from utils.helper import(
-    centralizar_janela
+    centralizar_janela,gerar_opcoes_meses
+)
+
+from utils.audio_helper import(
+    tocar_notificacao
 )
 from ui.forms import(
     Cadastrar_receitas, Cadastrar_despesas, Cadastrar_car_cred, Cadastrar_assinaturas
@@ -333,19 +337,21 @@ class Simulacao(ctk.CTkToplevel):
 
     def controle_dados(self, dados):
 
-        if not dados:
-            print('ERRO: Forms não enviou os dados!')
-            return
+        if dados:
+            tocar_notificacao('dv_sucesso', True)
 
+        else:
+            print('ERRO: Forms não enviou os dados!')
+            tocar_notificacao('dv_erro', True)
+            return
             
         controle_mes = (datetime.now().date()).month #mês vigênte
-
 
         for dado in dados:
 
             cartao = dado.get('cartao')
             
-            dado['info_cartao'] = None    
+            #dado['info_cartao'] = None    
 
             if cartao and cartao != "Cartão de Cobrança - Sem Cartão" and cartao != "Cadastre Seus Cartões Na Área Destinada":
                     
@@ -366,14 +372,16 @@ class Simulacao(ctk.CTkToplevel):
                                 'fechamento': fech,
                                 'vencimento': venc,
                             }
-                            break
+                            break 
   
             else: #Despesa avulsa
                 data_pp = dado.get('prim_data_pag')
                 controle_mes = data_pp.month
+            
+            str_mes = gerar_opcoes_meses()[controle_mes]
 
 
-            self.tabela_frame.renderizar(controle_mes=controle_mes, dados_simulacao=dados)
+            self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=str_mes, dados_simulacao=dados)
 
         
 
