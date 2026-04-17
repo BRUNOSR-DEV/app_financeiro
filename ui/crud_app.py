@@ -255,10 +255,14 @@ class Faturas(ctk.CTkToplevel):
         self.grid_columnconfigure(1, weight=1) 
         self.grid_rowconfigure(0, weight=1)
 
+        self.label_titulo = ctk.CTkLabel(self, text=f"Fatura: {nome_card}", font=("Arial", 22, "bold"))
+        self.label_titulo.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
 
         #-------------- FRAME Tabelas --------------------------
-        self.frame_tabelas = Listar_faturas_cartao(self, self.id_user, self.id_card, self.nome_card, callback=self.calback)
-        self.frame_tabelas.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+        self.frame_tabela = Listar_faturas_cartao(self, self.id_user, self.id_card, self.nome_card, callback=self.calback)
+        self.frame_tabela.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+
+        #self.frame_tabela.tabela_cartao()
     
 
 
@@ -309,29 +313,27 @@ class Simulacao(ctk.CTkToplevel):
         self.main_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
         self.main_section.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
-        self.main_section.grid_columnconfigure(0, weight=2) #formulário
-        self.main_section.grid_columnconfigure(1, weight=5) #tabela
-        self.main_section.grid_columnconfigure(2, weight=1) #gráfico
+        self.main_section.grid_columnconfigure(0, weight=1) #formulário
+        self.main_section.grid_columnconfigure(1, weight=3) #tabela
+        self.main_section.grid_columnconfigure(2, weight=3) #tab_fatura
         self.main_section.grid_rowconfigure(0, weight=1)
 
         # ---------------- formulário de cadastro -----------------------
         self.frame_cadastro = Cadastrar_despesas(self.main_section, self.id_user, self.dados_cartoes, simulacao=True, dados_select= self.dados_select, controle_dados=self.controle_dados)
 
-        self.frame_cadastro.grid(row=0, column=0, padx=10, pady=20, sticky="ns")
+        self.frame_cadastro.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 
         # ------------------- FRAME TABELA -----------------------------
         self.tabela_frame = Listar_desp_tabela(parent=self.main_section, id_user=self.id_user, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes)
 
-        self.tabela_frame.grid(row=0, column=1, padx=10, pady=20, sticky="nsew") 
+        self.tabela_frame.grid(row=0, column=1, padx=5, pady=5, sticky="nsew") 
 
         self.tabela_frame.renderizar()
 
-        # -------------------- FRAME GRÁFICO ------------------------------
-        self.frame_grafico = Listar_cat_grafico(parent=self.main_section, id_user=self.id_user, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes )
+        # -------------------- FRAME TABELA DO CARTÃO DE CRÉDITO  ------------------------------
+        self.frame_tab_fatura = Listar_faturas_cartao(parent=self.main_section, id_user=self.id_user)
 
-        self.frame_grafico.grid(row=0, column=2, padx=20, pady=20, sticky="nsew")
-
-        self.frame_grafico.renderizar()
+        self.frame_tab_fatura.grid(row=0, column=2, padx=5, pady=5, sticky="nsew")
 
 
 
@@ -352,8 +354,9 @@ class Simulacao(ctk.CTkToplevel):
             cartao = dado.get('cartao')
             
             #dado['info_cartao'] = None    
+            tem_cartao = cartao and cartao != "Cartão de Cobrança - Sem Cartão" and cartao != "Cadastre Seus Cartões Na Área Destinada"
 
-            if cartao and cartao != "Cartão de Cobrança - Sem Cartão" and cartao != "Cadastre Seus Cartões Na Área Destinada":
+            if tem_cartao:
                     
                 for card in self.dados_cartoes:
                         
@@ -383,5 +386,10 @@ class Simulacao(ctk.CTkToplevel):
 
             self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=str_mes, dados_simulacao=dados)
 
+            if tem_cartao:
+                escolha = f"{str_mes}/{datetime.now().year} - Cartão: {cartao}"
+                self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
+
         
+
 

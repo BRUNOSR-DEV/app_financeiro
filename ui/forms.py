@@ -275,47 +275,52 @@ class Cadastrar_despesas(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
+        self.frame_cadastro = ctk.CTkFrame(self)
+        self.frame_cadastro.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
-        ctk.CTkLabel(self, text="Cadastre Suas Despesas", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=(20,15))
+        self.frame_cadastro.grid_columnconfigure(0, weight=1)
+        self.frame_cadastro.grid_rowconfigure(0, weight=1)
+
+        ctk.CTkLabel(self.frame_cadastro, text="Cadastre Suas Despesas", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=(20,15))
 
         # LOCAL DA COMPRA
-        self.local = ctk.CTkEntry(self, placeholder_text="Local da compra*")
+        self.local = ctk.CTkEntry(self.frame_cadastro, placeholder_text="Local da compra*")
         self.local.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
         # TOTAL DA COMPRA
-        self.valor_total = ctk.CTkEntry(self, placeholder_text="Valor total da compra*")
+        self.valor_total = ctk.CTkEntry(self.frame_cadastro, placeholder_text="Valor total da compra*")
         self.valor_total.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
         # PARCELAS
         parcelas_opcoes = [str(i) for i in range(1, 13)]
-        self.menu_parcelas = ctk.CTkOptionMenu(self, values=parcelas_opcoes)
+        self.menu_parcelas = ctk.CTkOptionMenu(self.frame_cadastro, values=parcelas_opcoes)
         self.menu_parcelas.grid(row=3, column=0, padx=20, pady=20, sticky="ew")
         self.menu_parcelas.set("N° Parcelas")
 
         # DESCRIÇÃO DA COMPRA
-        self.descricao = ctk.CTkEntry(self, placeholder_text="Descrição da Compra")
+        self.descricao = ctk.CTkEntry(self.frame_cadastro, placeholder_text="Descrição da Compra")
         self.descricao.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
 
         # CATEGORIA
         categorias = ['Essencial', 'Lazer', 'Hobby', 'Vestimenta/Acessórios', 'Evolução Pessoal', 'Saúde', 'Empréstimo', 'Reforma e Construção']
-        self.categoria = ctk.CTkOptionMenu(self, values=categorias)
+        self.categoria = ctk.CTkOptionMenu(self.frame_cadastro, values=categorias)
         self.categoria.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
         self.categoria.set("Categoria")
 
         # DATA DA COMPRA
-        self.label_data_compra = ctk.CTkLabel(self, text="Data da Compra:", font=ctk.CTkFont(size=16, weight="bold"))
+        self.label_data_compra = ctk.CTkLabel(self.frame_cadastro, text="Data da Compra:", font=ctk.CTkFont(size=16, weight="bold"))
         self.label_data_compra.grid(row=6, column=0)
 
-        self.campo_data_compra = DateEntry(self, width=12, background='darkblue',
+        self.campo_data_compra = DateEntry(self.frame_cadastro, width=12, background='darkblue',
                             foreground='white', borderwidth=2, year=2026, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
         self.campo_data_compra.grid(row=7, column=0, padx=10, pady=10)
 
         # data primeira parcela - se não for no cartão
-        self.label_primeira_dc = ctk.CTkLabel(self, text="Data do Primeiro Pagamento: \n(obs. Não preencher se a compra for no Cartão)", font=ctk.CTkFont(size=12, weight="bold"))
+        self.label_primeira_dc = ctk.CTkLabel(self.frame_cadastro, text="Data do Primeiro Pagamento: \n(obs. Não preencher se a compra for no Cartão)", font=ctk.CTkFont(size=12, weight="bold"))
         self.label_primeira_dc.grid(row=8, column=0)
 
-        self.campo_primeira_dc = DateEntry(self, width=12, background='darkblue',
+        self.campo_primeira_dc = DateEntry(self.frame_cadastro, width=12, background='darkblue',
                             foreground='white', borderwidth=2, day=1, month=1, year=2099, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
         self.campo_primeira_dc.grid(row=9, column=0, padx=10, pady=10)
@@ -324,29 +329,25 @@ class Cadastrar_despesas(ctk.CTkFrame):
         if self.nomes_cartoes:
             campo_cartoes = ["Cartão de Cobrança - Sem Cartão"] + self.nomes_cartoes
 
-            self.car_cred = ctk.CTkOptionMenu(self, values=campo_cartoes)
+            self.car_cred = ctk.CTkOptionMenu(self.frame_cadastro, values=campo_cartoes)
             self.car_cred.grid(row=10, column=0, padx=20, pady=10, sticky="ew")
             self.car_cred.set("Cartão de Cobrança")
         else:
-            self.car_cred = ctk.CTkOptionMenu(self, values=[' ', ' ',])
+            self.car_cred = ctk.CTkOptionMenu(self.frame_cadastro, values=[' ', ' ',])
             self.car_cred.grid(row=10, column=0, padx=20, pady=10, sticky="ew")
             self.car_cred.set("Cadastre Seus Cartões Na Área Destinada")
 
         #bortão salvar / atualizar e simular
         if not self.simulacao:
-            self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
+            self.botao_salvar = ctk.CTkButton(self.frame_cadastro, text="Salvar Dados", command=self.salvar_dados)
             self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
         else:
-            self.botao_salvar = ctk.CTkButton(self, text="Simular despesa", command=lambda: self.salvar_dados(simulacao=True, dados_select=self.dados_select))
+            self.botao_salvar = ctk.CTkButton(self.frame_cadastro, text="Simular despesa", command=lambda: self.salvar_dados(simulacao=True, dados_select=self.dados_select))
             self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
 
         #status label - campo informativo
-        self.status_label = ctk.CTkLabel(self, text="", text_color="red")
+        self.status_label = ctk.CTkLabel(self.frame_cadastro, text="", text_color="red")
         self.status_label.grid(row=12, column=0, pady=5)
-
-
-    def simular(self):
-        pass
 
 
     def salvar_dados(self, id_desp=None, atualizar=None, simulacao=False, dados_select=None):
@@ -381,7 +382,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
 
         if not local or not valor_total or categoria == "Categoria" or menu_parcelas_str == "N° Parcelas":
 
-            self.status_label.configure(text='Preencha Local, Valor Total, Categoria , N° Parcelas e Data da compra', text_color='red')
+            self.status_label.configure(text='Preencha Local, Valor Total, Categoria,\n N° Parcelas e Data da compra', text_color='red')
             tocar_notificacao('erro')
             self.after(3000, lambda: self.status_label.configure(text=''))
             return
@@ -391,7 +392,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
              # Tenta converter o valor para float
             valor_total = float(valor_total.replace(",", "."))
         except ValueError:
-            self.status_label.configure(text='Valor Total ou Parcelas devem ser números válidos!', text_color='red')
+            self.status_label.configure(text='Valor Total ou Parcelas devem ser \nnúmeros válidos!', text_color='red')
             tocar_notificacao('erro')
 
             self.after(3000, lambda: self.status_label.configure(text=''))
@@ -401,7 +402,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
 
         if not tem_cartao and not verifica_pri_dc:
             # Se não tem cartão E não tem dia de vencimento, falha!
-            self.status_label.configure(text='Informe um Cartão OU Data do primeiro pagamento', text_color='red')
+            self.status_label.configure(text='Informe um Cartão OU Data do \nprimeiro pagamento', text_color='red')
             tocar_notificacao('erro')
             self.after(3000, lambda: self.status_label.configure(text=''))
             return 
@@ -428,7 +429,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
             prim_dc_select_mysql = None
             dia_venc = None
 
-            self.status_label.configure(text='Como foi informado um Cartão, a Data primeiro pagamento será desconsiderada', text_color='blue')
+            self.status_label.configure(text='Como foi informado um Cartão, a Data \nprimeiro pagamento será desconsiderada', text_color='blue')
             self.update_idletasks()
             self.after(3000, lambda: self.status_label.configure(text=''))
 

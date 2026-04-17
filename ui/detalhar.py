@@ -609,7 +609,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
         self.prox_mes_str = opcoes.get(self.prox_mes)
         self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
 
-        self.grid_columnconfigure(0, weight=2)
+        self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
         # FRAME TABELA
@@ -717,7 +717,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                                 _, entra_na_fatura, controle_data = resultado
 
                                 if entra_na_fatura:
-                                    mensalidade_simulacao_card = Decimal(str(dado.get('valor_total'))) / parcelas_simulacao
+                                    mensalidade_simulacao_card += Decimal(str(dado.get('valor_total'))) / parcelas_simulacao
                         else:
                             continue
 
@@ -875,7 +875,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
 
             
             if escolha:
-                self.tabela_frame.configure(label_text=f"Pagamentos Detalhados: {escolha} / {self.data_atual.year}")
+                self.tabela_frame.configure(label_text=f"Pagamentos Detalhados: {escolha}")
 
 
             return tt_dividas
@@ -1032,7 +1032,7 @@ class Listar_cat_grafico(ctk.CTkFrame):
 #Filho de Módulo Faturas (crud_app.py)
 class Listar_faturas_cartao(ctk.CTkFrame):
     
-    def __init__(self, parent, id_user, id_card, nome_card, callback=None, *args, **kwargs):
+    def __init__(self, parent=None, id_user=None, id_card=None, nome_card=None, callback=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         # ---------------- Gerencimento de self ---------------------
@@ -1056,43 +1056,32 @@ class Listar_faturas_cartao(ctk.CTkFrame):
         
 
         # --------------- Configuração da Frames/'labels' -----------------------
+
         self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(1, weight=1) 
-
-    
-        self.label_titulo = ctk.CTkLabel(self, text=f"Fatura: {nome_card}", font=("Arial", 22, "bold"))
-        self.label_titulo.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
-        
-        self.main_content_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.main_content_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
-
-        self.main_content_frame.grid_columnconfigure(0, weight=1) # Tabela (Grande)
-        self.main_content_frame.grid_columnconfigure(1, weight=1) 
-        self.main_content_frame.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
         # mês vigente
-        self.tabela_frame = ctk.CTkScrollableFrame(
-        self.main_content_frame, 
-        label_text=f"Pagamentos Detalhados: {self.mes_atual_str} / {self.data_atual.year}"
+        self.tabela_frame = ctk.CTkScrollableFrame(self, label_text=f"Pagamentos Detalhados: {self.mes_atual_str} / {self.data_atual.year}"
         )
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        
-        # Aqui você vai criar os dois frames (Mês Vigente e Próximo)
-        # e chamar seu método de busca detalhada (aquele do INNER JOIN!)
-        self.tabela_vigente(id_user, id_card)
 
+        self.tabela_frame.grid_columnconfigure(0, weight=1)
+        self.tabela_frame.grid_rowconfigure(0, weight=1)
+        
+        self.tabela_cartao(id_user, id_card)
+
+        """
         #Próximo mês
         self.tabela_frame_prox = ctk.CTkScrollableFrame(self.main_content_frame, label_text=f"Pagamentos Detalhados: {self.prox_mes_str} / {self.data_atual.year}" )
         self.tabela_frame_prox.grid(row=0, column=1, padx=10, pady=10, sticky="nsew") # Coluna 1
         self.tabela_frame_prox.grid_columnconfigure(0, weight=1)
         self.tabela_frame_prox.grid_rowconfigure(0, weight=1)
 
-        self.tabela_prox(id_user, id_card)
+        self.tabela_prox(id_user, id_card)"""
 
 
     controle_mes = datetime.now().month
-    def tabela_vigente(self, id_user, id_card, controle_mes = controle_mes):
+    def tabela_cartao(self, id_user, id_card, escolha=None, controle_mes=controle_mes, dados_simulacao=None):
 
 
         for widget in self.tabela_frame.winfo_children():
@@ -1167,6 +1156,48 @@ class Listar_faturas_cartao(ctk.CTkFrame):
                     ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(controle_data)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
                     linha += 1
+
+
+            if dados_simulacao:
+                
+                for dado in dados_simulacao:
+
+                    info_card = dado['info_cartao']
+
+                    if isinstance(info_card, dict):
+
+                        local_simulacao = dado.get('local')
+                        data_compra_simulacao = dado.get('data_compra')
+                        parcelas_simulacao = int(dado.get('parcelas'))
+
+                        venc_card_simulacao = info_card['vencimento']
+                        fech_card_simulacao = info_card['fechamento']
+
+                        if venc_card_simulacao:
+
+                            resultado = controle_data_parc_cc(data_compra_simulacao, fech_card_simulacao, venc_card_simulacao, parcelas_simulacao, controle_mes= controle_mes)
+
+                            str_parcela, control_parc, data_vencimento = resultado
+
+                            if control_parc:
+                                mensalidade_simulacao_avulsa = Decimal(str(dado['valor_total'])) / parcelas_simulacao
+
+                                ctk.CTkLabel(self.tabela_frame, text=local_simulacao, fg_color="#000000").grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+
+                                ctk.CTkLabel(self.tabela_frame, text=str_parcela, fg_color="#000000").grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+
+                                ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(mensalidade_simulacao_avulsa), justify=ctk.LEFT, text_color="green", fg_color="#000000").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+
+                                ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento), fg_color="#000000").grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+
+                                total_fatura += mensalidade_simulacao_avulsa
+
+                                linha += 1
+                        else:
+                            print('ERRO: Data do primeiro pagamento nula...')
+                    else:
+                        continue
+
             
             ctk.CTkLabel(
                 self.tabela_frame, 
@@ -1181,15 +1212,16 @@ class Listar_faturas_cartao(ctk.CTkFrame):
                 text_color="red" 
             ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
             
-
+        if escolha:
+            self.tabela_frame.configure(label_text=f"Pagamentos Detalhados: {escolha} / {self.data_atual.year}")
 
 
         self.tabela_frame.grid_columnconfigure(0, weight=2)
         self.tabela_frame.grid_columnconfigure((1, 2, 3), weight=1)
 
 
+"""
     controle_mes = (datetime.now().date() + relativedelta(months=1)).month
-
     def tabela_prox(self, id_user, id_card, controle_mes = controle_mes):
 
         for widget in self.tabela_frame_prox.winfo_children():
@@ -1282,6 +1314,6 @@ class Listar_faturas_cartao(ctk.CTkFrame):
             ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
 
         self.tabela_frame_prox.grid_columnconfigure(0, weight=2) 
-        self.tabela_frame_prox.grid_columnconfigure((1, 2, 3), weight=1)
+        self.tabela_frame_prox.grid_columnconfigure((1, 2, 3), weight=1)"""
 
 
