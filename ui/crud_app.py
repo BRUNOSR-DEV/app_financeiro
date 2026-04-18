@@ -1,6 +1,6 @@
 
 from utils.helper import(
-    centralizar_janela,gerar_opcoes_meses
+    centralizar_janela,gerar_opcoes_meses, formatar_moeda
 )
 
 from utils.audio_helper import(
@@ -269,19 +269,35 @@ class Faturas(ctk.CTkToplevel):
 #Módulo Simulação
 class Simulacao(ctk.CTkToplevel):
 
-    def __init__(self, parent, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, *args, **kwargs):
+    def __init__(self, parent, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_usuario=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
         self.despesas_avulsas = despesas_avulsas
         self.dados_cartoes = dados_cartoes
         self.assinaturas_avulsas = assinaturas_avulsas
-
+        self.dados_usuario = dados_usuario
 
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
+        self.mes_atual = self.data_atual.month
+        self.prox_mes =  (self.data_atual + relativedelta(months=1)).month
+        self.seg_prox_mes =  (self.data_atual + relativedelta(months=2)).month
+        self.ter_prox_mes =  (self.data_atual + relativedelta(months=3)).month
+        self.quart_prox_mes =  (self.data_atual + relativedelta(months=4)).month
+
+        opcoes = gerar_opcoes_meses()
+        self.mes_atual_str = opcoes.get(self.mes_atual)
+        self.prox_mes_str = opcoes.get(self.prox_mes)
+        self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
+        self.ter_prox_mes_str = opcoes.get(self.ter_prox_mes)
+        self.quart_prox_mes_str = opcoes.get(self.quart_prox_mes)
+
+        self.nomes_datas = [self.mes_atual_str, self.prox_mes_str, self.seg_prox_mes_str, self.ter_prox_mes_str, self.quart_prox_mes_str]
 
         self.dados_select = []
+
+        self.valor_renda = self.dados_usuario.get('sal_fixo', 0.0) 
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Simulação de Despesas")
@@ -303,10 +319,30 @@ class Simulacao(ctk.CTkToplevel):
 
         # ----------------- Top section ---------------------------------
         self.top_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
-        self.top_section.grid(row=0, column=0, padx=(0, 10), pady=10, sticky="ew")
+        self.top_section.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         
         self.top_section.grid_columnconfigure(0, weight=1) # Bem-vindo
-        self.top_section.grid_rowconfigure(0, weight=1) 
+        self.top_section.grid_rowconfigure(0, weight=1)
+
+                        # ------------ Apresentação ------------------
+        texto = f"Simulação: Usuário - {self.dados_usuario.get('nome_completo')}!"
+        self.nomeusuario_label = ctk.CTkLabel(self.top_section, text=texto, font=ctk.CTkFont(size=18, weight="bold"))
+        self.nomeusuario_label.grid(row=0, column=0, padx=5, pady=(0, 10), sticky="w")
+
+                            # --- DISPLAY DE RENDA FIXA ---
+        self.frame_renda = ctk.CTkFrame(self.top_section, fg_color="transparent", width=150, height=100, corner_radius=15, border_width=3)
+        self.frame_renda.grid(row=0, column=1, padx=10, pady=(0, 10), sticky="w") # Fica do lado do nome
+        
+        self.label_renda = ctk.CTkLabel(self.frame_renda, text=f"Renda Fixa: {formatar_moeda(self.valor_renda)}", text_color="#27ae60", font=ctk.CTkFont(size=18,weight="bold"))
+        self.label_renda.pack(side="left", padx=(0, 10))
+
+                            # -------- Botões de funções ------------
+        
+        self.label_mes = ctk.CTkLabel(self.top_section, text=f"Mês: ", font=ctk.CTkFont(size=16, weight="bold"))
+        self.label_mes.grid(row=0, column=3, padx=10, pady=10, sticky="w")
+
+        self.menu_mes = ctk.CTkOptionMenu(self.top_section, values=self.nomes_datas, command=self.trocar_mes, fg_color="#676666")
+        self.menu_mes.grid(row=0, column=4, padx=10, pady=5, sticky="w")
         
 
         # --------------- Main section ----------------------------------
@@ -314,7 +350,7 @@ class Simulacao(ctk.CTkToplevel):
         self.main_section.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
         self.main_section.grid_columnconfigure(0, weight=1) #formulário
-        self.main_section.grid_columnconfigure(1, weight=3) #tabela
+        self.main_section.grid_columnconfigure(1, weight=4) #tabela
         self.main_section.grid_columnconfigure(2, weight=3) #tab_fatura
         self.main_section.grid_rowconfigure(0, weight=1)
 
@@ -337,7 +373,7 @@ class Simulacao(ctk.CTkToplevel):
 
 
 
-    def controle_dados(self, dados):
+    def controle_dados(self, dados=None):
 
         if dados:
             tocar_notificacao('dv_sucesso', True)
@@ -389,6 +425,43 @@ class Simulacao(ctk.CTkToplevel):
             if tem_cartao:
                 escolha = f"{str_mes}/{datetime.now().year} - Cartão: {cartao}"
                 self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
+            
+
+
+    def trocar_mes(self, escolha):
+
+        tocar_notificacao('open_w', True)
+
+        dados = self.dados_select
+        
+        if self.mes_atual_str == escolha:
+            controle_mes = self.mes_atual
+
+            self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
+
+        elif self.prox_mes_str == escolha:
+            controle_mes = self.prox_mes
+
+            self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
+
+        elif self.seg_prox_mes_str == escolha:
+            controle_mes = self.seg_prox_mes
+  
+            self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
+
+        elif self.ter_prox_mes_str == escolha:
+            controle_mes = self.ter_prox_mes
+     
+            self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
+
+        elif self.quart_prox_mes_str == escolha:
+            controle_mes = self.quart_prox_mes
+  
+            self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
+        
+        else:
+            controle_mes = self.mes_atual
+            self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
 
         
 

@@ -67,24 +67,23 @@ class Main_app(ctk.CTk):
         self.mes_atual = self.data_atual.month
         self.prox_mes =  (self.data_atual + relativedelta(months=1)).month
         self.seg_prox_mes =  (self.data_atual + relativedelta(months=2)).month
+        self.ter_prox_mes =  (self.data_atual + relativedelta(months=3)).month
+        self.quart_prox_mes =  (self.data_atual + relativedelta(months=4)).month
 
         opcoes = gerar_opcoes_meses()
-        self.nomes_datas = [
-            opcoes.get(self.mes_atual, 'Mês inválido'),
-            opcoes.get(self.prox_mes, 'Mês inválido'),
-            opcoes.get(self.seg_prox_mes, 'Mês inválido'),
-        ]
         self.mes_atual_str = opcoes.get(self.mes_atual)
         self.prox_mes_str = opcoes.get(self.prox_mes)
         self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
+        self.ter_prox_mes_str = opcoes.get(self.ter_prox_mes)
+        self.quart_prox_mes_str = opcoes.get(self.quart_prox_mes)
+
+        self.nomes_datas = [self.mes_atual_str, self.prox_mes_str, self.seg_prox_mes_str, self.ter_prox_mes_str, self.quart_prox_mes_str]
 
         self.dados_cartoes = dados_card(self.user_id)
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
 
         self.despesas_avulsas = pega_despesas(self.user_id)
         self.assinaturas_avulsas = dados_assinaturas_avulsas(self.user_id)
-
-
 
     def montar_dashboard(self):
         """ Função exclusiva para desenhar a interface. """
@@ -105,7 +104,7 @@ class Main_app(ctk.CTk):
         
         self.top_section_frame.grid_columnconfigure(0, weight=0) # Bem-vindo
         self.top_section_frame.grid_columnconfigure(1, weight=1) # Renda Fixa (EXPANDE e empurra o resto pra direita)
-        self.top_section_frame.grid_columnconfigure((2, 3, 4, 5,6), weight=0) # Outros botões fixos
+        self.top_section_frame.grid_columnconfigure((2, 3, 4, 5, 6), weight=0) # Outros botões fixos
 
         texto_boas_vindas = f"Bem-vindo, {self.dados_usuario.get('nome_completo')}!" if self.usuario_logado else "Bem-vindo!"
         self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame, text=texto_boas_vindas, font=ctk.CTkFont(size=18, weight="bold"))
@@ -123,7 +122,6 @@ class Main_app(ctk.CTk):
         # --- END Renda fixa -----
         
         # ----- Top section botões func ---------
-
         self.btn_simulacao = ctk.CTkButton(self.top_section_frame, text='Simulação', command=self.abrir_simulacao, fg_color="#F87979", hover_color="#823737")
         self.btn_simulacao.grid(row=0, column=2, padx=10, pady=10, sticky="ew")
 
@@ -139,6 +137,7 @@ class Main_app(ctk.CTk):
         self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, fg_color="#840000", hover_color="#350100")
         self.botao_sair.grid(row=0, column=6, padx=(30, 0), sticky="ew") 
         # ----END Secton botões func ---------
+
         
         # ---- FRAME DE BOTÕES DE CADASTRO ----
         self.cadastro_frame = ctk.CTkFrame(self.top_section_frame, fg_color="transparent")
@@ -214,25 +213,37 @@ class Main_app(ctk.CTk):
         tocar_notificacao('open_w', True)
         
         if self.mes_atual_str == escolha:
-            controle_mes = self.data_atual.month
+            controle_mes = self.mes_atual
 
             ttf_mes = self.frame_tabela.renderizar(escolha=escolha)
             self.frame_grafico.renderizar()
 
         elif self.prox_mes_str == escolha:
-            controle_mes = (self.data_atual + relativedelta(months=1)).month
+            controle_mes = self.prox_mes
 
             ttf_mes = self.frame_tabela.renderizar(controle_mes, escolha=escolha)
             self.frame_grafico.renderizar(controle_mes)
 
         elif self.seg_prox_mes_str == escolha:
-            controle_mes = (self.data_atual + relativedelta(months=2)).month
+            controle_mes = self.seg_prox_mes
 
             ttf_mes = self.frame_tabela.renderizar(controle_mes, escolha=escolha)
             self.frame_grafico.renderizar(controle_mes)
-            
+
+        elif self.ter_prox_mes_str == escolha:
+            controle_mes = self.ter_prox_mes
+
+            ttf_mes = self.frame_tabela.renderizar(controle_mes, escolha=escolha)
+            self.frame_grafico.renderizar(controle_mes)
+
+        elif self.quart_prox_mes_str == escolha:
+            controle_mes = self.quart_prox_mes
+
+            ttf_mes = self.frame_tabela.renderizar(controle_mes, escolha=escolha)
+            self.frame_grafico.renderizar(controle_mes)
+        
         else:
-            controle_mes = self.data_atual.month
+            controle_mes = self.mes_atual
             ttf_mes = self.frame_tabela.renderizar(escolha=escolha)
             self.frame_grafico.renderizar()
 
@@ -398,7 +409,7 @@ class Main_app(ctk.CTk):
     def abrir_simulacao(self):
 
         tocar_notificacao('open_w', True)
-        register_window = Simulacao(self, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes)
+        register_window = Simulacao(self, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_usuario=self.dados_usuario)
 
         self.wait_window(register_window) 
 

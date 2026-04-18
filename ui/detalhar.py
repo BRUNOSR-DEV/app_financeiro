@@ -875,7 +875,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
 
             
             if escolha:
-                self.tabela_frame.configure(label_text=f"Pagamentos Detalhados: {escolha}")
+                self.tabela_frame.configure(label_text=f"Detalhes do Cartão: {escolha}")
 
 
             return tt_dividas

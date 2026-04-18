@@ -122,6 +122,8 @@ def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_me
     mes_vigente = data_atual.month
     prox_mes = (data_atual + relativedelta(months=1)).month
     seg_prox_mes = (data_atual + relativedelta(months=2)).month
+    ter_prox_mes = (data_atual + relativedelta(months=3)).month
+    quart_prox_mes = (data_atual + relativedelta(months=4)).month
 
     if controle_mes == mes_vigente:
         data_alvo = data_atual
@@ -131,6 +133,12 @@ def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_me
 
     elif controle_mes == seg_prox_mes:
         data_alvo = data_atual + relativedelta(months=2)
+    
+    elif controle_mes == ter_prox_mes:
+        data_alvo = (data_atual + relativedelta(months=3))
+
+    elif controle_mes == quart_prox_mes:
+        data_alvo = (data_atual + relativedelta(months=4))
         
     """   # 1. Descobre o mês da PRIMEIRA cobrança
     mes_primeira_cobranca = data_compra_obj.month
@@ -206,6 +214,8 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
     mes_vigente = data_atual.month
     prox_mes = (data_atual + relativedelta(months=1)).month
     seg_prox_mes = (data_atual + relativedelta(months=2)).month
+    ter_prox_mes = (data_atual + relativedelta(months=3)).month
+    quart_prox_mes = (data_atual + relativedelta(months=4)).month
 
     data_alvo = None
     # Define qual é a FATURA ALVO (Mês Atual ou Próximo Mês)
@@ -217,6 +227,12 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
         
     elif controle_mes == seg_prox_mes:
         data_alvo = (data_atual + relativedelta(months=2))
+
+    elif controle_mes == ter_prox_mes:
+        data_alvo = (data_atual + relativedelta(months=3))
+
+    elif controle_mes == quart_prox_mes:
+        data_alvo = (data_atual + relativedelta(months=4))
         
     
     # Descobre a Fatura da PRIMEIRA cobrança (com base no fechamento)
