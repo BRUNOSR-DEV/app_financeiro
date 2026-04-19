@@ -281,7 +281,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
         self.frame_cadastro.grid_columnconfigure(0, weight=1)
         self.frame_cadastro.grid_rowconfigure(0, weight=1)
 
-        ctk.CTkLabel(self.frame_cadastro, text="Cadastre Suas Despesas", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=(20,15))
+        ctk.CTkLabel(self.frame_cadastro, text="Cadastre Suas Despesas", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=(5,10))
 
         # LOCAL DA COMPRA
         self.local = ctk.CTkEntry(self.frame_cadastro, placeholder_text="Local da compra*")
@@ -445,13 +445,13 @@ class Cadastrar_despesas(ctk.CTkFrame):
                 "categoria": categoria,
                 "data_compra": self.dc_select,
                 "prim_data_pag": self.prim_dc_select,
-                "cartao": car_cred,
+                "nome_cartao": car_cred,
                 "info_cartao": None,
             }  
             dados_select.append(dict_dados)
 
             if self.controle_dados:
-                self.controle_dados(dados_select)
+                self.controle_dados(dados=dados_select)
 
                 self.limpa_campos()
                 return

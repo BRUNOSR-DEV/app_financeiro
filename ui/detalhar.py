@@ -875,7 +875,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
 
             
             if escolha:
-                self.tabela_frame.configure(label_text=f"Detalhes do Cartão: {escolha}")
+                self.tabela_frame.configure(label_text=f"Detalhes do Despesas: {escolha}")
 
 
             return tt_dividas
@@ -1213,7 +1213,7 @@ class Listar_faturas_cartao(ctk.CTkFrame):
             ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
             
         if escolha:
-            self.tabela_frame.configure(label_text=f"Pagamentos Detalhados: {escolha} / {self.data_atual.year}")
+            self.tabela_frame.configure(label_text=f"Detalhes do Cartão: {escolha} / {self.data_atual.year}")
 
 
         self.tabela_frame.grid_columnconfigure(0, weight=2)
