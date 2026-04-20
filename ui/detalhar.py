@@ -1155,7 +1155,7 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
                     ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(controle_data)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
-                    linha += 1
+                    linha += 1 
 
 
             if dados_simulacao:

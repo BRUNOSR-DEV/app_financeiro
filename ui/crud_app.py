@@ -296,7 +296,6 @@ class Simulacao(ctk.CTkToplevel):
         self.nomes_datas = [self.mes_atual_str, self.prox_mes_str, self.seg_prox_mes_str, self.ter_prox_mes_str, self.quart_prox_mes_str]
 
         self.dados_select = []
-        self.salva_nome_id_card = tuple()
 
         self.valor_renda = self.dados_usuario.get('sal_fixo', 0.0) 
 
@@ -437,62 +436,56 @@ class Simulacao(ctk.CTkToplevel):
 
         tocar_notificacao('open_w', True)
 
-        dados = self.dados_select
-        id_card, nome_cartao = self.salva_nome_id_card
+        dados= None
+        if self.dados_select:
+            dados = self.dados_select
 
-        escolha_cc = f"{nome_cartao} - Mês: {escolha}"
-        
+
         if self.mes_atual_str == escolha:
             controle_mes = self.mes_atual
 
-            self.controle_dados(dados=dados, controle_mes=controle_mes)
-            #self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
-
-            #self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=controle_mes, escolha=escolha_cc, dados_simulacao=dados)
-
+            if not dados:
+                self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha)
+            else:
+                self.controle_dados(dados=dados, controle_mes=controle_mes)
+           
         elif self.prox_mes_str == escolha:
             controle_mes = self.prox_mes
 
-            self.controle_dados(dados=dados, controle_mes=controle_mes)
-
-            #self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
-
-            #self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=controle_mes, escolha=escolha_cc, dados_simulacao=dados)
+            if not dados:
+                self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha)
+            else:
+                self.controle_dados(dados=dados, controle_mes=controle_mes)
 
         elif self.seg_prox_mes_str == escolha:
             controle_mes = self.seg_prox_mes
 
-            self.controle_dados(dados=dados, controle_mes=controle_mes)
-
-            #self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
-
-            #self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=controle_mes, escolha=escolha_cc, dados_simulacao=dados)
+            if not dados:
+                self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha)
+            else:
+                self.controle_dados(dados=dados, controle_mes=controle_mes)
 
         elif self.ter_prox_mes_str == escolha:
             controle_mes = self.ter_prox_mes
 
-            self.controle_dados(dados=dados, controle_mes=controle_mes)
+            if not dados:
+                self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha)
+            else:
+                self.controle_dados(dados=dados, controle_mes=controle_mes)
      
-            #self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
-
-            #self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=controle_mes, escolha=escolha_cc, dados_simulacao=dados)
-
         elif self.quart_prox_mes_str == escolha:
             controle_mes = self.quart_prox_mes
-  
-            #self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
 
-            #self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=controle_mes, escolha=escolha_cc, dados_simulacao=dados)
-        
+            if not dados:
+                self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha)
+            else:
+                self.controle_dados(dados=dados, controle_mes=controle_mes)
+
         else:
             controle_mes = self.mes_atual
 
-
-
-            #self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
-
-            #self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=controle_mes, escolha=escolha_cc, dados_simulacao=dados)
-
-        
-
+            if not dados:
+                self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=escolha)
+            else:
+                self.controle_dados(dados=dados, controle_mes=controle_mes)
 
