@@ -7,6 +7,8 @@ from utils.helper import(
     gerar_opcoes_meses, data_para_mysql, mysql_para_obj
 )
 
+from utils.typedDict import(Despesa)
+
 from tkcalendar import DateEntry
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -437,7 +439,8 @@ class Cadastrar_despesas(ctk.CTkFrame):
         #----------------- simulação ---------------------------
         if simulacao:
 
-            dict_dados = {
+            
+            dict_dados: Despesa = {
                 "local": local,
                 "valor_total": valor_total,
                 "parcelas": menu_parcelas_str,

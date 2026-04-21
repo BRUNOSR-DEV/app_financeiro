@@ -10,6 +10,8 @@ from ui.forms import(
     Cadastrar_receitas, Cadastrar_despesas, Cadastrar_car_cred, Cadastrar_assinaturas
 )
 
+from utils.typedDict import(Despesa, Cartao)
+
 from ui.detalhar import(
     Listar_receitas, Listar_despesas, Listar_car_cred, Listar_assinaturas, Listar_faturas_cartao, Listar_cat_grafico, Listar_desp_tabela
 )   
@@ -406,12 +408,13 @@ class Simulacao(ctk.CTkToplevel):
                                 if data_compra.day >= fech:
                                     controle_mes = (data_compra + relativedelta(months=1)).month
 
-                            dado['info_cartao'] = {
+                            dados_card: Cartao = {
                                 'id_cartao': id_card,
                                 'nome_cartao': nome_cartao,
                                 'fechamento': fech,
-                                'vencimento': venc,
+                                'vencimento': venc
                             }
+                            dado['info_cartao'] = dados_card
                             break 
   
             else: #Despesa avulsa
