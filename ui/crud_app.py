@@ -426,7 +426,6 @@ class Simulacao(ctk.CTkToplevel):
             self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=str_mes, dados_simulacao=dados)
 
             if tem_cartao:
-                self.salva_nome_id_card = (id_card, nome_cartao)
                 escolha = f"{nome_cartao} - Mês: {str_mes}"
                 self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
             

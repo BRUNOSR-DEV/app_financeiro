@@ -1032,7 +1032,7 @@ class Listar_cat_grafico(ctk.CTkFrame):
 #Filho de Módulo Faturas (crud_app.py)
 class Listar_faturas_cartao(ctk.CTkFrame):
     
-    def __init__(self, parent=None, id_user=None, id_card=None, nome_card=None, callback=None, *args, **kwargs):
+    def __init__(self, parent=None, id_user=None, id_card=None, callback=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         # ---------------- Gerencimento de self ---------------------
@@ -1166,37 +1166,39 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
                     if isinstance(info_card, dict):
 
-                        local_simulacao = dado.get('local')
-                        data_compra_simulacao = dado.get('data_compra')
-                        parcelas_simulacao = int(dado.get('parcelas'))
+                        if info_card['id_cartao'] == id_card:
 
-                        venc_card_simulacao = info_card['vencimento']
-                        fech_card_simulacao = info_card['fechamento']
+                            local_simulacao = dado.get('local')
+                            data_compra_simulacao = dado.get('data_compra')
+                            parcelas_simulacao = int(dado.get('parcelas'))
 
-                        if venc_card_simulacao:
+                            venc_card_simulacao = info_card['vencimento']
+                            fech_card_simulacao = info_card['fechamento']
 
-                            resultado = controle_data_parc_cc(data_compra_simulacao, fech_card_simulacao, venc_card_simulacao, parcelas_simulacao, controle_mes= controle_mes)
+                            if venc_card_simulacao:
 
-                            str_parcela, control_parc, data_vencimento = resultado
+                                resultado = controle_data_parc_cc(data_compra_simulacao, fech_card_simulacao, venc_card_simulacao, parcelas_simulacao, controle_mes= controle_mes)
 
-                            if control_parc:
-                                mensalidade_simulacao_avulsa = Decimal(str(dado['valor_total'])) / parcelas_simulacao
+                                str_parcela, control_parc, data_vencimento = resultado
 
-                                ctk.CTkLabel(self.tabela_frame, text=local_simulacao, fg_color="#000000").grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                                if control_parc:
+                                    mensalidade_simulacao_avulsa = Decimal(str(dado['valor_total'])) / parcelas_simulacao
 
-                                ctk.CTkLabel(self.tabela_frame, text=str_parcela, fg_color="#000000").grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                                    ctk.CTkLabel(self.tabela_frame, text=local_simulacao, fg_color="#000000").grid(row=linha, column=0, padx=5, pady=2, sticky="w")
 
-                                ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(mensalidade_simulacao_avulsa), justify=ctk.LEFT, text_color="green", fg_color="#000000").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                                    ctk.CTkLabel(self.tabela_frame, text=str_parcela, fg_color="#000000").grid(row=linha, column=1, padx=3, pady=1, sticky="w")
 
-                                ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento), fg_color="#000000").grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+                                    ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(mensalidade_simulacao_avulsa), justify=ctk.LEFT, text_color="green", fg_color="#000000").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
 
-                                total_fatura += mensalidade_simulacao_avulsa
+                                    ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento), fg_color="#000000").grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
-                                linha += 1
+                                    total_fatura += mensalidade_simulacao_avulsa
+
+                                    linha += 1
+                            else:
+                                print('ERRO: Data do primeiro pagamento nula...')
                         else:
-                            print('ERRO: Data do primeiro pagamento nula...')
-                    else:
-                        continue
+                            continue
 
             
             ctk.CTkLabel(
