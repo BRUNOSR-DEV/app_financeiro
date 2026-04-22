@@ -7,6 +7,8 @@ from utils.helper import(
     gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, centralizar_janela, controle_data_parc,
 )
 
+from utils.typedDict import( Despesa, Cartao)
+
 from utils.audio_helper import tocar_notificacao 
 
 from dateutil.relativedelta import relativedelta
@@ -1162,13 +1164,15 @@ class Listar_faturas_cartao(ctk.CTkFrame):
                 
                 for dado in dados_simulacao:
 
+                    dado: Despesa
+                    
                     info_card = dado['info_cartao']
 
                     if isinstance(info_card, dict):
 
                         if info_card['id_cartao'] == id_card:
 
-                            local_simulacao = dado.get('local')
+                            local_simulacao = dado['local']
                             data_compra_simulacao = dado.get('data_compra')
                             parcelas_simulacao = int(dado.get('parcelas'))
 
