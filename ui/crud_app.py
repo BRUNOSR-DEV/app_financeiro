@@ -239,10 +239,9 @@ class Assinaturas(ctk.CTkToplevel):
 #Módulo Faturas
 class Faturas(ctk.CTkToplevel):
     
-    def __init__(self, parent, id_user=None, id_card=None, nome_card=None, callback=None, *args, **kwargs):
+    def __init__(self, parent, id_user=None, id_card=None, nome_card=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
-        self.calback = callback
         self.id_user = id_user
         self.id_card = id_card
         self.nome_card = nome_card
@@ -261,7 +260,7 @@ class Faturas(ctk.CTkToplevel):
         self.label_titulo.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
 
         #-------------- FRAME Tabelas --------------------------
-        self.frame_tabela = Listar_faturas_cartao(self, self.id_user, self.id_card, self.nome_card, callback=self.calback)
+        self.frame_tabela = Listar_faturas_cartao(self, self.id_user, self.id_card, self.nome_card)
         self.frame_tabela.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
 
         #self.frame_tabela.tabela_cartao()
@@ -393,7 +392,7 @@ class Simulacao(ctk.CTkToplevel):
 
             if self.len_dados_select < len(self.dados_select):
                 
-                self.len_dados_select = len(self.len_dados_select)
+                self.len_dados_select = len(self.dados_select)
                 trocar_card = None
 
         else:
@@ -439,7 +438,7 @@ class Simulacao(ctk.CTkToplevel):
                 if not controle_mes:
                     controle_mes = data_pp.month
             
-            str_mes = gerar_opcoes_meses()[controle_mes]
+            str_mes = gerar_opcoes_meses().get(controle_mes)
 
 
             self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=str_mes, dados_simulacao=dados)

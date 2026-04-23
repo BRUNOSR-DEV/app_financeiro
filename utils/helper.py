@@ -253,6 +253,7 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
 
     try:
         data_pagamento = data_alvo.replace(day=dia_vencimento)
+        
     except ValueError:
         # Prevenção de erro: Se o vencimento for dia 31 e o mês alvo for Fevereiro (28)
         ultimo_dia = calendar.monthrange(data_alvo.year, data_alvo.month)[1]

@@ -358,6 +358,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
         dia_venc = None
         verifica_pri_dc = False
         id_card = None
+        controle_mes = None
 
         local = self.local.get().strip()
         valor_total = self.valor_total.get().strip()

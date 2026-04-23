@@ -659,6 +659,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                 data_vencimento_fatura = None
 
                 if assin_card:
+
                     for ass in assin_card:
 
                         dia_f = ass.get('dia_fechamento_cc')
@@ -671,6 +672,8 @@ class Listar_desp_tabela(ctk.CTkFrame):
                         if entra_na_fatura:
                             valor = Decimal(str(ass.get('valor')))
                             total_deste_cartao += valor
+                else:
+                    continue
 
                 if despesas_do_cartao:
 
@@ -689,11 +692,10 @@ class Listar_desp_tabela(ctk.CTkFrame):
                             valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
                             total_deste_cartao += valor_mensal
                             data_vencimento_fatura = controle_data 
+                else:
+                    continue
 
-                        #"local","valor_total","parcelas","descricao","categoria","data_compra","prim_data_pag","cartao"
                 
-
-
                 #---------- simulação - Inserindo o valor na fatura do cartão informado ----------------------
                 mensalidade_simulacao_card  = Decimal('0.0')
 
@@ -724,7 +726,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                             continue
 
                 # Se o cartão tem fatura para pagar, guardamos na lista
-                if total_deste_cartao > Decimal('0.0'):
+                if total_deste_cartao > Decimal('0.0') or mensalidade_simulacao_card:
                     lista_faturas_resumo.append({
                         'local': f"Fatura - {nome_cartao}",
                         'valor': (total_deste_cartao + mensalidade_simulacao_card),
@@ -813,6 +815,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                 total_cards += fatura['valor']
 
                 linha += 1
+
 
 
             # -------------- SIMULAÇÃO - DESENHANDO LINHA AVULSA COM OS DADOS INFORMADOS NO FORMS -----------
@@ -1034,12 +1037,14 @@ class Listar_cat_grafico(ctk.CTkFrame):
 #Filho de Módulo Faturas (crud_app.py)
 class Listar_faturas_cartao(ctk.CTkFrame):
     
-    def __init__(self, parent=None, id_user=None, id_card=None, callback=None, *args, **kwargs):
+    def __init__(self, parent=None, id_user=None, id_card=None, nome_card=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
+        self.id_user = id_user
+        self.id_card = id_card
+        self.nome_card = nome_card
         # ---------------- Gerencimento de self ---------------------
-        self.calback = callback
-        
+
         self.data_atual = datetime.now().date()
         self.mes_atual = self.data_atual.month
         self.prox_mes =  (self.data_atual + relativedelta(months=1)).month
@@ -1098,7 +1103,7 @@ class Listar_faturas_cartao(ctk.CTkFrame):
         total_assin = Decimal('0.0')
 
 
-        if dados_desp_card or assin:
+        if dados_desp_card or assin or dados_simulacao:
 
                         # Cabeçalho
             ctk.CTkLabel(self.tabela_frame, text="Local.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
@@ -1108,56 +1113,59 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
             linha = 1
 
-            for ass in assin:
+            if assin:
+                for ass in assin:
 
-                data_aquisicao = ass.get('data_aquisicao')
-                nome = ass.get('nome')
-                valor = ass.get('valor')
-                dia_f = ass.get('dia_fechamento_cc')
-                dia_v = ass.get('dia_vencimento_cc')
+                    data_aquisicao = ass.get('data_aquisicao')
+                    nome = ass.get('nome')
+                    valor = ass.get('valor')
+                    dia_f = ass.get('dia_fechamento_cc')
+                    dia_v = ass.get('dia_vencimento_cc')
 
-                resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes = controle_mes )
-                str_sit, entra_no_mes, data_vencimento = resultado
+                    resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes = controle_mes )
+                    str_sit, entra_no_mes, data_vencimento = resultado
 
-                if entra_no_mes:
+                    if entra_no_mes:
 
-                    total_assin += Decimal(str(valor))
+                        total_assin += Decimal(str(valor))
 
-                    ctk.CTkLabel(self.tabela_frame, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
-                    ctk.CTkLabel(self.tabela_frame, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
-                    ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
-                    ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                        ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
 
-                    linha += 1
+                        linha += 1
 
-            for _, dado  in enumerate(dados_desp_card):
+            if dados_desp_card:
+
+                for _, dado  in enumerate(dados_desp_card):
                 
-                data_compra = mysql_para_obj(dado.get('data_compra'))
-                fecha_fatura = dado.get('fechamento_fatura')
-                dia_venc = dado.get('vencimento_fatura')
-                parcelas = dado.get('parcelas')
+                    data_compra = mysql_para_obj(dado.get('data_compra'))
+                    fecha_fatura = dado.get('fechamento_fatura')
+                    dia_venc = dado.get('vencimento_fatura')
+                    parcelas = dado.get('parcelas')
 
 
-                resultado = controle_data_parc_cc(data_compra, fecha_fatura ,dia_venc, parcelas, controle_mes=controle_mes)
+                    resultado = controle_data_parc_cc(data_compra, fecha_fatura ,dia_venc, parcelas, controle_mes=controle_mes)
 
-                str_parc, control_parc, controle_data = resultado
+                    str_parc, control_parc, controle_data = resultado
 
 
-                if control_parc:
+                    if control_parc:
                     
-                    valor_mensal = Decimal(str(dado.get('valor_total'))) / dado.get('parcelas')
-                    total_fatura += valor_mensal
+                        valor_mensal = Decimal(str(dado.get('valor_total'))) / dado.get('parcelas')
+                        total_fatura += valor_mensal
 
-                    ctk.CTkLabel(self.tabela_frame, text=dado.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=dado.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
 
-                    ctk.CTkLabel(self.tabela_frame, text=str_parc).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=str_parc).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
 
-                    ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor_mensal),justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                        ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor_mensal),justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
 
-                    ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(controle_data)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(controle_data)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
-                    linha += 1 
+                        linha += 1 
 
 
             if dados_simulacao:

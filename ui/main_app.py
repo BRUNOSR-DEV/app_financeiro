@@ -373,7 +373,7 @@ class Main_app(ctk.CTk):
         if id_card:
             tocar_notificacao('open_w', True)
 
-            register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado, callback=self.trocar_mes)
+            register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado)
 
             self.wait_window(register_window)
         else:
