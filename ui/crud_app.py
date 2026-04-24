@@ -1,6 +1,6 @@
 
 from utils.helper import(
-    centralizar_janela,gerar_opcoes_meses, formatar_moeda
+    centralizar_janela,gerar_opcoes_meses, formatar_moeda, mysql_para_obj
 )
 
 from utils.audio_helper import(
@@ -417,11 +417,26 @@ class Simulacao(ctk.CTkToplevel):
                             fech = card.get('fechamento_fatura')
                             venc = card.get('vencimento_fatura')
                             
-                            data_compra = dado.get('data_compra')
+                            data_compra = mysql_para_obj(dado.get('data_compra'))
+
+                            if venc < 12:
+                                fech_dc = data_compra.month - 1
+                                data_fech = data_compra.replace(day=fech, month=fech_dc) #formata data com dia de fechamento do cartão
+                            else:
+                                data_fech = data_compra.replace(day=fech)
+
+
+                            print('----- dentro do crud_app ------')
+                            print(data_compra)
+                            print(data_fech)
+                            print('---------------------------')
 
                             if not controle_mes:
-                                if data_compra.day >= fech:
+                                
+                                if data_compra >= data_fech:
                                     controle_mes = (data_compra + relativedelta(months=1)).month
+                                else:
+                                    controle_mes = data_compra.month
 
                             dados_card: Cartao = {
                                 'id_cartao': id_card,

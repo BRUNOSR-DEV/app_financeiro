@@ -415,9 +415,19 @@ class Cadastrar_despesas(ctk.CTkFrame):
                 if dado.get('nome_cartao') == car_cred:
                     id_card = dado.get('id_cartao')
                     dia_fechamento = dado.get('fechamento_fatura')
-            
-                    if self.dc_select.day >= dia_fechamento:
+                    dia_vencimento = dado['vencimento_fatura']
+
+                    if dia_vencimento < 12:
+                        mes_fech = self.dc_select.month - 1
+                        data_fechamento = self.dc_select.replace(day=dia_fechamento, month=mes_fech)
+                    else:
+                        data_fechamento = self.dc_select.replace(day=dia_fechamento)
+ 
+
+                    if self.dc_select >= data_fechamento:
                         controle_mes = (self.dc_select + relativedelta(months=1)).month
+                    else:
+                        controle_mes = self.dc_select.month
         else:
             controle_mes = self.prim_dc_select.month
 

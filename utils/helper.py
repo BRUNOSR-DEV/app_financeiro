@@ -237,9 +237,20 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
     
     # Descobre a Fatura da PRIMEIRA cobrança (com base no fechamento)
     primeira_cobranca = data_compra_obj
-    if data_compra_obj.day >= dia_fechamento: 
-        primeira_cobranca += relativedelta(months=1)
 
+    if dia_vencimento < 12:
+        fech_dc = primeira_cobranca.month - 1
+        data_fechamento = data_compra_obj.replace(day=dia_fechamento, month=fech_dc)
+    else:
+        data_fechamento = data_compra_obj.replace(day=dia_fechamento)
+
+    print('----- dentro do helper ------')
+    print(primeira_cobranca)
+    print(data_fechamento)
+    print('---------------------------')
+
+    if data_compra_obj >= data_fechamento: 
+        primeira_cobranca += relativedelta(months=1)
 
     # Quantos meses se passaram entre a 1ª Cobrança e a Fatura Alvo
     if not assinatura:
