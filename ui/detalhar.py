@@ -625,13 +625,16 @@ class Listar_desp_tabela(ctk.CTkFrame):
         #self.tabela_frame.grid_columnconfigure(4, weight=1) #Descriçao estica
 
     
-    controle_mes = int(datetime.now().month)
-    def renderizar(self, controle_mes=controle_mes, escolha=None, dados_simulacao=None):
+    
+    def renderizar(self, controle_mes=None, escolha=None, dados_simulacao=None):
 
         print(f"Renderizando tabela: Mês informado: {escolha}")
 
         for widget in self.tabela_frame.winfo_children():
             widget.destroy()
+
+        if controle_mes is None:
+            controle_mes = int(datetime.now().month)
 
         despesas = self.despesas_avulsas
         cartoes = self.dados_cartoes
@@ -672,8 +675,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                         if entra_na_fatura:
                             valor = Decimal(str(ass.get('valor')))
                             total_deste_cartao += valor
-                else:
-                    continue
+
 
                 if despesas_do_cartao:
 
@@ -692,20 +694,28 @@ class Listar_desp_tabela(ctk.CTkFrame):
                             valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
                             total_deste_cartao += valor_mensal
                             data_vencimento_fatura = controle_data 
-                else:
-                    continue
+
 
                 
                 #---------- simulação - Inserindo o valor na fatura do cartão informado ----------------------
                 mensalidade_simulacao_card  = Decimal('0.0')
 
+                if not data_vencimento_fatura:
+                    dia_venc_base = cartao.get('vencimento_fatura')
+                    if dia_venc_base:
+                        # Assumindo que a fatura cai no mês de controle_mes
+                        ano_atual = datetime.now().year
+                        # Tratamento simples para virada de ano, caso precise
+                        data_vencimento_fatura = datetime(ano_atual, controle_mes, int(dia_venc_base)).date()
+
+
                 if dados_simulacao:
                     
                     for _, dado in enumerate(dados_simulacao):
                         
-                        info_card = dado['info_cartao']
+                        info_card = dado.get('info_cartao')
 
-                        if isinstance(info_card, dict):  #if type(met_pag) is dict: 
+                        if info_card and isinstance(info_card, dict):  #if type(met_pag) is dict: 
 
                             data_compra_simulacao = dado.get('data_compra')
                             parcelas_simulacao = int(dado.get('parcelas'))
@@ -714,19 +724,20 @@ class Listar_desp_tabela(ctk.CTkFrame):
                             venc_card_simulacao = info_card.get('vencimento')
                             fech_card_simulacao = info_card.get('fechamento')
                             
-                            if id_card == id_cartao: #id_cartao é o cartao do loop principal
+                            if str(id_card) == str(id_cartao): #id_cartao é o cartao do loop principal
 
                                 resultado = controle_data_parc_cc(data_compra_simulacao, fech_card_simulacao, venc_card_simulacao, parcelas_simulacao, controle_mes= controle_mes)
 
                                 _, entra_na_fatura, controle_data = resultado
 
                                 if entra_na_fatura:
+                                    data_vencimento_fatura = controle_data 
                                     mensalidade_simulacao_card += Decimal(str(dado.get('valor_total'))) / parcelas_simulacao
-                        else:
-                            continue
+
 
                 # Se o cartão tem fatura para pagar, guardamos na lista
-                if total_deste_cartao > Decimal('0.0') or mensalidade_simulacao_card:
+
+                if (total_deste_cartao > Decimal('0.0')) or (mensalidade_simulacao_card > Decimal('0.0')):
                     lista_faturas_resumo.append({
                         'local': f"Fatura - {nome_cartao}",
                         'valor': (total_deste_cartao + mensalidade_simulacao_card),
@@ -770,7 +781,8 @@ class Listar_desp_tabela(ctk.CTkFrame):
 
 
                         linha += 1
-
+            else:
+                print('lista assinaturas estava vazia')
 
             if despesas:
 
@@ -800,21 +812,27 @@ class Listar_desp_tabela(ctk.CTkFrame):
                         total_avulsas += valor_mensal
                     
                         linha += 1
+            else:
+                print('lista despesas estava vazia')
           
             # Desenha o Resumo das Faturas dos Cartões
-            for fatura in lista_faturas_resumo:
+            if lista_faturas_resumo:
 
-                ctk.CTkLabel(self.tabela_frame, text=fatura['local']).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.tabela_frame, text="-").grid(row=linha, column=1, padx=3, pady=1, sticky="w") 
-                ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(fatura['valor']), justify=ctk.LEFT, text_color="orange").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                for fatura in lista_faturas_resumo:
+
+                    ctk.CTkLabel(self.tabela_frame, text=fatura['local']).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                    ctk.CTkLabel(self.tabela_frame, text="-").grid(row=linha, column=1, padx=3, pady=1, sticky="w") 
+                    ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(fatura['valor']), justify=ctk.LEFT, text_color="orange").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
             
-                # Formata a data se ela não vier vazia
-                venc_str = data_para_exibicao(fatura['vencimento']) if fatura['vencimento'] else "N/A"
-                ctk.CTkLabel(self.tabela_frame, text=venc_str).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+                    # Formata a data se ela não vier vazia
+                    venc_str = data_para_exibicao(fatura['vencimento']) if fatura['vencimento'] else "N/A"
+                    ctk.CTkLabel(self.tabela_frame, text=venc_str).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
-                total_cards += fatura['valor']
+                    total_cards += fatura['valor']
 
-                linha += 1
+                    linha += 1
+            else:
+                print('lista faturas estava vazia')
 
 
 
@@ -857,8 +875,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                                 linha += 1
                         else:
                             print('ERRO: Data do primeiro pagamento nula...')
-                    else:
-                        continue
+
 
 
             ctk.CTkLabel(
@@ -1087,12 +1104,14 @@ class Listar_faturas_cartao(ctk.CTkFrame):
         self.tabela_prox(id_user, id_card)"""
 
 
-    controle_mes = datetime.now().month
-    def tabela_cartao(self, id_user, id_card, escolha=None, controle_mes=controle_mes, dados_simulacao=None):
-
+    
+    def tabela_cartao(self, id_user, id_card, escolha=None, controle_mes=None, dados_simulacao=None):
 
         for widget in self.tabela_frame.winfo_children():
             widget.destroy()
+        
+        if controle_mes is None:
+            controle_mes = datetime.now().month
 
         dados_desp_card = pega_despesas_cartao(id_user, id_card)
         assin = dados_assinaturas_cartao(id_user, id_card)
@@ -1174,11 +1193,11 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
                     dado: Despesa
                     
-                    info_card = dado['info_cartao']
+                    info_card = dado.get('info_cartao')
 
-                    if isinstance(info_card, dict):
+                    if info_card and isinstance(info_card, dict):
 
-                        if info_card['id_cartao'] == id_card:
+                        if str(info_card['id_cartao']) == str(id_card):
 
                             local_simulacao = dado['local']
                             data_compra_simulacao = dado.get('data_compra')
@@ -1209,8 +1228,7 @@ class Listar_faturas_cartao(ctk.CTkFrame):
                                     linha += 1
                             else:
                                 print('ERRO: Data do primeiro pagamento nula...')
-                        else:
-                            continue
+
 
             
             ctk.CTkLabel(

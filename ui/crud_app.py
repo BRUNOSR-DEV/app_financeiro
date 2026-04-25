@@ -425,12 +425,6 @@ class Simulacao(ctk.CTkToplevel):
                             else:
                                 data_fech = data_compra.replace(day=fech)
 
-
-                            print('----- dentro do crud_app ------')
-                            print(data_compra)
-                            print(data_fech)
-                            print('---------------------------')
-
                             if not controle_mes:
                                 
                                 if data_compra >= data_fech:
@@ -458,6 +452,9 @@ class Simulacao(ctk.CTkToplevel):
 
             self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=str_mes, dados_simulacao=dados)
 
+            mes_str = gerar_opcoes_meses()[controle_mes]
+            self.menu_mes.set(mes_str)
+
             if tem_cartao:
                 escolha = f"{nome_cartao} - Mês: {str_mes}"
 
@@ -466,7 +463,7 @@ class Simulacao(ctk.CTkToplevel):
 
                 self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
 
-                
+                self.menu_cartao.set(nome_cartao)   
             
 
 
@@ -499,8 +496,18 @@ class Simulacao(ctk.CTkToplevel):
 
         if not dados:
             self.tabela_frame.renderizar(controle_mes=self.controle_mes, escolha=escolha)
+
+            mes_str = gerar_opcoes_meses()[self.controle_mes]
+            self.menu_mes.set(mes_str)
+
+            cartao = self.menu_cartao.get()
+            self.trocar_frame_cartao(escolha=cartao)
+
         else:
             self.controle_dados(dados=dados, controle_mes=self.controle_mes, trocar_card=self.id_card_atual)
+
+            cartao = self.menu_cartao.get()
+            self.trocar_frame_cartao(escolha=cartao)
 
 
 
@@ -508,9 +515,12 @@ class Simulacao(ctk.CTkToplevel):
         
         cartoes = self.dados_cartoes
         id_card = None
+        nome_cartao = None
 
         for cartao in cartoes:
-            if cartao['nome_cartao'] == escolha:
+            nome_cartao = cartao['nome_cartao']
+            if nome_cartao == escolha:
+
                 id_card = cartao['id_cartao']
 
         self.id_card_atual = id_card
@@ -521,8 +531,10 @@ class Simulacao(ctk.CTkToplevel):
 
         else:
             if not self.controle_mes:
-
                 self.controle_mes = self.mes_atual
+                self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=self.controle_mes)
+
+            else:
                 self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=self.controle_mes)
 
             

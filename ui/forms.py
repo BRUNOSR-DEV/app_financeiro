@@ -417,7 +417,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
                     dia_fechamento = dado.get('fechamento_fatura')
                     dia_vencimento = dado['vencimento_fatura']
 
-                    if dia_vencimento < 12:
+                    if dia_vencimento < 12: #se o fech é num mês e vencimento no outro
                         mes_fech = self.dc_select.month - 1
                         data_fechamento = self.dc_select.replace(day=dia_fechamento, month=mes_fech)
                     else:

@@ -244,10 +244,6 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
     else:
         data_fechamento = data_compra_obj.replace(day=dia_fechamento)
 
-    print('----- dentro do helper ------')
-    print(primeira_cobranca)
-    print(data_fechamento)
-    print('---------------------------')
 
     if data_compra_obj >= data_fechamento: 
         primeira_cobranca += relativedelta(months=1)
