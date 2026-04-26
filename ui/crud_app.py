@@ -532,10 +532,16 @@ class Simulacao(ctk.CTkToplevel):
         else:
             if not self.controle_mes:
                 self.controle_mes = self.mes_atual
-                self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=self.controle_mes)
+                self.menu_mes.set(self.mes_atual_str)
+
+                str_cartao_mes = f"{escolha} - {gerar_opcoes_meses()[self.controle_mes]}"
+
+                self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, escolha=str_cartao_mes, controle_mes=self.controle_mes)
 
             else:
-                self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=self.controle_mes)
+                str_cartao_mes = f"{escolha} - {gerar_opcoes_meses()[self.controle_mes]}"
+
+                self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, escolha=str_cartao_mes, controle_mes=self.controle_mes)
 
             
             
