@@ -291,8 +291,8 @@ class TexManager:
                 Path(tmpdir, "file.tex").write_text(
                     cls._get_tex_source(tex, fontsize), encoding='utf-8')
                 cls._run_checked_subprocess(
-                    ["latex", "-interaction=nonstopmode", "--halt-on-error",
-                     "file.tex"], tex, cwd=tmpdir)
+                    ["latex", "-interaction=nonstopmode", "-halt-on-error",
+                     "-no-shell-escape", "file.tex"], tex, cwd=tmpdir)
                 Path(tmpdir, "file.dvi").replace(dvifile)
                 # Also move the tex source to the main cache directory, but
                 # only for backcompat.
