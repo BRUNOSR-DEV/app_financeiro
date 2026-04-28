@@ -1085,29 +1085,23 @@ class Listar_faturas_cartao(ctk.CTkFrame):
         self.grid_rowconfigure(0, weight=1)
 
         # mês vigente
-        self.tabela_frame = ctk.CTkScrollableFrame(self, label_text=f"Pagamentos Detalhados: {self.mes_atual_str} / {self.data_atual.year}"
+        self.tabela_frame = ctk.CTkScrollableFrame(self, label_text=f"Pagamentos Detalhados: [ ] - Mês: {self.mes_atual_str} / {self.data_atual.year}"
         )
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        self.tabela_frame.grid_columnconfigure(0, weight=1)
-        self.tabela_frame.grid_rowconfigure(0, weight=1)
+        self.container_dados = ctk.CTkFrame(self.tabela_frame, fg_color="transparent")
+        self.container_dados.pack(fill="both", expand=True)
+
+        #self.container_dados.grid_columnconfigure(0, weight=2)
+        #self.container_dados.grid_rowconfigure((1, 2, 3), weight=1)# Parcelas, Valor, Vencimento
         
         self.tabela_cartao(id_user, id_card)
-
-        """
-        #Próximo mês
-        self.tabela_frame_prox = ctk.CTkScrollableFrame(self.main_content_frame, label_text=f"Pagamentos Detalhados: {self.prox_mes_str} / {self.data_atual.year}" )
-        self.tabela_frame_prox.grid(row=0, column=1, padx=10, pady=10, sticky="nsew") # Coluna 1
-        self.tabela_frame_prox.grid_columnconfigure(0, weight=1)
-        self.tabela_frame_prox.grid_rowconfigure(0, weight=1)
-
-        self.tabela_prox(id_user, id_card)"""
 
 
     
     def tabela_cartao(self, id_user, id_card, escolha=None, controle_mes=None, dados_simulacao=None):
 
-        for widget in self.tabela_frame.winfo_children():
+        for widget in self.container_dados.winfo_children():
             widget.destroy()
         
         if controle_mes is None:
@@ -1125,10 +1119,10 @@ class Listar_faturas_cartao(ctk.CTkFrame):
         if dados_desp_card or assin or dados_simulacao:
 
                         # Cabeçalho
-            ctk.CTkLabel(self.tabela_frame, text="Local.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
-            ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
-            ctk.CTkLabel(self.tabela_frame, text="Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
-            ctk.CTkLabel(self.tabela_frame, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.container_dados, text="Local.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.container_dados, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
+            ctk.CTkLabel(self.container_dados, text="Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+            ctk.CTkLabel(self.container_dados, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
 
             linha = 1
 
@@ -1148,10 +1142,10 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
                         total_assin += Decimal(str(valor))
 
-                        ctk.CTkLabel(self.tabela_frame, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
-                        ctk.CTkLabel(self.tabela_frame, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
-                        ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
-                        ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.container_dados, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.container_dados, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                        ctk.CTkLabel(self.container_dados, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                        ctk.CTkLabel(self.container_dados, text=data_para_exibicao(data_vencimento)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
 
                         linha += 1
@@ -1176,13 +1170,13 @@ class Listar_faturas_cartao(ctk.CTkFrame):
                         valor_mensal = Decimal(str(dado.get('valor_total'))) / dado.get('parcelas')
                         total_fatura += valor_mensal
 
-                        ctk.CTkLabel(self.tabela_frame, text=dado.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.container_dados, text=dado.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
 
-                        ctk.CTkLabel(self.tabela_frame, text=str_parc).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                        ctk.CTkLabel(self.container_dados, text=str_parc).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
 
-                        ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor_mensal),justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                        ctk.CTkLabel(self.container_dados, text=formatar_moeda(valor_mensal),justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
 
-                        ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(controle_data)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.container_dados, text=data_para_exibicao(controle_data)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
                         linha += 1 
 
@@ -1215,13 +1209,13 @@ class Listar_faturas_cartao(ctk.CTkFrame):
                                 if control_parc:
                                     mensalidade_simulacao_avulsa = Decimal(str(dado['valor_total'])) / parcelas_simulacao
 
-                                    ctk.CTkLabel(self.tabela_frame, text=local_simulacao, fg_color="#000000").grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                                    ctk.CTkLabel(self.container_dados, text=local_simulacao, fg_color="#000000").grid(row=linha, column=0, padx=5, pady=2, sticky="w")
 
-                                    ctk.CTkLabel(self.tabela_frame, text=str_parcela, fg_color="#000000").grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                                    ctk.CTkLabel(self.container_dados, text=str_parcela, fg_color="#000000").grid(row=linha, column=1, padx=3, pady=1, sticky="w")
 
-                                    ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(mensalidade_simulacao_avulsa), justify=ctk.LEFT, text_color="green", fg_color="#000000").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                                    ctk.CTkLabel(self.container_dados, text=formatar_moeda(mensalidade_simulacao_avulsa), justify=ctk.LEFT, text_color="green", fg_color="#000000").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
 
-                                    ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento), fg_color="#000000").grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+                                    ctk.CTkLabel(self.container_dados, text=data_para_exibicao(data_vencimento), fg_color="#000000").grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
                                     total_fatura += mensalidade_simulacao_avulsa
 
@@ -1232,13 +1226,13 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
             
             ctk.CTkLabel(
-                self.tabela_frame, 
+                self.container_dados, 
                 text="TOTAL DA FATURA:", 
                 font=ctk.CTkFont(weight="bold", size=14)
             ).grid(row=linha, column=0, columnspan=2, padx=5, pady=(20, 5), sticky="e")
 
             ctk.CTkLabel(
-                self.tabela_frame, 
+                self.container_dados, 
                 text=formatar_moeda(total_fatura + total_assin), 
                 font=ctk.CTkFont(weight="bold", size=14), 
                 text_color="red" 
@@ -1248,8 +1242,8 @@ class Listar_faturas_cartao(ctk.CTkFrame):
             self.tabela_frame.configure(label_text=f"Detalhes do Cartão: {escolha} / {self.data_atual.year}")
 
 
-        self.tabela_frame.grid_columnconfigure(0, weight=2)
-        self.tabela_frame.grid_columnconfigure((1, 2, 3), weight=1)
+        self.container_dados.grid_columnconfigure(0, weight=2)
+        self.container_dados.grid_columnconfigure((1, 2, 3), weight=1)
 
 
 """

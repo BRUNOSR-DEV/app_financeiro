@@ -330,12 +330,13 @@ class Simulacao(ctk.CTkToplevel):
         self.top_section.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         
         self.top_section.grid_columnconfigure(0, weight=1) # Bem-vindo
-        self.top_section.grid_rowconfigure(0, weight=1)
+        self.top_section.grid_columnconfigure(1, weight=1) 
+
 
                         # ------------ Apresentação ------------------
         texto = f"Simulação: Usuário - {self.dados_usuario.get('nome_completo')}!"
         self.nomeusuario_label = ctk.CTkLabel(self.top_section, text=texto, font=ctk.CTkFont(size=18, weight="bold"))
-        self.nomeusuario_label.grid(row=0, column=0, padx=5, pady=(0, 10), sticky="w")
+        self.nomeusuario_label.grid(row=0, column=0, padx=5, sticky="w")
 
                             # --- DISPLAY DE RENDA FIXA ---
         self.frame_renda = ctk.CTkFrame(self.top_section, fg_color="transparent", width=150, height=100, corner_radius=15, border_width=3)
@@ -345,18 +346,20 @@ class Simulacao(ctk.CTkToplevel):
         self.label_renda.pack(side="left", padx=5)
 
                             # -------- Botões de funções ------------
-        
+        self.btn_resete = ctk.CTkButton(self.top_section, text='Resete', command=self.resetar_lista, fg_color="#F87979", hover_color="#823737")
+        self.btn_resete.grid(row=0, column=3, padx=10, pady=10, sticky="ew")
+
         self.label_mes = ctk.CTkLabel(self.top_section, text=f"Mês: ", font=ctk.CTkFont(size=16, weight="bold"))
-        self.label_mes.grid(row=0, column=3, padx=10, pady=10, sticky="w")
+        self.label_mes.grid(row=0, column=4, padx=10, pady=10, sticky="w")
 
         self.menu_mes = ctk.CTkOptionMenu(self.top_section, values=self.nomes_datas, command=self.trocar_mes, fg_color="#676666")
-        self.menu_mes.grid(row=0, column=4, padx=10, pady=5, sticky="w")
+        self.menu_mes.grid(row=0, column=5, padx=10, pady=5, sticky="w")
 
         self.label_cartao = ctk.CTkLabel(self.top_section, text=f"Selecione o Cartão: ", font=ctk.CTkFont(size=16, weight="bold"))
-        self.label_cartao.grid(row=0, column=5, padx=10, pady=10, sticky="w")
+        self.label_cartao.grid(row=0, column=6, padx=10, pady=10, sticky="w")
 
         self.menu_cartao = ctk.CTkOptionMenu(self.top_section, values=self.nomes_cartoes, command=self.trocar_frame_cartao, fg_color="#676666")
-        self.menu_cartao.grid(row=0, column=6, padx=10, pady=5, sticky="w")
+        self.menu_cartao.grid(row=0, column=7, padx=10, pady=5, sticky="w")
         self.menu_cartao.set("Cartões")
         
 
@@ -383,6 +386,21 @@ class Simulacao(ctk.CTkToplevel):
         self.frame_tab_fatura = Listar_faturas_cartao(parent=self.main_section, id_user=self.id_user)
         self.frame_tab_fatura.grid(row=0, column=2, padx=5, pady=5, sticky="nsew")
 
+
+    def resetar_lista(self):
+
+        self.dados_select.clear()
+
+        self.tabela_frame.renderizar(escolha=self.mes_atual_str)
+
+        for widget in self.frame_tab_fatura.container_dados.winfo_children():
+            widget.destroy()
+
+        self.frame_tab_fatura.tabela_frame.configure(label_text=f"Detalhes do Cartão: [ ] - Mês: {self.mes_atual_str} / {self.data_atual.year}")
+
+        self.frame_cadastro.limpa_campos()
+        self.menu_cartao.set('Cartões')
+        self.menu_mes.set(self.mes_atual_str)
 
 
     def controle_dados(self, dados=None, controle_mes=None, trocar_card=None):
@@ -447,16 +465,14 @@ class Simulacao(ctk.CTkToplevel):
                 if not controle_mes:
                     controle_mes = data_pp.month
             
-            str_mes = gerar_opcoes_meses().get(controle_mes)
+            str_mes = gerar_opcoes_meses()[controle_mes]
 
+            self.menu_mes.set(str_mes)
 
             self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=str_mes, dados_simulacao=dados)
 
-            mes_str = gerar_opcoes_meses()[controle_mes]
-            self.menu_mes.set(mes_str)
-
             if tem_cartao:
-                escolha = f"{nome_cartao} - Mês: {str_mes}"
+                escolha = f"[{nome_cartao}] - Mês: {str_mes}"
 
                 if trocar_card:
                     id_card = trocar_card
@@ -506,8 +522,8 @@ class Simulacao(ctk.CTkToplevel):
         else:
             self.controle_dados(dados=dados, controle_mes=self.controle_mes, trocar_card=self.id_card_atual)
 
-            cartao = self.menu_cartao.get()
-            self.trocar_frame_cartao(escolha=cartao)
+            #cartao = self.menu_cartao.get()
+            #self.trocar_frame_cartao(escolha=cartao)
 
 
 
@@ -534,15 +550,16 @@ class Simulacao(ctk.CTkToplevel):
                 self.controle_mes = self.mes_atual
                 self.menu_mes.set(self.mes_atual_str)
 
-                str_cartao_mes = f"{escolha} - {gerar_opcoes_meses()[self.controle_mes]}"
+                str_cartao_mes = f"[{escolha}] - Mês: {gerar_opcoes_meses()[self.controle_mes]}"
 
                 self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, escolha=str_cartao_mes, controle_mes=self.controle_mes)
 
             else:
-                str_cartao_mes = f"{escolha} - {gerar_opcoes_meses()[self.controle_mes]}"
+                str_cartao_mes = f"[{escolha}] - Mês: {gerar_opcoes_meses()[self.controle_mes]}"
 
                 self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, escolha=str_cartao_mes, controle_mes=self.controle_mes)
-
+                
+            
             
             
         
