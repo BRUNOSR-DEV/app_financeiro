@@ -248,22 +248,72 @@ class Faturas(ctk.CTkToplevel):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Detalhes: {nome_card}")
-        centralizar_janela(self, 1000, 800)
+        centralizar_janela(self, 1200, 800)
         self.transient(parent)
         self.focus_set() 
 
-        self.grid_columnconfigure(0, weight=0) 
-        self.grid_columnconfigure(1, weight=1) 
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        self.label_titulo = ctk.CTkLabel(self, text=f"Fatura: {nome_card}", font=("Arial", 22, "bold"))
-        self.label_titulo.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+        self.container_principal = ctk.CTkFrame(self, fg_color="transparent")
+        self.container_principal.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        #-------------- FRAME Tabelas --------------------------
-        self.frame_tabela = Listar_faturas_cartao(self, self.id_user, self.id_card, self.nome_card)
-        self.frame_tabela.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+        self.container_principal.grid_columnconfigure(0, weight=1) 
+        self.container_principal.grid_rowconfigure(1, weight=1) 
 
-        #self.frame_tabela.tabela_cartao()
+        # ---------------- Gerencimento de self ---------------------
+        self.data_atual = datetime.now().date()
+        self.mes_atual = self.data_atual.month
+        self.prox_mes =  (self.data_atual + relativedelta(months=1)).month
+        self.seg_prox_mes =  (self.data_atual + relativedelta(months=2)).month
+        self.ter_prox_mes =  (self.data_atual + relativedelta(months=3)).month
+        self.quart_prox_mes =  (self.data_atual + relativedelta(months=4)).month
+
+        opcoes = gerar_opcoes_meses()
+        self.mes_atual_str = opcoes.get(self.mes_atual)
+        self.prox_mes_str = opcoes.get(self.prox_mes)
+        self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
+        self.ter_prox_mes_str = opcoes.get(self.ter_prox_mes)
+        self.quart_prox_mes_str = opcoes.get(self.quart_prox_mes)
+
+        self.nomes_datas = [self.mes_atual_str, self.prox_mes_str, self.seg_prox_mes_str, self.ter_prox_mes_str, self.quart_prox_mes_str]
+
+        vigente = f"[-{nome_card}-] - Mês: {self.mes_atual_str}"
+        prox_mes = f"[-{nome_card}-] - Mês: {self.prox_mes_str}"
+
+        # ----------------- Top section ---------------------------------
+        self.top_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
+        self.top_section.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        
+        self.top_section.grid_columnconfigure(0, weight=1) # Bem-vindo
+        self.top_section.grid_columnconfigure(1, weight=1) 
+
+        self.label_titulo = ctk.CTkLabel(self.top_section, text=f"Fatura: {nome_card}", font=("Arial", 22, "bold"))
+        self.label_titulo.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+
+
+        # --------------- Main section ----------------------------------
+        self.main_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
+        self.main_section.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.main_section.grid_columnconfigure(0, weight=1) #tabela um
+        self.main_section.grid_columnconfigure(1, weight=1) #tabela dois
+        self.main_section.grid_rowconfigure(0, weight=1)
+
+        #Instancia tabelas
+        #-------------- Tabela mês vigente --------------------------
+        self.frame_tabela_um = Listar_faturas_cartao(self.main_section, self.id_user, self.id_card, self.nome_card)
+        self.frame_tabela_um.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+
+        self.frame_tabela_um.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=vigente, controle_mes=self.mes_atual)
+
+        # ---------------- Tabela próximo mês ------------------------------
+        self.frame_tabela_dois = Listar_faturas_cartao(self.main_section, self.id_user, self.id_card, self.nome_card)
+        self.frame_tabela_dois.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+
+        self.frame_tabela_dois.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=prox_mes, controle_mes=self.prox_mes)
+
     
 
 
@@ -309,7 +359,7 @@ class Simulacao(ctk.CTkToplevel):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Simulação de Despesas")
-        centralizar_janela(self, 1600, 900)
+        centralizar_janela(self, 1400, 800)
         self.transient(parent)
         self.grab_set()
         self.focus_set() 
