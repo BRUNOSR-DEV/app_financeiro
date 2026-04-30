@@ -1,6 +1,6 @@
 
 from utils.helper import(
-    centralizar_janela,gerar_opcoes_meses, formatar_moeda, mysql_para_obj
+    centralizar_janela,gerar_opcoes_meses, formatar_moeda, mysql_para_obj, data_para_exibicao
 )
 
 from utils.audio_helper import(
@@ -10,7 +10,9 @@ from ui.forms import(
     Cadastrar_receitas, Cadastrar_despesas, Cadastrar_car_cred, Cadastrar_assinaturas
 )
 
-from utils.typedDict import(Despesa, Cartao)
+
+from utils.typedDict import(Despesa, Cartao, Cartao_banco)
+from typing import List
 
 from ui.detalhar import(
     Listar_receitas, Listar_despesas, Listar_car_cred, Listar_assinaturas, Listar_faturas_cartao, Listar_cat_grafico, Listar_desp_tabela
@@ -239,12 +241,13 @@ class Assinaturas(ctk.CTkToplevel):
 #Módulo Faturas
 class Faturas(ctk.CTkToplevel):
     
-    def __init__(self, parent, id_user=None, id_card=None, nome_card=None, *args, **kwargs):
+    def __init__(self, parent, id_user=None, id_card=None, nome_card=None, dados_card=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
         self.id_card = id_card
         self.nome_card = nome_card
+        self.dados_card: List[Cartao_banco]  = dados_card
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Detalhes: {nome_card}")
@@ -263,13 +266,32 @@ class Faturas(ctk.CTkToplevel):
         self.container_principal.grid_rowconfigure(1, weight=1) 
 
         # ---------------- Gerencimento de self ---------------------
+        self.limite = None
+        self.fechamento = None
+        self.vencimento = None
+
+        for card in self.dados_card:
+            if self.id_card == card['id_cartao']:
+
+                self.limite = card["limite_cartao"]
+                self.fechamento = card['fechamento_fatura']
+                self.vencimento = card['vencimento_fatura']
+        
+
         self.data_atual = datetime.now().date()
+        self.prox_mes_data = self.data_atual + relativedelta(months=1)
+
         self.mes_atual = self.data_atual.month
         self.prox_mes =  (self.data_atual + relativedelta(months=1)).month
         self.seg_prox_mes =  (self.data_atual + relativedelta(months=2)).month
         self.ter_prox_mes =  (self.data_atual + relativedelta(months=3)).month
         self.quart_prox_mes =  (self.data_atual + relativedelta(months=4)).month
         self.quint_prox_mes =  (self.data_atual + relativedelta(months=5)).month
+
+        if self.data_atual.day < self.fechamento:
+            proximo_venc = self.data_atual.replace(day=self.vencimento)
+        else:
+            proximo_venc = self.prox_mes_data.replace(day=self.vencimento)
 
         opcoes = gerar_opcoes_meses()
         self.mes_atual_str = opcoes.get(self.mes_atual)
@@ -283,25 +305,34 @@ class Faturas(ctk.CTkToplevel):
         self.nomes_datas = [self.mes_atual_str + e + self.prox_mes_str, self.seg_prox_mes_str + e + self.ter_prox_mes_str, self.quart_prox_mes_str + e + self.quint_prox_mes_str]
 
 
-
-        vigente = f"#{nome_card} - Mês: {self.mes_atual_str}"
-        prox_mes = f"#{nome_card} - Mês: {self.prox_mes_str}"
+        mes_a = f"#{nome_card} - Mês: {self.mes_atual_str}"
+        mes_b = f"#{nome_card} - Mês: {self.prox_mes_str}"
 
         # ----------------- Top section ---------------------------------
         self.top_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
         self.top_section.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         
-        self.top_section.grid_columnconfigure(0, weight=1) # Bem-vindo
-        self.top_section.grid_columnconfigure(1, weight=1)
+        self.top_section.grid_columnconfigure(0, weight=2) # fatura
+        self.top_section.grid_columnconfigure((1, 2, 3), weight=1) #infos cartao
+        self.top_section.grid_columnconfigure((4, 5), weight=0) # lebel e menu datas
 
         self.label_titulo = ctk.CTkLabel(self.top_section, text=f"Fatura: {nome_card}", font=("Arial", 22, "bold"))
-        self.label_titulo.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        self.label_titulo.grid(row=0, column=0, padx=15, pady=10, sticky="w")
+
+        self.venc = ctk.CTkLabel(self.top_section, text=f"Próximo Vencimento: {data_para_exibicao(proximo_venc)}", font=("Arial", 16, "bold"))
+        self.venc.grid(row=0, column=1, padx=10, pady=5, sticky="w")
+
+        self.fech = ctk.CTkLabel(self.top_section, text=f"Dia de Fechamento: {self.fechamento}", font=("Arial", 16, "bold"))
+        self.fech.grid(row=0, column=2, padx=10, pady=5, sticky="w")
+
+        self.limite = ctk.CTkLabel(self.top_section, text=f"Limite Cartão: {formatar_moeda(self.limite)}", font=("Arial", 16, "bold"))
+        self.limite.grid(row=0, column=3, padx=10, pady=5, sticky="w")
 
         self.label_mes = ctk.CTkLabel(self.top_section, text=f"Meses: ", font=ctk.CTkFont(size=16, weight="bold"))
-        self.label_mes.grid(row=0, column=4, padx=10, pady=10, sticky="e")
+        self.label_mes.grid(row=0, column=4, padx=(10, 5), pady=5, sticky="e")
 
         self.menu_mes = ctk.CTkOptionMenu(self.top_section, values= self.nomes_datas, command=self.trocar_meses, fg_color="#676666")
-        self.menu_mes.grid(row=0, column=5, padx=10, pady=5, sticky="e")
+        self.menu_mes.grid(row=0, column=5, padx=(0, 10), pady=5, sticky="e")
 
         # --------------- Main section ----------------------------------
         self.main_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
@@ -312,27 +343,35 @@ class Faturas(ctk.CTkToplevel):
         self.main_section.grid_rowconfigure(0, weight=1)
 
         #Instancia tabelas
-        #-------------- Tabela mês vigente --------------------------
+        #-------------- Tabela mês mes_a --------------------------
         self.frame_tabela_um = Listar_faturas_cartao(self.main_section, self.id_user, self.id_card, self.nome_card)
         self.frame_tabela_um.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
-        self.frame_tabela_um.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=vigente, controle_mes=self.mes_atual)
+        self.frame_tabela_um.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_a, controle_mes=self.mes_atual)
 
         # ---------------- Tabela próximo mês ------------------------------
         self.frame_tabela_dois = Listar_faturas_cartao(self.main_section, self.id_user, self.id_card, self.nome_card)
         self.frame_tabela_dois.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
 
-        self.frame_tabela_dois.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=prox_mes, controle_mes=self.prox_mes)
+        self.frame_tabela_dois.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_b, controle_mes=self.prox_mes)
 
 
     def trocar_meses(self, escolha):
 
         meses = [m.strip() for m in escolha.split('-')]
 
-        mes_a = meses[0]
-        mes_b = meses[1]
+        controle_mes_a = gerar_opcoes_meses(str_mes=meses[0])
+        controle_mes_b = gerar_opcoes_meses(str_mes=meses[1])
 
-        pass
+        mes_a = f"#{self.nome_card} - Mês: {meses[0]}"
+        mes_b = f"#{self.nome_card} - Mês: {meses[1]}"
+
+        #tabela 1
+        self.frame_tabela_um.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_a, controle_mes=controle_mes_a)
+
+        #tabela 2
+        self.frame_tabela_dois.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_b, controle_mes=controle_mes_b)
+      
 
 
 #Módulo Simulação
@@ -355,6 +394,7 @@ class Simulacao(ctk.CTkToplevel):
         self.seg_prox_mes =  (self.data_atual + relativedelta(months=2)).month
         self.ter_prox_mes =  (self.data_atual + relativedelta(months=3)).month
         self.quart_prox_mes =  (self.data_atual + relativedelta(months=4)).month
+        self.quint_prox_mes =  (self.data_atual + relativedelta(months=5)).month
 
         opcoes = gerar_opcoes_meses()
         self.mes_atual_str = opcoes.get(self.mes_atual)
@@ -362,6 +402,7 @@ class Simulacao(ctk.CTkToplevel):
         self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
         self.ter_prox_mes_str = opcoes.get(self.ter_prox_mes)
         self.quart_prox_mes_str = opcoes.get(self.quart_prox_mes)
+        self.quint_prox_mes_str = opcoes.get(self.quint_prox_mes)
 
         self.nomes_datas = [self.mes_atual_str, self.prox_mes_str, self.seg_prox_mes_str, self.ter_prox_mes_str, self.quart_prox_mes_str]
 
@@ -400,7 +441,6 @@ class Simulacao(ctk.CTkToplevel):
         self.top_section.grid_columnconfigure(0, weight=1) # Bem-vindo
         self.top_section.grid_columnconfigure(1, weight=1) 
 
-
                         # ------------ Apresentação ------------------
         texto = f"Simulação: Usuário - {self.dados_usuario.get('nome_completo')}!"
         self.nomeusuario_label = ctk.CTkLabel(self.top_section, text=texto, font=ctk.CTkFont(size=18, weight="bold"))
@@ -430,7 +470,6 @@ class Simulacao(ctk.CTkToplevel):
         self.menu_cartao.grid(row=0, column=7, padx=10, pady=5, sticky="w")
         self.menu_cartao.set("Cartões")
         
-
         # --------------- Main section ----------------------------------
         self.main_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
         self.main_section.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")

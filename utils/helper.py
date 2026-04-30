@@ -8,12 +8,21 @@ from utils.audio_helper import tocar_notificacao
 
 
 #-------- opções meses ----------
-def gerar_opcoes_meses():
+def gerar_opcoes_meses(id=None, str_mes =None):
     meses_nome = {1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril", 
                   5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto", 
                   9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"}
+    
+    if id:
+        return meses_nome[id]
+    
+    if str_mes: 
+        for chave, valor in meses_nome.items():
+            if valor == str_mes:
+                return chave
 
     return meses_nome
+
 
 
 # -------- Validação de entratada ----------
@@ -124,6 +133,7 @@ def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_me
     seg_prox_mes = (data_atual + relativedelta(months=2)).month
     ter_prox_mes = (data_atual + relativedelta(months=3)).month
     quart_prox_mes = (data_atual + relativedelta(months=4)).month
+    quint_prox_mes = (data_atual + relativedelta(months=5)).month
 
     if controle_mes == mes_vigente:
         data_alvo = data_atual
@@ -139,6 +149,9 @@ def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_me
 
     elif controle_mes == quart_prox_mes:
         data_alvo = (data_atual + relativedelta(months=4))
+
+    elif controle_mes == quint_prox_mes:
+        data_alvo = (data_atual + relativedelta(months=5))
         
     """   # 1. Descobre o mês da PRIMEIRA cobrança
     mes_primeira_cobranca = data_compra_obj.month
@@ -216,6 +229,7 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
     seg_prox_mes = (data_atual + relativedelta(months=2)).month
     ter_prox_mes = (data_atual + relativedelta(months=3)).month
     quart_prox_mes = (data_atual + relativedelta(months=4)).month
+    quint_prox_mes = (data_atual + relativedelta(months=5)).month
 
     data_alvo = None
     # Define qual é a FATURA ALVO (Mês Atual ou Próximo Mês)
@@ -233,6 +247,9 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
 
     elif controle_mes == quart_prox_mes:
         data_alvo = (data_atual + relativedelta(months=4))
+
+    elif controle_mes == quint_prox_mes:
+        data_alvo = (data_atual + relativedelta(months=5))
         
     
     # Descobre a Fatura da PRIMEIRA cobrança (com base no fechamento)

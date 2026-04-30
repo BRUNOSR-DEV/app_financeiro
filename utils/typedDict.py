@@ -11,6 +11,13 @@ class Cartao(TypedDict):
     vencimento: int
     limite: float
 
+class Cartao_banco(TypedDict):
+
+    id_cartao: int
+    nome_cartao: str
+    limite_cartao: float
+    fechamento_fatura: int
+    vencimento_fatura: int
     
 class Despesa(TypedDict):
 
@@ -24,5 +31,7 @@ class Despesa(TypedDict):
     prim_data_pag: datetime
     nome_cartao: str
     info_cartao: Cartao
+
+
 
 

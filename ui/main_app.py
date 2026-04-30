@@ -18,6 +18,9 @@ from ui.crud_app import (
     Faturas, Receitas, Despesas, Car_cred, Assinaturas, Simulacao
 )
 
+from utils.typedDict import(Despesa, Cartao, Cartao_banco)
+from typing import List
+
 from ui.detalhar import(
     Listar_desp_tabela, Listar_cat_grafico
 )
@@ -68,6 +71,7 @@ class Main_app(ctk.CTk):
         self.seg_prox_mes =  (self.data_atual + relativedelta(months=2)).month
         self.ter_prox_mes =  (self.data_atual + relativedelta(months=3)).month
         self.quart_prox_mes =  (self.data_atual + relativedelta(months=4)).month
+        self.quint_prox_mes =  (self.data_atual + relativedelta(months=5)).month
 
         opcoes = gerar_opcoes_meses()
         self.mes_atual_str = opcoes.get(self.mes_atual)
@@ -75,10 +79,11 @@ class Main_app(ctk.CTk):
         self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
         self.ter_prox_mes_str = opcoes.get(self.ter_prox_mes)
         self.quart_prox_mes_str = opcoes.get(self.quart_prox_mes)
+        self.quint_prox_mes_str = opcoes.get(self.quint_prox_mes)
 
         self.nomes_datas = [self.mes_atual_str, self.prox_mes_str, self.seg_prox_mes_str, self.ter_prox_mes_str, self.quart_prox_mes_str]
 
-        self.dados_cartoes = dados_card(self.user_id)
+        self.dados_cartoes: List[Cartao_banco] = dados_card(self.user_id)
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
 
         self.despesas_avulsas = pega_despesas(self.user_id)
@@ -373,7 +378,7 @@ class Main_app(ctk.CTk):
         if id_card:
             tocar_notificacao('open_w', True)
 
-            register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado)
+            register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado, dados_card=self.dados_cartoes)
 
             self.wait_window(register_window)
         else:
