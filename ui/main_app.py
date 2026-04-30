@@ -84,6 +84,7 @@ class Main_app(ctk.CTk):
         self.despesas_avulsas = pega_despesas(self.user_id)
         self.assinaturas_avulsas = dados_assinaturas_avulsas(self.user_id)
 
+
     def montar_dashboard(self):
         """ Função exclusiva para desenhar a interface. """
         
