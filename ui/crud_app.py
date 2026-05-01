@@ -11,7 +11,7 @@ from ui.forms import(
 )
 
 
-from utils.typedDict import(Despesa, Cartao, Cartao_banco)
+from utils.typedDict import(Despesa, Cartao, Dados_cartoes_db)
 from typing import List
 
 from ui.detalhar import(
@@ -247,7 +247,7 @@ class Faturas(ctk.CTkToplevel):
         self.id_user = id_user
         self.id_card = id_card
         self.nome_card = nome_card
-        self.dados_card: List[Cartao_banco]  = dados_card
+        self.dados_card: List[Dados_cartoes_db]  = dados_card
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Detalhes: {nome_card}")

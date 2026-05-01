@@ -98,7 +98,39 @@ def pega_usuarios(conn=None):
             desconectar(conn)
 
 
-def dados_user(id_user, conn=None):
+def pega_id(usuario, conn=None): 
+    '''função que busca id do usuário no bd, passando o nome do usuário ''' 
+
+    gerenciar_conn = False
+
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn= True
+
+    cursor = conn.cursor() 
+
+    try:
+        sql = "SELECT id FROM usuarios WHERE nome_usuario = %s" 
+        cursor.execute(sql, (usuario,)) #obs. obrigatório passar uma tupla como parâmetro para cursor
+        result = cursor.fetchone()
+        
+
+        if result:
+            return result[0]
+        
+    except MySQLdb.Error as e:
+        print(f"Erro MySQL ao pegar ID: {e}")
+        return None # Retorna None em caso de erro no DB  
+    except Exception as e:
+        print(f"Erro inesperado ao pegar ID: {e}")
+
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
+#Todos os dados da entidade
+def dados_usuarios(id_user, conn=None):
     """
     Função que retorna os dados do  usuario
     """
@@ -139,7 +171,7 @@ def dados_user(id_user, conn=None):
             desconectar(conn)
 
 
-def dados_receita(id_user, conn=None):
+def dados_receitas(id_user, conn=None):
     """
     Função que retorna os dados do  usuario
     """
@@ -177,7 +209,51 @@ def dados_receita(id_user, conn=None):
             desconectar(conn)
 
 
-def dados_card(id_user, conn=None):
+def dados_despesas(id_user, conn=None):
+
+    gerenciar_conn = False
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+
+        query = """
+            SELECT 
+                id, 
+                local, 
+                valor_total, 
+                parcelas,
+                descricao,
+                categoria,
+                data,
+                data_primeira_parc,
+                dia_vencimento,
+                id_cc
+            FROM despesas 
+            WHERE id_usuario = %s
+        """
+        
+        cursor.execute(query, (id_user, ))
+        resultados = cursor.fetchall()
+        
+        colunas = [
+            'id_desp', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 'data_pp', 'dia_venc', 'id_cc' 
+        ]
+        
+        return [dict(zip(colunas, linha)) for linha in resultados]
+
+    except Exception as e:
+        print(f"Erro ao buscar despesas: {e}")
+        return []
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
+def dados_cartoes(id_user, conn=None):
     """
     Função que retorna uma lista com o id do cartão e o nome da tabela cartoes_credito
     """
@@ -215,37 +291,43 @@ def dados_card(id_user, conn=None):
             desconectar(conn)
 
 
-def pega_id(usuario, conn=None): 
-    '''função que busca id do usuário no bd, passando o nome do usuário ''' 
-
+def dados_assinaturas(id_user, conn=None):
+    """
+    Busca todas as assinaturas de um usuário específico.
+    """
     gerenciar_conn = False
-
     if conn is None:
         conn = conectar_bd_original()
-        gerenciar_conn= True
+        gerenciar_conn = True
 
-    cursor = conn.cursor() 
+    cursor = conn.cursor()
 
     try:
-        sql = "SELECT id FROM usuarios WHERE nome_usuario = %s" 
-        cursor.execute(sql, (usuario,)) #obs. obrigatório passar uma tupla como parâmetro para cursor
-        result = cursor.fetchone()
+        query = """
+            SELECT id, nome, valor, descricao, data_aquisicao, data_prim_pag, categoria, id_cc
+            FROM assinaturas 
+            WHERE id_usuario = %s 
+        """
         
+        cursor.execute(query, (id_user,))
+        resultados = cursor.fetchall()
+        
+        # Mapeando as colunas. 
+        colunas = [
+            'id_ass', 'nome', 'valor', 'descricao','data_aquisicao','data_prim_pag', 'categoria', 'id_cc'
+        ]
+        
+        return [dict(zip(colunas, linha)) for linha in resultados]
 
-        if result:
-            return result[0]
-        
-    except MySQLdb.Error as e:
-        print(f"Erro MySQL ao pegar ID: {e}")
-        return None # Retorna None em caso de erro no DB  
     except Exception as e:
-        print(f"Erro inesperado ao pegar ID: {e}")
-
+        print(f"Erro ao buscar todas as Assinaturas: {e}")
+        return []
     finally:
         if gerenciar_conn:
             desconectar(conn)
 
 
+#Pega dados separadamente
 def pega_despesas_cartao(id_user, id_card, conn=None):
     """
     Busca todas as despesas de um cartão específico, trazendo junto 
@@ -297,7 +379,7 @@ def pega_despesas_cartao(id_user, id_card, conn=None):
             desconectar(conn)
 
 
-def pega_despesas(id_user, conn= None):
+def pega_despesas_avulsas(id_user, conn= None):
 
     """
     Busca todas as despesas de um usuário que o retono do id_cc é None/Null
@@ -344,51 +426,7 @@ def pega_despesas(id_user, conn= None):
             desconectar(conn)
 
 
-def dados_despesas_full(id_user, conn=None):
-
-    gerenciar_conn = False
-    if conn is None:
-        conn = conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-
-    try:
-
-        query = """
-            SELECT 
-                id, 
-                local, 
-                valor_total, 
-                parcelas,
-                descricao,
-                categoria,
-                data,
-                data_primeira_parc,
-                dia_vencimento,
-                id_cc
-            FROM despesas 
-            WHERE id_usuario = %s
-        """
-        
-        cursor.execute(query, (id_user, ))
-        resultados = cursor.fetchall()
-        
-        colunas = [
-            'id_desp', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 'data_pp', 'dia_venc', 'id_cc' 
-        ]
-        
-        return [dict(zip(colunas, linha)) for linha in resultados]
-
-    except Exception as e:
-        print(f"Erro ao buscar despesas: {e}")
-        return []
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-
-
-def dados_assinaturas_avulsas(id_user, conn=None):
+def pega_assinaturas_avulsas(id_user, conn=None):
     """
     Busca todas as assinaturas sem cartão de um usuário específico.
     """
@@ -424,7 +462,7 @@ def dados_assinaturas_avulsas(id_user, conn=None):
             desconectar(conn)
 
 
-def dados_assinaturas_cartao(id_user, id_card, conn=None):
+def pega_assinaturas_cartao(id_user, id_card, conn=None):
     """
     Busca todas as assinaturas de um cartão específico
     """
@@ -474,41 +512,6 @@ def dados_assinaturas_cartao(id_user, id_card, conn=None):
             desconectar(conn)
 
 
-def dados_assinaturas_full(id_user, conn=None):
-    """
-    Busca todas as assinaturas de um usuário específico.
-    """
-    gerenciar_conn = False
-    if conn is None:
-        conn = conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-
-    try:
-        query = """
-            SELECT id, nome, valor, descricao, data_aquisicao, data_prim_pag, categoria, id_cc
-            FROM assinaturas 
-            WHERE id_usuario = %s 
-        """
-        
-        cursor.execute(query, (id_user,))
-        resultados = cursor.fetchall()
-        
-        # Mapeando as colunas. 
-        colunas = [
-            'id_ass', 'nome', 'valor', 'descricao','data_aquisicao','data_prim_pag', 'categoria', 'id_cc'
-        ]
-        
-        return [dict(zip(colunas, linha)) for linha in resultados]
-
-    except Exception as e:
-        print(f"Erro ao buscar todas as Assinaturas: {e}")
-        return []
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-
 #----------------------------------------------------------------------
 
 #------------------------- Inserir ------------------------------------
@@ -554,7 +557,7 @@ def inserir_usuario(nome_comp, nome_usu, senha, sal_fixo, conn=None):
             desconectar(conn)
       
 
-def inserir_receitas(id_usu, valor, descricao, data, conn=None):
+def inserir_receita(id_usu, valor, descricao, data, conn=None):
     """ Função que inseri a receita do usuário no BD e retorna o id da mesma"""
     
     gerenciar_conn = False
@@ -624,7 +627,7 @@ def inserir_assinatura(id_user, nome, valor, descricao, data_aq, data_prim_pag, 
         desconectar(conn)
 
 
-def inserir_despesas(id_usu, local, valor_total, parcelas, descricao, categoria, data, dc_prim_parc=None, dia_vencimento = None, id_cc= None, conn= None):
+def inserir_despesa(id_usu, local, valor_total, parcelas, descricao, categoria, data, dc_prim_parc=None, dia_vencimento = None, id_cc= None, conn= None):
     """ Função que inseri as despesas do usuário no BD e retorna o id da mesma"""
     
     gerenciar_conn = False
@@ -684,72 +687,11 @@ def inserir_cc(id_usu, nome, limite, dia_f, dia_v, conn=None):
             desconectar(conn)
 
 
-def inserir_dividas(id_usu, valor_total, descricao, data_venc, conn=None):
-    """ Função que inseri as dividas do usuário no BD e retorna o id do mesmo"""
-    
-    gerenciar_conn = False
-    if conn is None:
-        conn = conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-    try:
-        sql = "INSERT INTO dividas (id_usuario, valor_total, valor_pago, descricao, data_vencimento, status) VALUES (%s, %s, %s, %s, %s)"
-        cursor.execute(sql, (id_usu, valor_total, 0, descricao, data_venc, 'Ativa'))
-        conn.commit()
-        return cursor.lastrowid # Retorna o ID do c.c. recém-inserida
-    
-    except MySQLdb.Error as e: # Captura erro específico do MySQL
-        print(f"Erro MySQL ao inserir cartão: {e}")
-        conn.rollback()
-        return None # Retorna None para indicar falha
-    
-    except Exception as e:
-        print(f"Erro inesperado ao inserir cartão: {e}")
-        conn.rollback()
-        return None
-        
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
 
 #------------------------------------------------------------------------------
-
 # ----------------------------- Atualizar ---------------------------------
 
-def atualizar_divida(id_divida, valor_pago, conn=None):
-    """Atualiza a tabela 'dividas' no banco de dados"""
-
-    gerenciar_conn = False
-    if conn is None:
-        conn = conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-
-    try:
-        sql = "UPDATE dividas SET valor_pago = valor_pago + %s WHERE id = %s"
-        cursor.execute(sql, (valor_pago, id_divida))
-        conn.commit()
-        print(f"Dívida com ID {id_divida} atualizada com sucesso!")
-        return True
-    
-    except MySQLdb.Error as e: # Captura erro específico do MySQL
-        print(f"Erro MySQL ao fazer atualização: {e}")
-        conn.rollback()
-        return False # Retorna None para indicar falha
-    
-    except Exception as e:
-        print(f"Erro inesperado ao inserir cartão: {e}")
-        conn.rollback()
-        return False
-        
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-
-
-def atualizar_receitas(id_rec, valor, descricao, data, conn=None):
+def atualizar_receita(id_rec, valor, descricao, data, conn=None):
 
     gerenciar_conn = False
     if conn is None:
@@ -907,8 +849,9 @@ def atualizar_renda(id_user, nova_renda, conn=None):
     finally:
         if gerenciar_conn:
             desconectar(conn)
-#------------------------------------------------------------------------------
 
+
+#------------------------------------------------------------------------------
 # ----------------------------- Deletar ---------------------------------
 
 def deletar_receita(id_rec, conn=None):

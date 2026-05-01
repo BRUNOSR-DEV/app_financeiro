@@ -5,7 +5,7 @@ import locale
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 from models.conecte_bd import (
-     dados_user, pega_id, dados_card,pega_despesas_cartao, pega_despesas, dados_receita, dados_assinaturas_avulsas, dados_assinaturas_cartao, atualizar_renda
+     dados_usuarios, pega_id, dados_cartoes, pega_despesas_cartao, pega_despesas_avulsas, dados_receitas, pega_assinaturas_avulsas, pega_assinaturas_cartao, atualizar_renda
      )
 
 from utils.helper import(
@@ -18,7 +18,9 @@ from ui.crud_app import (
     Faturas, Receitas, Despesas, Car_cred, Assinaturas, Simulacao
 )
 
-from utils.typedDict import(Despesa, Cartao, Cartao_banco)
+from utils.typedDict import(
+    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db
+    )
 from typing import List
 
 from ui.detalhar import(
@@ -61,7 +63,7 @@ class Main_app(ctk.CTk):
     def buscar_dados_banco(self):
         """ Função exclusiva para buscar/calcular dados. """
         self.user_id = pega_id(self.usuario_logado)
-        self.dados_usuario = dados_user(self.user_id)
+        self.dados_usuario = dados_usuarios(self.user_id)
 
         self.valor_renda = self.dados_usuario.get('sal_fixo', 0.0) 
 
@@ -83,11 +85,11 @@ class Main_app(ctk.CTk):
 
         self.nomes_datas = [self.mes_atual_str, self.prox_mes_str, self.seg_prox_mes_str, self.ter_prox_mes_str, self.quart_prox_mes_str]
 
-        self.dados_cartoes: List[Cartao_banco] = dados_card(self.user_id)
+        self.dados_cartoes: List[Dados_cartoes_db] = dados_cartoes(self.user_id)
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
 
-        self.despesas_avulsas = pega_despesas(self.user_id)
-        self.assinaturas_avulsas = dados_assinaturas_avulsas(self.user_id)
+        self.despesas_avulsas: List[Pega_despesas_avulsas_bd] = pega_despesas_avulsas(self.user_id)
+        self.assinaturas_avulsas: List[Pega_assinaturas_avulças_db] = pega_assinaturas_avulsas(self.user_id)
 
 
     def montar_dashboard(self):
@@ -273,7 +275,7 @@ class Main_app(ctk.CTk):
     controle_mes = datetime.now().month
     def atualizar_cores_saldo(self, sal_fixo, despesa, controle_mes=controle_mes):
 
-        receitas = dados_receita(self.user_id)
+        receitas = dados_receitas(self.user_id)
         receitas_fornecidas = Decimal('0.0')
 
         mes_vigente = self.data_atual.month

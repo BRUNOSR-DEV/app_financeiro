@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-     pega_usuarios, dados_user
+     pega_usuarios, dados_usuarios
 )
 
 from utils.audio_helper import tocar_notificacao 

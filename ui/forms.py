@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-      inserir_usuario, inserir_receitas, inserir_cc, inserir_despesas, inserir_assinatura, atualizar_receitas, atualiza_assinatura, atualizar_cartao, atualizar_despesa
+      inserir_usuario, inserir_receita, inserir_cc, inserir_despesa, inserir_assinatura, atualizar_receita, atualiza_assinatura, atualizar_cartao, atualizar_despesa
      )
 
 from utils.helper import(
@@ -181,13 +181,13 @@ class Cadastrar_receitas(ctk.CTkFrame):
 
         if not atualizar:
             #inserir os dados novos
-            sucesso = inserir_receitas(self.user_id, valor, descricao, data_mysql)
+            sucesso = inserir_receita(self.user_id, valor, descricao, data_mysql)
             msg_ok = "INSERIDOS"
 
             msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
         else:
             #Fazer atualização
-            sucesso = atualizar_receitas(id_rec, valor, descricao, data_mysql)
+            sucesso = atualizar_receita(id_rec, valor, descricao, data_mysql)
             msg_ok = "ATUALIZADOS"
 
             msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema..."
@@ -473,9 +473,9 @@ class Cadastrar_despesas(ctk.CTkFrame):
         #-------------- atualização e inserção --------------------
         if not atualizar:
             if verifica:
-                sucesso = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+                sucesso = inserir_despesa(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
             else:
-                sucesso = inserir_despesas(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+                sucesso = inserir_despesa(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
 
             msg_ok = 'INSERIDOS'
             msg_erro = "SALVAR"
