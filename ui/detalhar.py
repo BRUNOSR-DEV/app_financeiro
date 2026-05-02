@@ -1,13 +1,17 @@
 
 from models.conecte_bd import (
-    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa
+    pega_despesas_cartao, pega_assinaturas_cartao, deletar_receita, deletar_assinatura, deletar_cartao, deletar_despesa
      )
 
 from utils.helper import(
     gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, centralizar_janela, controle_data_parc,
 )
 
-from utils.typedDict import( Despesa, Cartao)
+from utils.typedDict import(
+    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db
+    )
+
+from typing import List
 
 from utils.audio_helper import tocar_notificacao 
 
@@ -30,10 +34,11 @@ from collections import defaultdict
 #Filho de Módulo Receitas (crud_app.py)
 class Listar_receitas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, controle_dados= None, trocar_mes=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_receitas=None, controle_dados= None, trocar_mes=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
+        self.dados_receitas: List[Dados_receitas_db] = dados_receitas
         self.controle_dados = controle_dados
         self.trocar_mes = trocar_mes
 
@@ -64,10 +69,8 @@ class Listar_receitas(ctk.CTkFrame):
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
 
-        self.dados_receitas = dados_receitas(self.user_id)
 
         if self.dados_receitas:
-
 
             for i, dado in enumerate(self.dados_receitas, start=1):
                 #dado é o dict de uma receita
@@ -159,13 +162,14 @@ class Listar_receitas(ctk.CTkFrame):
 #Filho de Módulo Despesas (crud_app.py)
 class Listar_despesas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, att_app=None, controle_dados=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, dados_despesas=None, att_app=None, controle_dados=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes
         self.att_app = att_app
         self.controle_dados = controle_dados
+        self.dados_despesas: List[Dados_despesas_db] = dados_despesas
 
         # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -190,19 +194,17 @@ class Listar_despesas(ctk.CTkFrame):
 
         self.listar()
 
+
     def listar(self):
         
         for widget in self.lista_frame.winfo_children():
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
 
-        self.dados_desp = dados_despesas(self.user_id)
 
-        if self.dados_desp:
-            
-            #'id_desp', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 'data_pp', 'dia_venc', 'id_cc' 
+        if self.dados_despesas:
 
-            for i, dado in enumerate(self.dados_desp, start=1):
+            for i, dado in enumerate(self.dados_despesas, start=1):
 
                 nome_card = None
 
@@ -308,13 +310,14 @@ class Listar_despesas(ctk.CTkFrame):
 #Filho de Módulo Cartões de Crédito (crud_app.py)
 class Listar_car_cred(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, nomes_cards =None, controle_dados = None, att_app = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes=None, nomes_cards =None, controle_dados = None, att_app = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.nomes_cards = nomes_cards
         self.controle_dados = controle_dados
         self.att_app = att_app
+        self.dados_cartoes: List[Dados_cartoes_db] = dados_cartoes
 
         # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -343,12 +346,9 @@ class Listar_car_cred(ctk.CTkFrame):
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
 
-        self.dados_card = dados_cartoes(self.user_id)
+        if self.dados_cartoes:
 
-        if self.dados_card:
-
-            #'id_cartao', 'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'
-            for i, dado in enumerate(self.dados_card, start=1):
+            for i, dado in enumerate(self.dados_cartoes, start=1):
 
                 nome = dado.get('nome_cartao')
                 limite = dado.get('limite_cartao')
@@ -436,13 +436,14 @@ class Listar_car_cred(ctk.CTkFrame):
 #Filho de Módulo Assinaturas (crud_app.py)      
 class Listar_assinaturas(ctk.CTkFrame):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, controle_dados=None, trocar_mes=None, *args, **kwargs):
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None, dados_assinaturas=None, controle_dados=None, trocar_mes=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.dados_cartoes = dados_cartoes 
+        self.dados_cartoes: List[Dados_cartoes_db] = dados_cartoes 
+        self.dados_assinaturas: List[Dados_assinaturas_db] = dados_assinaturas  
         self.controle_dados = controle_dados
-        self.trocar_mes = trocar_mes    
+        self.trocar_mes = trocar_mes
 
         # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -473,12 +474,10 @@ class Listar_assinaturas(ctk.CTkFrame):
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
 
-        self.dados_assinaturas = dados_assinaturas(self.user_id)
 
         if self.dados_assinaturas:
             
             
-                #id_ass, nome, valor, descricao, data_aquisicao, data_prim_pag, categoria, id_cc
             for i, dado in enumerate(self.dados_assinaturas, start=1):
 
                 nome_card = None

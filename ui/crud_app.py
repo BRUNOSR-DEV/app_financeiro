@@ -6,12 +6,18 @@ from utils.helper import(
 from utils.audio_helper import(
     tocar_notificacao
 )
+
+from models.conecte_bd import (
+    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa
+     )
+
 from ui.forms import(
     Cadastrar_receitas, Cadastrar_despesas, Cadastrar_car_cred, Cadastrar_assinaturas
 )
 
-
-from utils.typedDict import(Despesa, Cartao, Dados_cartoes_db)
+from utils.typedDict import(
+    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db
+    )
 from typing import List
 
 from ui.detalhar import(
@@ -28,10 +34,11 @@ ctk.set_appearance_mode('dark')
 #Módulo Receitas
 class Receitas(ctk.CTkToplevel):
 
-    def __init__(self,  parent=None, user_id=None, trocar_mes = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_receitas=None, trocar_mes = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
+        self.dados_receitas = dados_receitas
         self.trocar_mes = trocar_mes
 
         # --------------- Criação da Jenela -----------------------
@@ -42,7 +49,6 @@ class Receitas(ctk.CTkToplevel):
 
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
-
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1) 
@@ -56,7 +62,7 @@ class Receitas(ctk.CTkToplevel):
 
 
         #-------------- FRAME DA LISTA (Update/Delete) --------------------------
-        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, controle_dados= self.controle_dados, trocar_mes= trocar_mes )
+        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, dados_receitas=self.dados_receitas, controle_dados= self.controle_dados, trocar_mes= trocar_mes )
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
@@ -94,9 +100,10 @@ class Despesas(ctk.CTkToplevel):
         self.transient(parent)
         self.focus_set() 
 
-        # ---------------- Gerencimento de self ---------------------
+        # ---------------- Gerencimento ---------------------
         self.data_atual = datetime.now().date()
 
+        self.dados_despesas: List[Dados_despesas_db] = dados_despesas(self.user_id)
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1) 
@@ -109,7 +116,7 @@ class Despesas(ctk.CTkToplevel):
 
 
         #-------------------- FRAME DA LISTA (Update/Delete) ----------------------------------
-        self.frame_lista = Listar_despesas(parent=self, user_id=self.user_id, dados_cartoes= self.dados_cartoes, att_app = self.att_app, controle_dados=self.controle_dados)
+        self.frame_lista = Listar_despesas(parent=self, user_id=self.user_id, dados_cartoes= self.dados_cartoes, dados_despesas=self.dados_despesas, att_app = self.att_app, controle_dados=self.controle_dados)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
@@ -132,12 +139,13 @@ class Despesas(ctk.CTkToplevel):
 #Módulo Cartões de Crédito
 class Car_cred(ctk.CTkToplevel):
 
-    def __init__(self,  parent=None, user_id=None, nomes_cards =None, att_app = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes=None, nomes_cards =None, att_app = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.att_app = att_app
         self.nomes_cards = nomes_cards
+        self.dados_cartoes = dados_cartoes
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Cartões de Crédito")
@@ -158,7 +166,7 @@ class Car_cred(ctk.CTkToplevel):
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
-        self.frame_lista = Listar_car_cred(parent=self, user_id=self.user_id, controle_dados = self.controle_dados, att_app = self.att_app)
+        self.frame_lista = Listar_car_cred(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, controle_dados = self.controle_dados, att_app = self.att_app)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
@@ -200,6 +208,8 @@ class Assinaturas(ctk.CTkToplevel):
         self.data_atual = datetime.now().date()
         self.data_futuro = (self.data_atual + relativedelta(years=73)).replace(day=1, month=1)
 
+        self.dados_assinaturas = dados_assinaturas(self.user_id)
+
 
         # --------------- Configuração da janela/'labels' -----------------------
 
@@ -212,7 +222,7 @@ class Assinaturas(ctk.CTkToplevel):
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
-        self.frame_lista = Listar_assinaturas(self, self.user_id, self.dados_cartoes, self.controle_dados, self.trocar_mes )
+        self.frame_lista = Listar_assinaturas(self, self.user_id, self.dados_cartoes, self.dados_assinaturas, self.controle_dados, self.trocar_mes )
         self.frame_lista.grid(row=0, column=1, padx=(0,20), pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
@@ -265,7 +275,7 @@ class Faturas(ctk.CTkToplevel):
         self.container_principal.grid_columnconfigure(0, weight=1) 
         self.container_principal.grid_rowconfigure(1, weight=1) 
 
-        # ---------------- Gerencimento de self ---------------------
+        # ---------------- Gerencimento ---------------------
         self.limite = None
         self.fechamento = None
         self.vencimento = None

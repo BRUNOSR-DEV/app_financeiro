@@ -1,11 +1,13 @@
 
-from models.conecte_bd import (
-     pega_usuarios, dados_usuarios
-)
+from models.conecte_bd import (dados_usuarios)
+
+from utils.typedDict import(Dados_usuarios_db)
 
 from utils.audio_helper import tocar_notificacao 
 from utils.helper import(centralizar_janela)
 import time
+
+from typing import List
 
 import customtkinter as ctk
 ctk.set_appearance_mode('dark')
@@ -21,6 +23,8 @@ class Login(ctk.CTk):
 
     def __init__(self):
         super().__init__()
+
+        # --------------- Configuração da janela/'labels' -----------------------
         self.title('Sistema de Login')
         centralizar_janela(self, 350, 400)
         self.grid_columnconfigure(0, weight=1)
@@ -47,6 +51,11 @@ class Login(ctk.CTk):
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
         self.status_label.grid(row=5, column=0, pady=5)
 
+        # ---------------- Gerencimento ---------------------
+
+        self.usuarios: List[Dados_usuarios_db] = dados_usuarios()
+        self.usuario_logado = None
+
 
     def quit_and_destroy(self):
         self.quit()    # Para o mainloop com elegância
@@ -55,13 +64,13 @@ class Login(ctk.CTk):
     def validar_login(self):
         """ Valida o login que o usuário inseriu na entry"""
 
-        usuario = self.usuario_entry.get()
-        senha = self.senha_entry.get()
+        usuario_entry = self.usuario_entry.get()
+        senha_entry = self.senha_entry.get()
         login_sucesso = False
-        usuario_logado = usuario
+        usuario_logado = usuario_entry
 
-        for _, v in enumerate(pega_usuarios()):
-            if usuario == v[2] and senha == v[3]:
+        for _, user in enumerate(self.usuarios):
+            if usuario_entry == user["nome_user"] and senha_entry == user["senha"]:
                 login_sucesso = True
                 break
          
@@ -87,10 +96,10 @@ class Login(ctk.CTk):
     
 
     def abrir_tela_registro(self):
-        """ Direciona o usuário para fazer cadastro chamando a classe Registro_usuario"""
-        tocar_notificacao("click")
+        """ Direciona o usuário para fazer cadastro, chamando a classe Registro_usuario"""
+
+        tocar_notificacao("open_w", True)
         
         register_window = Registro_usuario(self)
-        #self.status_label.configure(text='Abrindo tela de registro...', text_color='blue')
         
         self.wait_window(register_window) 

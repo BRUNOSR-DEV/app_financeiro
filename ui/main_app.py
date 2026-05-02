@@ -5,11 +5,11 @@ import locale
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 from models.conecte_bd import (
-     dados_usuarios, pega_id, dados_cartoes, pega_despesas_cartao, pega_despesas_avulsas, dados_receitas, pega_assinaturas_avulsas, pega_assinaturas_cartao, atualizar_renda
+     pega_usuario, pega_id, dados_cartoes, pega_despesas_avulsas, dados_receitas, pega_assinaturas_avulsas, atualizar_renda
      )
 
 from utils.helper import(
-    gerar_opcoes_meses, controle_data_parc, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, centralizar_janela, check_entry_num
+    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, centralizar_janela, check_entry_num
 )
 
 from utils.audio_helper import tocar_notificacao 
@@ -63,7 +63,8 @@ class Main_app(ctk.CTk):
     def buscar_dados_banco(self):
         """ Função exclusiva para buscar/calcular dados. """
         self.user_id = pega_id(self.usuario_logado)
-        self.dados_usuario = dados_usuarios(self.user_id)
+        self.dados_usuario: List[Dados_usuarios_db] = pega_usuario(self.user_id)
+        self.dados_receitas: List[Dados_receitas_db] = dados_receitas(self.user_id)
 
         self.valor_renda = self.dados_usuario.get('sal_fixo', 0.0) 
 
@@ -257,6 +258,7 @@ class Main_app(ctk.CTk):
         self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), ttf_mes, controle_mes)
 
 
+
     def att_app(self):
         """ O botão Atualizar  """
         
@@ -272,10 +274,13 @@ class Main_app(ctk.CTk):
         print("Dashboard atualizado in-place com sucesso! 🚀")
 
 
-    controle_mes = datetime.now().month
-    def atualizar_cores_saldo(self, sal_fixo, despesa, controle_mes=controle_mes):
+    
+    def atualizar_cores_saldo(self, sal_fixo, despesa, controle_mes=None):
 
-        receitas = dados_receitas(self.user_id)
+        if controle_mes is None:
+            controle_mes = datetime.now().month
+
+        receitas = self.dados_receitas
         receitas_fornecidas = Decimal('0.0')
 
         mes_vigente = self.data_atual.month
@@ -425,7 +430,7 @@ class Main_app(ctk.CTk):
     def abrir_receitas(self):
 
         tocar_notificacao('open_w', True)
-        register_window = Receitas(self, self.user_id, trocar_mes = self.trocar_mes)
+        register_window = Receitas(self, self.user_id, dados_receitas=self.dados_receitas, trocar_mes = self.trocar_mes)
 
         self.wait_window(register_window) 
 
@@ -433,7 +438,7 @@ class Main_app(ctk.CTk):
     def abrir_cc(self):
 
         tocar_notificacao('open_w', True)
-        register_window = Car_cred(self, self.user_id, nomes_cards=self.nomes_cartoes, att_app=self.att_app)
+        register_window = Car_cred(self, self.user_id, dados_cartoes=self.dados_cartoes, nomes_cards=self.nomes_cartoes, att_app=self.att_app)
 
         self.wait_window(register_window)
 

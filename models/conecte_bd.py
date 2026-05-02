@@ -63,9 +63,10 @@ def desconectar(conn):
         conn.close()
 
 #-------------------------------------------------------------------
-
 #-------------------- Listagem de dados / entidades  -----------------------------
-def pega_usuarios(conn=None):
+
+#Todos os dados da entidade
+def dados_usuarios(conn=None):
     """
     Função que retorna lista de usuarios
     """
@@ -81,8 +82,12 @@ def pega_usuarios(conn=None):
         cursor.execute('SELECT * FROM usuarios')
         usuarios = cursor.fetchall()
 
+        colunas = [
+            'id_user', 'nome_completo', 'nome_user', 'senha', 'sal_fixo'
+        ]
+
         if usuarios:
-            return usuarios
+            return [dict(zip(colunas, valor)) for valor in usuarios]
         else:
             return []
         
@@ -91,80 +96,7 @@ def pega_usuarios(conn=None):
         raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
 
     except Exception as e:
-        print(f'Erro inesperado ao pegar dados: {e}')
-
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-
-
-def pega_id(usuario, conn=None): 
-    '''função que busca id do usuário no bd, passando o nome do usuário ''' 
-
-    gerenciar_conn = False
-
-    if conn is None:
-        conn = conectar_bd_original()
-        gerenciar_conn= True
-
-    cursor = conn.cursor() 
-
-    try:
-        sql = "SELECT id FROM usuarios WHERE nome_usuario = %s" 
-        cursor.execute(sql, (usuario,)) #obs. obrigatório passar uma tupla como parâmetro para cursor
-        result = cursor.fetchone()
-        
-
-        if result:
-            return result[0]
-        
-    except MySQLdb.Error as e:
-        print(f"Erro MySQL ao pegar ID: {e}")
-        return None # Retorna None em caso de erro no DB  
-    except Exception as e:
-        print(f"Erro inesperado ao pegar ID: {e}")
-
-    finally:
-        if gerenciar_conn:
-            desconectar(conn)
-
-
-#Todos os dados da entidade
-def dados_usuarios(id_user, conn=None):
-    """
-    Função que retorna os dados do  usuario
-    """
-    gerenciar_conn = False
-
-    if conn is None:
-        conn= conectar_bd_original()
-        gerenciar_conn = True
-
-    cursor = conn.cursor()
-
-    try:
-        sql = "SELECT * FROM usuarios WHERE id= %s"
-        cursor.execute(sql, (id_user, ))
-        usuario = cursor.fetchall()
-
-        colunas = [
-            'id_user', 'nome_completo', 'nome_user', 'senha', 'sal_fixo'
-        ]
-        resultado = [dict(zip(colunas, valor)) for valor in usuario]
-
-        for dado in resultado:
-
-            if dado:
-                return dado
-            else:
-                return []
-        
-    except MySQLdb.Error as e: # Captura erro específico do MySQL
-        print(f'Erro no MySQL ao buscar dados do usuário: {e}')
-        raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
-
-    except Exception as e:
-        print(f'Erro inesperado ao buscar dados do usuário: {e}')
+        print(f'Erro inesperado ao pegar usuários: {e}')
 
     finally:
         if gerenciar_conn:
@@ -328,6 +260,78 @@ def dados_assinaturas(id_user, conn=None):
 
 
 #Pega dados separadamente
+def pega_id(usuario, conn=None): 
+    '''função que busca id do usuário no bd, passando o nome do usuário ''' 
+
+    gerenciar_conn = False
+
+    if conn is None:
+        conn = conectar_bd_original()
+        gerenciar_conn= True
+
+    cursor = conn.cursor() 
+
+    try:
+        sql = "SELECT id FROM usuarios WHERE nome_usuario = %s" 
+        cursor.execute(sql, (usuario,)) #obs. obrigatório passar uma tupla como parâmetro para cursor
+        result = cursor.fetchone()
+        
+
+        if result:
+            return result[0]
+        
+    except MySQLdb.Error as e:
+        print(f"Erro MySQL ao pegar ID: {e}")
+        return None # Retorna None em caso de erro no DB  
+    except Exception as e:
+        print(f"Erro inesperado ao pegar ID: {e}")
+
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
+def pega_usuario(id_user, conn=None):
+    """
+    Função que retorna os dados do  usuario
+    """
+    gerenciar_conn = False
+
+    if conn is None:
+        conn= conectar_bd_original()
+        gerenciar_conn = True
+
+    cursor = conn.cursor()
+
+    try:
+        sql = "SELECT * FROM usuarios WHERE id= %s"
+        cursor.execute(sql, (id_user, ))
+        usuario = cursor.fetchall()
+
+        colunas = [
+            'id_user', 'nome_completo', 'nome_user', 'senha', 'sal_fixo'
+        ]
+        resultado = [dict(zip(colunas, valor)) for valor in usuario]
+
+        for dado in resultado:
+
+            if dado:
+                return dado
+            else:
+                return []
+        
+    except MySQLdb.Error as e: # Captura erro específico do MySQL
+        print(f'Erro no MySQL ao buscar dados do usuário: {e}')
+        raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
+
+    except Exception as e:
+        print(f'Erro inesperado ao buscar dados do usuário: {e}')
+
+    finally:
+        if gerenciar_conn:
+            desconectar(conn)
+
+
 def pega_despesas_cartao(id_user, id_card, conn=None):
     """
     Busca todas as despesas de um cartão específico, trazendo junto 
@@ -510,6 +514,8 @@ def pega_assinaturas_cartao(id_user, id_card, conn=None):
     finally:
         if gerenciar_conn:
             desconectar(conn)
+
+
 
 
 #----------------------------------------------------------------------

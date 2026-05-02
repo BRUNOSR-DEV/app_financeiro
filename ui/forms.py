@@ -27,7 +27,7 @@ class Registro_usuario(ctk.CTkToplevel):
     def __init__(self,  parent=None):
         super().__init__(parent)
 
-        self.master = parent # A referência à janela pai (opcional, mas útil)
+        self.master = parent 
 
         self.title("Registrar Novo Usuário")
         self.geometry("350x500")
@@ -49,10 +49,10 @@ class Registro_usuario(ctk.CTkToplevel):
         self.novo_usuario = ctk.CTkEntry(self, placeholder_text="Novo Usuário")
         self.novo_usuario.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
 
-        self.nova_senha = ctk.CTkEntry(self, placeholder_text="Nova Senha", show="*")
+        self.nova_senha = ctk.CTkEntry(self, placeholder_text="Senha", show="*")
         self.nova_senha.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
 
-        self.rep_nova_senha = ctk.CTkEntry(self, placeholder_text="Repita a senha", show="*")
+        self.rep_nova_senha = ctk.CTkEntry(self, placeholder_text="Repita a Senha", show="*")
         self.rep_nova_senha.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
 
         self.botao_registrar = ctk.CTkButton(self, text="Confirmar Registro", command=self.processar_registro)
@@ -72,12 +72,12 @@ class Registro_usuario(ctk.CTkToplevel):
         sal_fixo = self.sal_fixo.get().strip()
 
 
-        if not usuario or not senha1 or not senha2:
+        if not usuario or not senha1 or not senha2 or not sal_fixo:
             self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
 
-            tocar_notificacao("erro")
+            tocar_notificacao("dv_erro", True)
             self.update_idletasks()
-            self.after(3000, lambda: self.status_label.configure(text='')) 
+            self.after(2000, lambda: self.status_label.configure(text='')) 
             return
 
         if senha1 == senha2:
@@ -85,28 +85,28 @@ class Registro_usuario(ctk.CTkToplevel):
 
             if retorno:
                 self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
-                tocar_notificacao("sucesso")
+                tocar_notificacao("dv_sucesso", True)
                 self.update_idletasks()
                 self.after(2000, lambda: self.status_label.configure(text='')) 
 
-                self.status_label.configure(text=f'usuário: {usuario} Já pode fazer login no sistema! ', text_color='blue')
+                self.status_label.configure(text=f'Usuário: {usuario} Já pode fazer login no sistema! ', text_color='blue')
                 self.update_idletasks()
                 self.after(2000, lambda: self.status_label.configure(text='')) 
 
                 self.destroy()
             else:
                 self.status_label.configure(text='Não foi possível registrar, contate o adm do sistema...', text_color='red')
-                tocar_notificacao('erro')
+                tocar_notificacao('dv_erro', True)
                 self.update_idletasks()
 
-                self.after(3000, lambda: self.status_label.configure(text='')) 
+                self.after(2000, lambda: self.status_label.configure(text='')) 
                 
         else:
             self.status_label.configure(text='As senhas não correspondem!', text_color='red')
-            tocar_notificacao('erro')
+            tocar_notificacao('dv_erro', True)
             self.update_idletasks()
 
-            self.after(3000, lambda: self.status_label.configure(text='')) 
+            self.after(2000, lambda: self.status_label.configure(text='')) 
 
 
 #Filho de Módulo Receitas (crud_app.py)
