@@ -9,7 +9,7 @@ from models.conecte_bd import (
      )
 
 from utils.helper import(
-    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, centralizar_janela, check_entry_num
+    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, centralizar_janela, check_entry_num, preparar_dados_completos_cartao
 )
 
 from utils.audio_helper import tocar_notificacao 
@@ -92,6 +92,8 @@ class Main_app(ctk.CTk):
         self.despesas_avulsas: List[Pega_despesas_avulsas_bd] = pega_despesas_avulsas(self.user_id)
         self.assinaturas_avulsas: List[Pega_assinaturas_avulças_db] = pega_assinaturas_avulsas(self.user_id)
 
+        #chamada de dados 'despesas' e 'assinaturas' nos cartoes de self.dados_cartoes
+        self.dados_desp_ass_card = preparar_dados_completos_cartao(self.user_id, self.dados_cartoes)
 
     def montar_dashboard(self):
         """ Função exclusiva para desenhar a interface. """
@@ -185,7 +187,9 @@ class Main_app(ctk.CTk):
         self.main_content_frame.grid_rowconfigure(0, weight=1)
 
         # FRAME TABELA - Chamando do detalhar
-        self.frame_tabela = Listar_desp_tabela(parent=self.main_content_frame, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes)
+        
+
+        self.frame_tabela = Listar_desp_tabela(parent=self.main_content_frame, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_prontos= self.dados_desp_ass_card)
 
         self.frame_tabela.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
@@ -193,7 +197,7 @@ class Main_app(ctk.CTk):
 
 
         # FRAME GRÁFICO - Chamando do detalhar
-        self.frame_grafico = Listar_cat_grafico(parent=self.main_content_frame, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes )
+        self.frame_grafico = Listar_cat_grafico(parent=self.main_content_frame, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_prontos= self.dados_desp_ass_card)
 
         self.frame_grafico.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
 
@@ -385,7 +389,7 @@ class Main_app(ctk.CTk):
         if id_card:
             tocar_notificacao('open_w', True)
 
-            register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado, dados_card=self.dados_cartoes)
+            register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado, dados_card=self.dados_cartoes, dados_prontos= self.dados_desp_ass_card)
 
             self.wait_window(register_window)
         else:
@@ -421,7 +425,7 @@ class Main_app(ctk.CTk):
     def abrir_simulacao(self):
 
         tocar_notificacao('open_w', True)
-        register_window = Simulacao(self, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_usuario=self.dados_usuario, nomes_cartoes=self.nomes_cartoes)
+        register_window = Simulacao(self, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_usuario=self.dados_usuario, nomes_cartoes=self.nomes_cartoes, dados_prontos=self.dados_desp_ass_card)
 
         self.wait_window(register_window) 
 

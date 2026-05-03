@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, List
 
 from datetime import datetime
 
@@ -112,6 +112,12 @@ class Pega_assinatuas_cartao_db(TypedDict):
     dia_vencimento_cc: int
 
 
+class Pega_div_cartao_db(TypedDict):
+
+    info: Dados_cartoes_db
+    despesas: List[Pega_despesas_cartao_db]
+    assinaturas: List[Pega_assinatuas_cartao_db]
+
 
 class Cartao(TypedDict):
 
@@ -120,6 +126,7 @@ class Cartao(TypedDict):
     fechamento: int
     vencimento: int
     limite: float
+
 
 class Despesa(TypedDict):
 

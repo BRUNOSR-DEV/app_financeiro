@@ -8,10 +8,10 @@ from utils.helper import(
 )
 
 from utils.typedDict import(
-    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db
+    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db, Pega_div_cartao_db, Pega_assinatuas_cartao_db, Pega_despesas_cartao_db, Despesa
     )
 
-from typing import List
+from typing import List, cast
 
 from utils.audio_helper import tocar_notificacao 
 
@@ -588,13 +588,14 @@ class Listar_assinaturas(ctk.CTkFrame):
 #Filho de módulo Main_app e Simulação
 class Listar_desp_tabela(ctk.CTkFrame):
 
-    def __init__(self, parent=None, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, *args, **kwargs):
+    def __init__(self, parent=None, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_prontos=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
     
         self.id_user = id_user
         self.despesas_avulsas = despesas_avulsas #------ return: dict de despesas avulsas=(sem cartão)
         self.dados_cartoes = dados_cartoes # -------- return: dict de dados cartoes
         self.assinaturas_avulsas = assinaturas_avulsas # -----------return: dict de assinaturas avulsas
+        self.dados_prontos: List[Pega_div_cartao_db] = dados_prontos
 
         #???????????/???????
         #self.desp_cartoes = desp_cartoes # ---------- return: dict de despesas no cartão
@@ -909,13 +910,14 @@ class Listar_desp_tabela(ctk.CTkFrame):
 #Filho de módulo Main_app e Simulação
 class Listar_cat_grafico(ctk.CTkFrame):
 
-    def __init__(self, parent=None, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, *args, **kwargs):
+    def __init__(self, parent=None, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_prontos=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
         self.despesas_avulsas = despesas_avulsas
         self.dados_cartoes = dados_cartoes
         self.assinaturas_avulsas = assinaturas_avulsas
+        self.dados_prontos: List[Pega_div_cartao_db] = dados_prontos
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -1053,12 +1055,14 @@ class Listar_cat_grafico(ctk.CTkFrame):
 #Filho de Módulo Faturas (crud_app.py)
 class Listar_faturas_cartao(ctk.CTkFrame):
     
-    def __init__(self, parent=None, id_user=None, id_card=None, nome_card=None, *args, **kwargs):
+    def __init__(self, parent=None, id_user=None, id_card=None, nome_card=None, dados_prontos=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
         self.id_card = id_card
         self.nome_card = nome_card
+        self.dados_prontos = dados_prontos
+
         # ---------------- Gerencimento de self ---------------------
 
         self.data_atual = datetime.now().date()
@@ -1098,7 +1102,7 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
 
     
-    def tabela_cartao(self, id_user, id_card, escolha=None, controle_mes=None, dados_simulacao=None):
+    def tabela_cartao(self, id_user, id_card, escolha=None, controle_mes=None, dados_simulacao=None): #Dados_prontos TRUE
 
         for widget in self.container_dados.winfo_children():
             widget.destroy()
@@ -1106,13 +1110,27 @@ class Listar_faturas_cartao(ctk.CTkFrame):
         if controle_mes is None:
             controle_mes = datetime.now().month
 
-        dados_desp_card = pega_despesas_cartao(id_user, id_card)
-        assin = pega_assinaturas_cartao(id_user, id_card)
-
-        data_teste = mysql_para_obj('2026-06-02')
-
+        dados_desp_card = []
+        assin = []
         total_fatura = Decimal('0.0')
         total_assin = Decimal('0.0')
+
+        if self.dados_prontos:
+            for pacote in self.dados_prontos:
+                
+                # Auto-complete
+                pacote: Pega_div_cartao_db = pacote
+
+                #opção se não der certo - cala a boca py
+                    #pacote = cast(Pega_div_cartao_db, pacote)
+
+                info_cartao = pacote.get('info', {})
+                
+                # Se achou o cartão exato, pega os dados e QUEBRA o loop!
+                if str(info_cartao.get('id_cartao')) == str(id_card):
+                    dados_desp_card = pacote.get('despesas', [])
+                    assin = pacote.get('assinaturas', [])
+                    break
 
 
         if dados_desp_card or assin or dados_simulacao:
@@ -1151,12 +1169,12 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
             if dados_desp_card:
 
-                for _, dado  in enumerate(dados_desp_card):
+                for _, item_desp  in enumerate(dados_desp_card):
                 
-                    data_compra = mysql_para_obj(dado.get('data_compra'))
-                    fecha_fatura = dado.get('fechamento_fatura')
-                    dia_venc = dado.get('vencimento_fatura')
-                    parcelas = dado.get('parcelas')
+                    data_compra = mysql_para_obj(item_desp.get('data_compra'))
+                    fecha_fatura = item_desp.get('fechamento_fatura')
+                    dia_venc = item_desp.get('vencimento_fatura')
+                    parcelas = item_desp.get('parcelas')
 
 
                     resultado = controle_data_parc_cc(data_compra, fecha_fatura ,dia_venc, parcelas, controle_mes=controle_mes)
@@ -1166,10 +1184,10 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
                     if control_parc:
                     
-                        valor_mensal = Decimal(str(dado.get('valor_total'))) / dado.get('parcelas')
+                        valor_mensal = Decimal(str(item_desp.get('valor_total'))) / item_desp.get('parcelas')
                         total_fatura += valor_mensal
 
-                        ctk.CTkLabel(self.container_dados, text=dado.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.container_dados, text=item_desp.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
 
                         ctk.CTkLabel(self.container_dados, text=str_parc).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
 

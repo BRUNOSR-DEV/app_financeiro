@@ -3,10 +3,13 @@ from dateutil.relativedelta import relativedelta
 import calendar
 
 import re
+from typing import List
 
 from utils.audio_helper import tocar_notificacao
 
-
+from models.conecte_bd import (
+    pega_despesas_cartao, pega_assinaturas_cartao
+    )
 #-------- opções meses ----------
 def gerar_opcoes_meses(id=None, str_mes =None):
     meses_nome = {1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril", 
@@ -23,6 +26,27 @@ def gerar_opcoes_meses(id=None, str_mes =None):
 
     return meses_nome
 
+
+def preparar_dados_completos_cartao(id_user, dados_cartoes)-> List[dict]:
+    """
+    Transforma uma lista simples de cartões em uma lista robusta com despesas e assinaturas.
+    """
+    dados_completos = []
+    
+    for cartao in dados_cartoes:
+        id_card = cartao['id_cartao']
+        
+        
+        despesas = pega_despesas_cartao(id_user, id_card)
+        assinaturas = pega_assinaturas_cartao(id_user, id_card)
+        
+        dados_completos.append({
+            'info': cartao,
+            'despesas': despesas,
+            'assinaturas': assinaturas,
+        })
+        
+    return dados_completos
 
 
 # -------- Validação de entratada ----------

@@ -1,6 +1,6 @@
 
 from utils.helper import(
-    centralizar_janela,gerar_opcoes_meses, formatar_moeda, mysql_para_obj, data_para_exibicao
+    centralizar_janela,gerar_opcoes_meses, formatar_moeda, mysql_para_obj, data_para_exibicao, preparar_dados_completos_cartao
 )
 
 from utils.audio_helper import(
@@ -16,7 +16,7 @@ from ui.forms import(
 )
 
 from utils.typedDict import(
-    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db
+    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db, Pega_div_cartao_db
     )
 from typing import List
 
@@ -251,13 +251,14 @@ class Assinaturas(ctk.CTkToplevel):
 #Módulo Faturas
 class Faturas(ctk.CTkToplevel):
     
-    def __init__(self, parent, id_user=None, id_card=None, nome_card=None, dados_card=None, *args, **kwargs):
+    def __init__(self, parent, id_user=None, id_card=None, nome_card=None, dados_prontos=None, dados_card=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
         self.id_card = id_card
         self.nome_card = nome_card
         self.dados_card: List[Dados_cartoes_db]  = dados_card
+        self.dados_prontos = dados_prontos
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Detalhes: {nome_card}")
@@ -276,6 +277,8 @@ class Faturas(ctk.CTkToplevel):
         self.container_principal.grid_rowconfigure(1, weight=1) 
 
         # ---------------- Gerencimento ---------------------
+
+
         self.limite = None
         self.fechamento = None
         self.vencimento = None
@@ -354,13 +357,13 @@ class Faturas(ctk.CTkToplevel):
 
         #Instancia tabelas
         #-------------- Tabela mês mes_a --------------------------
-        self.frame_tabela_um = Listar_faturas_cartao(self.main_section, self.id_user, self.id_card, self.nome_card)
+        self.frame_tabela_um = Listar_faturas_cartao(self.main_section, self.id_user, self.id_card, self.nome_card, self.dados_prontos)
         self.frame_tabela_um.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
         self.frame_tabela_um.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_a, controle_mes=self.mes_atual)
 
         # ---------------- Tabela próximo mês ------------------------------
-        self.frame_tabela_dois = Listar_faturas_cartao(self.main_section, self.id_user, self.id_card, self.nome_card)
+        self.frame_tabela_dois = Listar_faturas_cartao(self.main_section, self.id_user, self.id_card, self.nome_card, self.dados_prontos)
         self.frame_tabela_dois.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
 
         self.frame_tabela_dois.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_b, controle_mes=self.prox_mes)
@@ -387,7 +390,7 @@ class Faturas(ctk.CTkToplevel):
 #Módulo Simulação
 class Simulacao(ctk.CTkToplevel):
 
-    def __init__(self, parent, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_usuario=None,nomes_cartoes=None, *args, **kwargs):
+    def __init__(self, parent, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_usuario=None,nomes_cartoes=None, dados_prontos=None,  *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
@@ -396,6 +399,7 @@ class Simulacao(ctk.CTkToplevel):
         self.assinaturas_avulsas = assinaturas_avulsas
         self.dados_usuario = dados_usuario
         self.nomes_cartoes = nomes_cartoes
+        self.dados_prontos: List[Pega_div_cartao_db] = dados_prontos
 
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
