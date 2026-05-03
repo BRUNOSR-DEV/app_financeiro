@@ -8,3 +8,4 @@ Testes:
 
 - Dia 02/05/2026 - 1 commit
 
+- Dia 03/05/2026 - 1 commit
