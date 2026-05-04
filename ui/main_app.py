@@ -84,7 +84,7 @@ class Main_app(ctk.CTk):
         self.quart_prox_mes_str = opcoes.get(self.quart_prox_mes)
         self.quint_prox_mes_str = opcoes.get(self.quint_prox_mes)
 
-        self.nomes_datas = [self.mes_atual_str, self.prox_mes_str, self.seg_prox_mes_str, self.ter_prox_mes_str, self.quart_prox_mes_str]
+        self.nomes_datas = [self.mes_atual_str, self.prox_mes_str, self.seg_prox_mes_str, self.ter_prox_mes_str, self.quart_prox_mes_str, self.quint_prox_mes_str]
 
         self.dados_cartoes: List[Dados_cartoes_db] = dados_cartoes(self.user_id)
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
@@ -250,6 +250,12 @@ class Main_app(ctk.CTk):
 
         elif self.quart_prox_mes_str == escolha:
             controle_mes = self.quart_prox_mes
+
+            ttf_mes = self.frame_tabela.renderizar(controle_mes, escolha=escolha)
+            self.frame_grafico.renderizar(controle_mes)
+
+        elif self.quint_prox_mes_str == escolha:
+            controle_mes = self.quint_prox_mes
 
             ttf_mes = self.frame_tabela.renderizar(controle_mes, escolha=escolha)
             self.frame_grafico.renderizar(controle_mes)
