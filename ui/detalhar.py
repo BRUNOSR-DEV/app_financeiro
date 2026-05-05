@@ -8,7 +8,7 @@ from utils.helper import(
 )
 
 from utils.typedDict import(
-    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db, Pega_div_cartao_db, Pega_assinatuas_cartao_db, Pega_despesas_cartao_db, Despesa
+    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db, Pega_div_cartao_db, Pega_assinatuas_cartao_db, Pega_despesas_cartao_db, Despesa_simulacao
     )
 
 from typing import List, cast
@@ -595,7 +595,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
         self.despesas_avulsas = despesas_avulsas #------ return: dict de despesas avulsas=(sem cartão)
         self.dados_cartoes = dados_cartoes # -------- return: dict de dados cartoes
         self.assinaturas_avulsas = assinaturas_avulsas # -----------return: dict de assinaturas avulsas
-        self.dados_prontos: List[Pega_div_cartao_db] = dados_prontos
+        self.dados_prontos= dados_prontos
 
         #???????????/???????
         #self.desp_cartoes = desp_cartoes # ---------- return: dict de despesas no cartão
@@ -636,8 +636,8 @@ class Listar_desp_tabela(ctk.CTkFrame):
         if controle_mes is None:
             controle_mes = int(datetime.now().month)
 
+
         despesas = self.despesas_avulsas
-        cartoes = self.dados_cartoes
         assin = self.assinaturas_avulsas
 
         total_avulsas = Decimal('0.0')
@@ -646,103 +646,107 @@ class Listar_desp_tabela(ctk.CTkFrame):
 
         lista_faturas_resumo = []
 
-        if cartoes:
+
+        if self.dados_prontos: #se tem cartão! entra no bloco
             
-            for cartao in cartoes:
-                nome_cartao = cartao.get('nome_cartao')
-                id_cartao = cartao.get('id_cartao') 
-            
-                #despesas_do_cartao = self.desp_cartoes
-                #assin_card = self.assin_cartoes ?????????????????
+            for pacote in self.dados_prontos:
+                pacote: Pega_div_cartao_db = pacote
+
+                info_cartao = pacote.get('info', {})
+
+                nome_cartao = info_cartao.get('nome_cartao')
+                id_cartao = info_cartao.get('id_cartao') 
                 
-                despesas_do_cartao = pega_despesas_cartao(self.id_user, id_cartao)
-                assin_card = pega_assinaturas_cartao(self.id_user, id_cartao)
+                despesas_do_cartao = pacote.get('despesas', {})
+                assin_card = pacote.get('assinaturas', {})
             
                 total_deste_cartao = Decimal('0.0')
                 data_vencimento_fatura = None
 
-                if assin_card:
+                if assin_card or despesas_do_cartao or dados_simulacao:
 
-                    for ass in assin_card:
+                    if assin_card:
 
-                        dia_f = ass.get('dia_fechamento_cc')
-                        dia_v = ass.get('dia_vencimento_cc')
-                        data_aquisicao = ass.get('data_aquisicao')
+                        for ass in assin_card:
 
-                        resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes= controle_mes)
-                        _, entra_na_fatura, _ = resultado
+                            dia_f = ass.get('dia_fechamento_cc')
+                            dia_v = ass.get('dia_vencimento_cc')
+                            data_aquisicao = ass.get('data_aquisicao')
 
-                        if entra_na_fatura:
-                            valor = Decimal(str(ass.get('valor')))
-                            total_deste_cartao += valor
+                            resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes= controle_mes)
+                            _, entra_na_fatura, _ = resultado
 
-
-                if despesas_do_cartao:
-
-                    for desp in despesas_do_cartao:
-
-                        data_compra = mysql_para_obj(desp.get('data_compra'))
-                        dia_venc = desp.get('vencimento_fatura')
-                        fechamento = desp.get('fechamento_fatura')
-                        parcelas = desp.get('parcelas')
+                            if entra_na_fatura:
+                                valor = Decimal(str(ass.get('valor')))
+                                total_deste_cartao += valor
 
 
-                        resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes= controle_mes)
-                        _, entra_na_fatura, controle_data = resultado
+                    if despesas_do_cartao:
 
-                        if entra_na_fatura:
-                            valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
-                            total_deste_cartao += valor_mensal
-                            data_vencimento_fatura = controle_data 
+                        for desp in despesas_do_cartao:
+
+                            data_compra = mysql_para_obj(desp.get('data_compra'))
+                            dia_venc = desp.get('vencimento_fatura')
+                            fechamento = desp.get('fechamento_fatura')
+                            parcelas = desp.get('parcelas')
+
+
+                            resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes= controle_mes)
+                            _, entra_na_fatura, controle_data = resultado
+
+                            if entra_na_fatura:
+                                valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
+                                total_deste_cartao += valor_mensal
+                                data_vencimento_fatura = controle_data 
 
 
                 
-                #---------- simulação - Inserindo o valor na fatura do cartão informado ----------------------
-                mensalidade_simulacao_card  = Decimal('0.0')
+                    #---------- simulação - Inserindo o valor na fatura do cartão informado ----------------------
+                    mensalidade_simulacao_card  = Decimal('0.0')
 
-                if not data_vencimento_fatura:
-                    dia_venc_base = cartao.get('vencimento_fatura')
-                    if dia_venc_base:
-                        # Assumindo que a fatura cai no mês de controle_mes
-                        ano_atual = datetime.now().year
-                        # Tratamento simples para virada de ano, caso precise
-                        data_vencimento_fatura = datetime(ano_atual, controle_mes, int(dia_venc_base)).date()
+                    if not data_vencimento_fatura:
+                        dia_venc_base = info_card.get('vencimento_fatura')
+                        if dia_venc_base:
+                            # Assumindo que a fatura cai no mês de controle_mes
+                            ano_atual = datetime.now().year
+                            # Tratamento simples para virada de ano, caso precise
+                            data_vencimento_fatura = datetime(ano_atual, controle_mes, int(dia_venc_base)).date()
 
 
-                if dados_simulacao:
+                    if dados_simulacao:
                     
-                    for _, dado in enumerate(dados_simulacao):
+                        for _, dado in enumerate(dados_simulacao):
                         
-                        info_card = dado.get('info_cartao')
+                            info_card = dado.get('info_cartao')
 
-                        if info_card and isinstance(info_card, dict):  #if type(met_pag) is dict: 
+                            if info_card and isinstance(info_card, dict):  #if type(met_pag) is dict: 
 
-                            data_compra_simulacao = dado.get('data_compra')
-                            parcelas_simulacao = int(dado.get('parcelas'))
+                                data_compra_simulacao = dado.get('data_compra')
+                                parcelas_simulacao = int(dado.get('parcelas'))
 
-                            id_card = info_card.get('id_cartao')
-                            venc_card_simulacao = info_card.get('vencimento')
-                            fech_card_simulacao = info_card.get('fechamento')
+                                id_card = info_card.get('id_cartao')
+                                venc_card_simulacao = info_card.get('vencimento')
+                                fech_card_simulacao = info_card.get('fechamento')
                             
-                            if str(id_card) == str(id_cartao): #id_cartao é o cartao do loop principal
+                                if str(id_card) == str(id_cartao): #id_cartao é o cartao do loop principal
 
-                                resultado = controle_data_parc_cc(data_compra_simulacao, fech_card_simulacao, venc_card_simulacao, parcelas_simulacao, controle_mes= controle_mes)
+                                    resultado = controle_data_parc_cc(data_compra_simulacao, fech_card_simulacao, venc_card_simulacao, parcelas_simulacao, controle_mes= controle_mes)
 
-                                _, entra_na_fatura, controle_data = resultado
+                                    _, entra_na_fatura, controle_data = resultado
 
-                                if entra_na_fatura:
-                                    data_vencimento_fatura = controle_data 
-                                    mensalidade_simulacao_card += Decimal(str(dado.get('valor_total'))) / parcelas_simulacao
+                                    if entra_na_fatura:
+                                        data_vencimento_fatura = controle_data 
+                                        mensalidade_simulacao_card += Decimal(str(dado.get('valor_total'))) / parcelas_simulacao
 
 
-                # Se o cartão tem fatura para pagar, guardamos na lista
+                    # Se o cartão tem fatura para pagar, guardamos na lista
 
-                if (total_deste_cartao > Decimal('0.0')) or (mensalidade_simulacao_card > Decimal('0.0')):
-                    lista_faturas_resumo.append({
-                        'local': f"Fatura - {nome_cartao}",
-                        'valor': (total_deste_cartao + mensalidade_simulacao_card),
-                        'vencimento': data_vencimento_fatura
-                    })
+                    if (total_deste_cartao > Decimal('0.0')) or (mensalidade_simulacao_card > Decimal('0.0')):
+                        lista_faturas_resumo.append({
+                            'local': f"Fatura - {nome_cartao}",
+                            'valor': (total_deste_cartao + mensalidade_simulacao_card),
+                            'vencimento': data_vencimento_fatura
+                        })
 
     
         # Se tiver despesas avulsas OU tiver faturas de cartão, a gente desenha a tabela
@@ -1202,7 +1206,7 @@ class Listar_faturas_cartao(ctk.CTkFrame):
                 
                 for dado in dados_simulacao:
 
-                    dado: Despesa
+                    dado: Despesa_simulacao
                     
                     info_card = dado.get('info_cartao')
 

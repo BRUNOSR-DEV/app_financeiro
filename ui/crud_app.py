@@ -16,7 +16,7 @@ from ui.forms import(
 )
 
 from utils.typedDict import(
-    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db, Pega_div_cartao_db
+    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db, Pega_div_cartao_db, Cartao
     )
 from typing import List
 

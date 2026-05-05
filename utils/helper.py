@@ -36,7 +36,6 @@ def preparar_dados_completos_cartao(id_user, dados_cartoes)-> List[dict]:
     for cartao in dados_cartoes:
         id_card = cartao['id_cartao']
         
-        
         despesas = pega_despesas_cartao(id_user, id_card)
         assinaturas = pega_assinaturas_cartao(id_user, id_card)
         

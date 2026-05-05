@@ -7,7 +7,7 @@ from utils.helper import(
     gerar_opcoes_meses, data_para_mysql, mysql_para_obj
 )
 
-from utils.typedDict import(Despesa)
+from utils.typedDict import(Despesa_simulacao)
 
 from tkcalendar import DateEntry
 from datetime import datetime
@@ -451,7 +451,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
         if simulacao:
 
             
-            dict_dados: Despesa = {
+            dict_dados: Despesa_simulacao = {
                 "local": local,
                 "valor_total": valor_total,
                 "parcelas": menu_parcelas_str,
