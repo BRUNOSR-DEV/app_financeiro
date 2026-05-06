@@ -383,6 +383,8 @@ class Main_app(ctk.CTk):
 
 
 # ------------- Detalhamento -------------------
+
+    #classe ---- Faturas -------
     def abrir_det_cc(self):
 
         nome_selecionado = self.menu_cartoes.get()

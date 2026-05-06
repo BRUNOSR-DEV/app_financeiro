@@ -261,7 +261,7 @@ class Faturas(ctk.CTkToplevel):
         self.dados_prontos = dados_prontos
 
         # --------------- Configuração da janela/'labels' -----------------------
-        self.title(f"Detalhes: {nome_card}")
+        self.title(f"Detalhes: {self.nome_card}")
         centralizar_janela(self, 1200, 800)
         self.transient(parent)
         self.focus_set() 
@@ -318,8 +318,8 @@ class Faturas(ctk.CTkToplevel):
         self.nomes_datas = [self.mes_atual_str + e + self.prox_mes_str, self.seg_prox_mes_str + e + self.ter_prox_mes_str, self.quart_prox_mes_str + e + self.quint_prox_mes_str]
 
 
-        mes_a = f"#{nome_card} - Mês: {self.mes_atual_str}"
-        mes_b = f"#{nome_card} - Mês: {self.prox_mes_str}"
+        mes_a = f"#{self.nome_card} - Mês: {self.mes_atual_str}"
+        mes_b = f"#{self.nome_card} - Mês: {self.prox_mes_str}"
 
         # ----------------- Top section ---------------------------------
         self.top_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
@@ -498,13 +498,13 @@ class Simulacao(ctk.CTkToplevel):
         self.frame_cadastro.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 
         # ------------------- FRAME TABELA -----------------------------
-        self.tabela_frame = Listar_desp_tabela(parent=self.main_section, id_user=self.id_user, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes)
+        self.tabela_frame = Listar_desp_tabela(parent=self.main_section, id_user=self.id_user, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_prontos=self.dados_prontos)
         self.tabela_frame.grid(row=0, column=1, padx=5, pady=5, sticky="nsew") 
 
         self.tabela_frame.renderizar()
 
         # -------------------- FRAME TABELA DO CARTÃO DE CRÉDITO  ------------------------------
-        self.frame_tab_fatura = Listar_faturas_cartao(parent=self.main_section, id_user=self.id_user)
+        self.frame_tab_fatura = Listar_faturas_cartao(parent=self.main_section, id_user=self.id_user, dados_prontos=self.dados_prontos)
         self.frame_tab_fatura.grid(row=0, column=2, padx=5, pady=5, sticky="nsew")
 
 
@@ -512,7 +512,7 @@ class Simulacao(ctk.CTkToplevel):
 
         self.dados_select.clear()
 
-        self.tabela_frame.renderizar(escolha=self.mes_atual_str)
+        self.tabela_frame.renderizar()
 
         for widget in self.frame_tab_fatura.container_dados.winfo_children():
             widget.destroy()

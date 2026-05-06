@@ -705,7 +705,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                     mensalidade_simulacao_card  = Decimal('0.0')
 
                     if not data_vencimento_fatura:
-                        dia_venc_base = info_card.get('vencimento_fatura')
+                        dia_venc_base = info_cartao.get('vencimento_fatura')
                         if dia_venc_base:
                             # Assumindo que a fatura cai no mês de controle_mes
                             ano_atual = datetime.now().year
@@ -1099,10 +1099,6 @@ class Listar_faturas_cartao(ctk.CTkFrame):
         self.container_dados = ctk.CTkFrame(self.tabela_frame, fg_color="transparent")
         self.container_dados.pack(fill="both", expand=True)
 
-        #self.container_dados.grid_columnconfigure(0, weight=2)
-        #self.container_dados.grid_rowconfigure((1, 2, 3), weight=1)# Parcelas, Valor, Vencimento
-        
-        self.tabela_cartao(id_user, id_card)
 
 
     
