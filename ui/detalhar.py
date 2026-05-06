@@ -749,7 +749,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                         })
 
     
-        # Se tiver despesas avulsas OU tiver faturas de cartão, a gente desenha a tabela
+        # Se tiver despesas avulsas, faturas de cartão, assinaturas ou simulação, desenha a tabela.
         if despesas or lista_faturas_resumo or assin or dados_simulacao:
         
             # Cabeçalho
@@ -911,7 +911,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
             self.tabela_frame.grid_columnconfigure(2, weight=1)
 
 
-#Filho de módulo Main_app e Simulação
+#Filho de módulo Main_app
 class Listar_cat_grafico(ctk.CTkFrame):
 
     def __init__(self, parent=None, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_prontos=None, *args, **kwargs):
@@ -921,7 +921,7 @@ class Listar_cat_grafico(ctk.CTkFrame):
         self.despesas_avulsas = despesas_avulsas
         self.dados_cartoes = dados_cartoes
         self.assinaturas_avulsas = assinaturas_avulsas
-        self.dados_prontos: List[Pega_div_cartao_db] = dados_prontos
+        self.dados_prontos: Pega_div_cartao_db = dados_prontos
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -934,8 +934,8 @@ class Listar_cat_grafico(ctk.CTkFrame):
         self.grafico_frame.grid_rowconfigure(0, weight=1)
 
         
-    controle_mes = datetime.now().month
-    def renderizar(self, controle_mes=controle_mes):
+    
+    def renderizar(self, controle_mes=None):
         
 
         print(f"Renderizando gráfico")
@@ -943,86 +943,99 @@ class Listar_cat_grafico(ctk.CTkFrame):
         for widget in self.grafico_frame.winfo_children():
             widget.destroy()
 
-        assin = self.assinaturas_avulsas
+        if controle_mes is None:
+            controle_mes = datetime.now().month
+
+        assin_avulsas = self.assinaturas_avulsas
+        desp_avulsas = self.despesas_avulsas
 
         gastos_por_categoria = defaultdict(Decimal)
         total_previsto = Decimal('0.0')
     
-        # Pegamos os dados necessários
-        id_cartoes = [d.get('id_cartao') for d in self.dados_cartoes]
-        desp_avulsas = self.despesas_avulsas
         
 
-        #DESPESAS DE CARTÃO
-        for id_cc in id_cartoes:
+        if self.dados_prontos:
 
-            desp_cc = pega_despesas_cartao(self.id_user, id_cc)
-            assin_card = pega_assinaturas_cartao(self.id_user, id_cc)
+            for pacote in self.dados_prontos:
+                pacote: Pega_div_cartao_db = pacote
 
-            for ass in assin_card:
-                dia_f = ass.get('dia_fechamento_cc')
-                dia_v = ass.get('dia_vencimento_cc')
-                data_aquisicao = ass.get('data_aquisicao')
+                desp_cc = pacote.get('despesas', {})
+                assin_card = pacote.get('assinaturas', {})
 
-                resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes= controle_mes)
-                _, entra_na_fatura, _ = resultado
+            
+                if assin_card:
+                    for ass in assin_card:
 
-                if entra_na_fatura:
-                    valor = Decimal(str(ass.get('valor')))
-                    # SOMA NO DICIONÁRIO USANDO A CATEGORIA
-                    categoria = ass.get('categoria', 'Outros')
-                    gastos_por_categoria[categoria] += valor
-                    total_previsto += valor
+                        dia_f = ass.get('dia_fechamento_cc')
+                        dia_v = ass.get('dia_vencimento_cc')
+                        data_aquisicao = ass.get('data_aquisicao')
+
+                        # Verifica se entra na fatura atual - Método chamado de utils/helper
+                        resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes= controle_mes)
+                        _, entra_na_fatura, _ = resultado
+
+                        if entra_na_fatura:
+
+                            valor = Decimal(str(ass.get('valor')))
+                            categoria = ass.get('categoria', 'Outros') # SOMA NO DICIONÁRIO USANDO A CATEGORIA
+                            gastos_por_categoria[categoria] += valor
+                            total_previsto += valor
+
+                if desp_cc:
+                    for desp in desp_cc:
+
+                        data_compra = mysql_para_obj(desp.get('data_compra'))
+                        dia_venc = desp.get('vencimento_fatura')
+                        fechamento = desp.get('fechamento_fatura')
+                        parcelas = desp.get('parcelas')
+
+                        resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes= controle_mes)
+                        _, entra_na_fatura, _ = resultado
+
+                        if entra_na_fatura:
+
+                            valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
+                            categoria = desp.get('categoria', 'Outros') 
+                            gastos_por_categoria[categoria] += valor_mensal
+                            total_previsto += valor_mensal
+
+
+
+        if desp_avulsas or assin_avulsas:
+
+            if desp_avulsas:
+                for desp in desp_avulsas:
+
+                    primeira_parc = mysql_para_obj(desp.get('primeira_parc'))
+                    parcelas = desp.get('parcelas')
+                    dia_venc = desp.get('dia_vencimento')
         
-            for desp in desp_cc:
-                data_compra = mysql_para_obj(desp.get('data_compra'))
-                dia_venc = desp.get('vencimento_fatura')
-                fechamento = desp.get('fechamento_fatura')
-                parcelas = desp.get('parcelas')
+                    resultado = controle_data_parc(primeira_parc, dia_venc , parcelas, controle_mes = controle_mes)
+                    _, entra_no_mes, _ = resultado
 
-                # Verifica se entra na fatura atual
-                resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes= controle_mes)
-                _, entra_na_fatura, _ = resultado
+                    if entra_no_mes:
 
-                if entra_na_fatura:
-                    valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
-                    # SOMA NO DICIONÁRIO USANDO A CATEGORIA
-                    categoria = desp.get('categoria', 'Outros')
-                    gastos_por_categoria[categoria] += valor_mensal
-                    total_previsto += valor_mensal
+                        valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
+                        categoria = desp.get('categoria', 'Outros')
+                        gastos_por_categoria[categoria] += valor_mensal
+                        total_previsto += valor_mensal
 
+            if assin_avulsas:
 
+                for ass in assin_avulsas:
 
-        # parte avulsas
-        for desp in desp_avulsas:
-            primeira_parc = mysql_para_obj(desp.get('primeira_parc'))
-            parcelas = desp.get('parcelas')
-            dia_venc = desp.get('dia_vencimento')
-        
-            # Usando sua função de controle para avulsas
-            resultado = controle_data_parc(primeira_parc, dia_venc , parcelas, controle_mes = controle_mes)
-            _, entra_no_mes, _ = resultado
+                    data_pp = mysql_para_obj(ass.get('data_pp'))
+                    dia_venc = ass.get('dia_vencimento')
+                    valor = ass.get('valor')
 
-            if entra_no_mes:
-                valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
-                categoria = desp.get('categoria', 'Outros')
-                gastos_por_categoria[categoria] += valor_mensal
-                total_previsto += valor_mensal
+                    resultado = controle_data_parc(data_pp, dia_venc, controle_mes = controle_mes)
+                    _, entra_no_mes, _ = resultado
 
-                
-        for ass in assin:
+                    if entra_no_mes:
 
-            data_pp = mysql_para_obj(ass.get('data_pp'))
-            dia_venc = ass.get('dia_vencimento')
-            valor = ass.get('valor')
-
-            resultado = controle_data_parc(data_pp, dia_venc, controle_mes = controle_mes)
-            _, entra_no_mes, _ = resultado
-
-            if entra_no_mes:
-                total_previsto += valor
-                categoria = ass.get('categoria', 'Outros')
-                gastos_por_categoria[categoria] += valor
+                        total_previsto += valor
+                        categoria = ass.get('categoria', 'Outros')
+                        gastos_por_categoria[categoria] += valor
             
         #Verifica se tem algo para mostrar
         if total_previsto == Decimal('0.0'):
