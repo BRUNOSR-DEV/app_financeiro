@@ -8,7 +8,7 @@ from utils.audio_helper import(
 )
 
 from models.conecte_bd import (
-    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa
+    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa, inserir_receita, atualizar_receita
      )
 
 from ui.forms import(
@@ -34,12 +34,12 @@ ctk.set_appearance_mode('dark')
 #Módulo Receitas
 class Receitas(ctk.CTkToplevel):
 
-    def __init__(self,  parent=None, user_id=None, dados_receitas=None, trocar_mes = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_receitas=None, att_app=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_receitas = dados_receitas
-        self.trocar_mes = trocar_mes
+        self.att_app = att_app
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Receitas")
@@ -56,19 +56,50 @@ class Receitas(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
         # ---------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_receitas(parent=self, user_id=self.user_id, trocar_mes = trocar_mes, atualizar_lista= self.atualizar_lista)
+        self.frame_cadastro = Cadastrar_receitas(parent=self, user_id=self.user_id, callback_atualizar=self.comando_atualizar, callback_inserir=self.comando_inserir)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
-
         #-------------- FRAME DA LISTA (Update/Delete) --------------------------
-        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, dados_receitas=self.dados_receitas, controle_dados= self.controle_dados, trocar_mes= trocar_mes )
+        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, dados_receitas=self.dados_receitas, controle_dados= self.controle_dados, callback_delete=self.comando_delete)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
+
+    def comando_inserir(self, user_id, valor, descricao, data_mysql):
+
+        sucesso = inserir_receita(user_id, valor, descricao, data_mysql)
+
+        if sucesso:
+            if self.att_app:
+                self.att_app()
         
+            self.frame_lista.listar()
+
+        return sucesso
     
+
+    def comando_delete(self, id_rec):
+
+        sucesso = deletar_receita(id_rec)
+
+        return sucesso
+
+
+    def comando_atualizar(self, id_rec, valor, descricao, data_mysql):
+
+        sucesso = atualizar_receita(id_rec, valor, descricao, data_mysql)
+
+        if sucesso:
+            if self.att_app:
+                self.att_app()
+            
+            self.frame_lista.listar()
+
+        return sucesso
+    
+
     def controle_dados(self, dados=None):
         
         if dados:
@@ -77,10 +108,6 @@ class Receitas(ctk.CTkToplevel):
             print('ERRO: detalhar.py(Listar_receitas) não enviou os dados')
         
 
-    def atualizar_lista(self):
-        
-        print("Atualizando a lista de receitas na tela...")
-        self.frame_lista.listar()
         
 
 #Módulo Despesas

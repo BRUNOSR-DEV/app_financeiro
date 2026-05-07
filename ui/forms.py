@@ -112,12 +112,12 @@ class Registro_usuario(ctk.CTkToplevel):
 #Filho de Módulo Receitas (crud_app.py)
 class Cadastrar_receitas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, trocar_mes = None, atualizar_lista= None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, callback_atualizar=None, callback_inserir=None,  *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.trocar_mes = trocar_mes
-        self.atualizar_lista = atualizar_lista
+        self.cb_atualizar = callback_atualizar
+        self.cb_inserir = callback_inserir
 
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
@@ -181,13 +181,17 @@ class Cadastrar_receitas(ctk.CTkFrame):
 
         if not atualizar:
             #inserir os dados novos
-            sucesso = inserir_receita(self.user_id, valor, descricao, data_mysql)
+            sucesso = self.cb_inserir(self.user_id, valor, descricao, data_mysql)
+
+            #sucesso = inserir_receita(self.user_id, valor, descricao, data_mysql)
             msg_ok = "INSERIDOS"
 
             msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
         else:
             #Fazer atualização
-            sucesso = atualizar_receita(id_rec, valor, descricao, data_mysql)
+            sucesso = self.cb_atualizar(id_rec, valor, descricao, data_mysql)
+
+            #sucesso = atualizar_receita(id_rec, valor, descricao, data_mysql)
             msg_ok = "ATUALIZADOS"
 
             msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema..."
@@ -203,12 +207,6 @@ class Cadastrar_receitas(ctk.CTkFrame):
 
             if atualizar:
                 self.controla_campos(None)
-
-            if self.atualizar_lista:
-                self.atualizar_lista()
-
-            if self.trocar_mes: 
-                self.trocar_mes(escolha=gerar_opcoes_meses().get(data_obj.month))
    
         else:
 

@@ -442,7 +442,7 @@ class Main_app(ctk.CTk):
     def abrir_receitas(self):
 
         tocar_notificacao('open_w', True)
-        register_window = Receitas(self, self.user_id, dados_receitas=self.dados_receitas, trocar_mes = self.trocar_mes)
+        register_window = Receitas(self, self.user_id, dados_receitas=self.dados_receitas, att_app = self.att_app)
 
         self.wait_window(register_window) 
 

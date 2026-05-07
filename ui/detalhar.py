@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-    pega_despesas_cartao, pega_assinaturas_cartao, deletar_receita, deletar_assinatura, deletar_cartao, deletar_despesa
+    deletar_receita, deletar_assinatura, deletar_cartao, deletar_despesa
      )
 
 from utils.helper import(
@@ -11,7 +11,7 @@ from utils.typedDict import(
     Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db, Pega_div_cartao_db, Pega_assinatuas_cartao_db, Pega_despesas_cartao_db, Despesa_simulacao
     )
 
-from typing import List, cast
+from typing import List
 
 from utils.audio_helper import tocar_notificacao 
 
@@ -34,13 +34,13 @@ from collections import defaultdict
 #Filho de Módulo Receitas (crud_app.py)
 class Listar_receitas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_receitas=None, controle_dados= None, trocar_mes=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_receitas=None, controle_dados= None, callback_delete=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_receitas: List[Dados_receitas_db] = dados_receitas
         self.controle_dados = controle_dados
-        self.trocar_mes = trocar_mes
+        self.cb_delete = callback_delete
 
          # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -138,10 +138,9 @@ class Listar_receitas(ctk.CTkFrame):
     def executar_delete(self, dados, popup):
         
         id_rec = dados.get('id_receita')
-        int_mes = mysql_para_obj(dados.get('data')).month
         descricao = dados.get('descricao')
 
-        sucesso = deletar_receita(id_rec)
+        sucesso = self.cb_delete(id_rec)
 
         if sucesso:
 
@@ -149,8 +148,6 @@ class Listar_receitas(ctk.CTkFrame):
             tocar_notificacao("sucesso")
 
             self.listar()
-
-            self.trocar_mes(escolha=gerar_opcoes_meses().get(int_mes))
 
             popup.destroy()
 
