@@ -32,7 +32,7 @@ ctk.set_appearance_mode('dark')
 
 
 #Módulo Receitas
-class Receitas(ctk.CTkToplevel):
+class Receitas(ctk.CTkToplevel): #fazendo refactor em receitas na branch 'refactor-estrutura'
 
     def __init__(self,  parent=None, user_id=None, dados_receitas=None, trocar_mes = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
