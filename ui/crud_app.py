@@ -56,49 +56,61 @@ class Receitas(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
         # ---------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_receitas(parent=self, user_id=self.user_id, callback_atualizar=self.comando_atualizar, callback_inserir=self.comando_inserir)
+        self.frame_cadastro = Cadastrar_receitas(parent=self, user_id=self.user_id, callback_comandante_crud=self.comandante_crud)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
         #-------------- FRAME DA LISTA (Update/Delete) --------------------------
-        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, dados_receitas=self.dados_receitas, controle_dados= self.controle_dados, callback_delete=self.comando_delete)
+        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, dados_receitas=self.dados_receitas, controle_dados= self.controle_dados, callback_comandante_crud=self.comandante_crud)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
 
-    def comando_inserir(self, user_id, valor, descricao, data_mysql):
 
-        sucesso = inserir_receita(user_id, valor, descricao, data_mysql)
+    def comandante_crud(self, inserir:dict=None, atualizar:dict=None, deletar:dict=None):
 
-        if sucesso:
-            if self.att_app:
-                self.att_app()
-        
-            self.frame_lista.listar()
+        sucesso = None
 
-        return sucesso
-    
-
-    def comando_delete(self, id_rec):
-
-        sucesso = deletar_receita(id_rec)
-
-        return sucesso
-
-
-    def comando_atualizar(self, id_rec, valor, descricao, data_mysql):
-
-        sucesso = atualizar_receita(id_rec, valor, descricao, data_mysql)
-
-        if sucesso:
-            if self.att_app:
-                self.att_app()
+        if inserir:
+            sucesso = inserir_receita(inserir['user_id'], inserir['valor'], inserir['descricao'], inserir['data_mysql'])
+        elif atualizar:
+            sucesso = atualizar_receita(atualizar['id_rec'], atualizar['valor'], atualizar['descricao'], atualizar['data_mysql'])
+        elif deletar:
+            sucesso = deletar_receita(deletar['id_rec'])
             
-            self.frame_lista.listar()
+        if sucesso:
+            self.definicao_sucesso()
+        else:
+            self.definicao_insucesso()
 
         return sucesso
     
+
+    def definicao_sucesso(self):
+        tocar_notificacao("sucesso")
+
+        if self.att_app:
+            new_dados_receitas = self.att_app()
+
+            print(f"DEBUG CRUD: retorno de att_app {len(new_dados_receitas)} itens")
+
+            self.dados_receitas = new_dados_receitas
+        
+        self.update()
+
+        print(f"DEBUG CRUD: {len(self.dados_receitas)} itens")
+
+        self.update()
+
+        self.frame_lista.listar(dados_receitas=self.dados_receitas)
+
+        self.frame_cadastro.limpa_campos()
+
+
+    def definicao_insucesso(self):
+        tocar_notificacao("erro")
+
 
     def controle_dados(self, dados=None):
         

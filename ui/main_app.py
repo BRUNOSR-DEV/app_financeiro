@@ -283,6 +283,8 @@ class Main_app(ctk.CTk):
         self.config(cursor="")
         print("Dashboard atualizado in-place com sucesso! 🚀")
 
+        return self.dados_receitas
+
 
     
     def atualizar_cores_saldo(self, sal_fixo, despesa, controle_mes=None):

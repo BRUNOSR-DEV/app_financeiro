@@ -34,13 +34,13 @@ from collections import defaultdict
 #Filho de Módulo Receitas (crud_app.py)
 class Listar_receitas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_receitas=None, controle_dados= None, callback_delete=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_receitas=None, controle_dados= None, callback_comandante_crud=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_receitas: List[Dados_receitas_db] = dados_receitas
         self.controle_dados = controle_dados
-        self.cb_delete = callback_delete
+        self.cdt_crud = callback_comandante_crud
 
          # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -63,14 +63,22 @@ class Listar_receitas(ctk.CTkFrame):
         self.listar()
 
        
-    def listar(self):
+    def listar(self, dados_receitas=None):
 
         for widget in self.lista_frame.winfo_children():
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
 
+        
+        if dados_receitas is None:
+            dados_receitas = self.dados_receitas
 
-        if self.dados_receitas:
+        self.lista_frame.update_idletasks()
+        self.lista_frame._parent_canvas.configure(scrollregion=self.lista_frame._parent_canvas.bbox("all"))
+        
+        print(f"DEBUG LISTAR: {len(dados_receitas)} itens")
+
+        if dados_receitas:
 
             for i, dado in enumerate(self.dados_receitas, start=1):
                 #dado é o dict de uma receita
@@ -140,20 +148,19 @@ class Listar_receitas(ctk.CTkFrame):
         id_rec = dados.get('id_receita')
         descricao = dados.get('descricao')
 
-        sucesso = self.cb_delete(id_rec)
+        dado = {'id_rec': id_rec}
+
+        sucesso = self.cdt_crud(deletar=dado)
 
         if sucesso:
 
             print(f"ID {id_rec} receita: '{descricao}'. Mandado pro espaço 🌌​")
-            tocar_notificacao("sucesso")
 
-            self.listar()
-
+            #self.listar()
             popup.destroy()
 
         else:
             print("Erro ao deletar")
-            tocar_notificacao("erro")
 
             
 #Filho de Módulo Despesas (crud_app.py)
