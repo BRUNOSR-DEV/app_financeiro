@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-    pega_despesas_cartao, pega_assinaturas_cartao, deletar_receita, deletar_assinatura, deletar_cartao, deletar_despesa
+    deletar_receita, deletar_assinatura, deletar_cartao, deletar_despesa
      )
 
 from utils.helper import(
@@ -11,7 +11,7 @@ from utils.typedDict import(
     Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db, Pega_div_cartao_db, Pega_assinatuas_cartao_db, Pega_despesas_cartao_db, Despesa_simulacao
     )
 
-from typing import List, cast
+from typing import List
 
 from utils.audio_helper import tocar_notificacao 
 
@@ -34,13 +34,13 @@ from collections import defaultdict
 #Filho de Módulo Receitas (crud_app.py)
 class Listar_receitas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_receitas=None, controle_dados= None, trocar_mes=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_receitas=None, controle_dados= None, callback_comandante_crud=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_receitas: List[Dados_receitas_db] = dados_receitas
         self.controle_dados = controle_dados
-        self.trocar_mes = trocar_mes
+        self.cdt_crud = callback_comandante_crud
 
          # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -63,16 +63,18 @@ class Listar_receitas(ctk.CTkFrame):
         self.listar()
 
        
-    def listar(self):
+    def listar(self, dados_receitas=None):
 
         for widget in self.lista_frame.winfo_children():
-            if int(widget.grid_info().get("row", 0)) > 0:
-                widget.destroy()
+            widget.destroy()
+        
+        if dados_receitas is None:
+            dados_receitas = self.dados_receitas
 
 
-        if self.dados_receitas:
+        if dados_receitas:
 
-            for i, dado in enumerate(self.dados_receitas, start=1):
+            for i, dado in enumerate(dados_receitas, start=1):
                 #dado é o dict de uma receita
                 valor = dado.get('valor_recebido')
                 descricao = dado.get('descricao')
@@ -138,25 +140,21 @@ class Listar_receitas(ctk.CTkFrame):
     def executar_delete(self, dados, popup):
         
         id_rec = dados.get('id_receita')
-        int_mes = mysql_para_obj(dados.get('data')).month
         descricao = dados.get('descricao')
 
-        sucesso = deletar_receita(id_rec)
+        dado = {'id_rec': id_rec}
+
+        sucesso = self.cdt_crud(deletar=dado)
 
         if sucesso:
 
             print(f"ID {id_rec} receita: '{descricao}'. Mandado pro espaço 🌌​")
-            tocar_notificacao("sucesso")
 
-            self.listar()
-
-            self.trocar_mes(escolha=gerar_opcoes_meses().get(int_mes))
-
+            #self.listar()
             popup.destroy()
 
         else:
             print("Erro ao deletar")
-            tocar_notificacao("erro")
 
             
 #Filho de Módulo Despesas (crud_app.py)
@@ -627,8 +625,6 @@ class Listar_desp_tabela(ctk.CTkFrame):
     
     
     def renderizar(self, controle_mes=None, escolha=None, dados_simulacao=None):
-
-        print(f"Renderizando tabela: Mês informado: {escolha}")
 
         for widget in self.tabela_frame.winfo_children():
             widget.destroy()

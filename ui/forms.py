@@ -112,12 +112,11 @@ class Registro_usuario(ctk.CTkToplevel):
 #Filho de Módulo Receitas (crud_app.py)
 class Cadastrar_receitas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, trocar_mes = None, atualizar_lista= None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, callback_comandante_crud=None,  *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.trocar_mes = trocar_mes
-        self.atualizar_lista = atualizar_lista
+        self.cdt_crud = callback_comandante_crud
 
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
@@ -179,42 +178,39 @@ class Cadastrar_receitas(ctk.CTkFrame):
         
         sucesso = False
 
-        if not atualizar:
-            #inserir os dados novos
-            sucesso = inserir_receita(self.user_id, valor, descricao, data_mysql)
+        dados = {
+                'valor': valor, 
+                'descricao': descricao,
+                'data_mysql': data_mysql
+            }
+        
+        if not atualizar: #inserir os dados novos
+
+            dados['user_id'] =  self.user_id
+            sucesso = self.cdt_crud(inserir=dados)
+
             msg_ok = "INSERIDOS"
-
             msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
-        else:
-            #Fazer atualização
-            sucesso = atualizar_receita(id_rec, valor, descricao, data_mysql)
-            msg_ok = "ATUALIZADOS"
 
+        else: #Fazer atualização
+            
+            dados['id_rec'] = id_rec
+            sucesso = self.cdt_crud(atualizar=dados)
+
+            msg_ok = "ATUALIZADOS"
             msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema..."
 
+
         if sucesso:
-
             self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')
-
-            tocar_notificacao("sucesso")
             self.update_idletasks()
             self.after(2000, lambda: self.status_label.configure(text=''))
-
 
             if atualizar:
                 self.controla_campos(None)
 
-            if self.atualizar_lista:
-                self.atualizar_lista()
-
-            if self.trocar_mes: 
-                self.trocar_mes(escolha=gerar_opcoes_meses().get(data_obj.month))
-   
         else:
-
             self.status_label.configure(text=f'{msg_falha}', text_color='red')
-
-            tocar_notificacao("erro")
             self.update_idletasks()
             self.after(2000, lambda: self.status_label.configure(text=''))
 

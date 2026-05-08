@@ -8,7 +8,7 @@ from utils.audio_helper import(
 )
 
 from models.conecte_bd import (
-    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa
+    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa, inserir_receita, atualizar_receita
      )
 
 from ui.forms import(
@@ -34,12 +34,12 @@ ctk.set_appearance_mode('dark')
 #Módulo Receitas
 class Receitas(ctk.CTkToplevel): #fazendo refactor em receitas na branch 'refactor-estrutura'
 
-    def __init__(self,  parent=None, user_id=None, dados_receitas=None, trocar_mes = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_receitas=None, att_app=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_receitas = dados_receitas
-        self.trocar_mes = trocar_mes
+        self.att_app = att_app
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Receitas")
@@ -50,25 +50,68 @@ class Receitas(ctk.CTkToplevel): #fazendo refactor em receitas na branch 'refact
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
 
+        self.notifica_delete = False
+
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1) 
         self.grid_columnconfigure(1, weight=2) 
         self.grid_rowconfigure(0, weight=1)
 
         # ---------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_receitas(parent=self, user_id=self.user_id, trocar_mes = trocar_mes, atualizar_lista= self.atualizar_lista)
+        self.frame_cadastro = Cadastrar_receitas(parent=self, user_id=self.user_id, callback_comandante_crud=self.comandante_crud)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
-
         #-------------- FRAME DA LISTA (Update/Delete) --------------------------
-        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, dados_receitas=self.dados_receitas, controle_dados= self.controle_dados, trocar_mes= trocar_mes )
+        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, dados_receitas=self.dados_receitas, controle_dados= self.controle_dados, callback_comandante_crud=self.comandante_crud)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
+
+
+    def comandante_crud(self, inserir:dict=None, atualizar:dict=None, deletar:dict=None):
+
+        sucesso = None
+
+        if inserir:
+            sucesso = inserir_receita(inserir['user_id'], inserir['valor'], inserir['descricao'], inserir['data_mysql'])
+        elif atualizar:
+            sucesso = atualizar_receita(atualizar['id_rec'], atualizar['valor'], atualizar['descricao'], atualizar['data_mysql'])
+        elif deletar:
+            self.notifica_delete = True
+            sucesso = deletar_receita(deletar['id_rec'])
         
+            
+        if sucesso:
+            self.definicao_sucesso()
+        else:
+            self.definicao_insucesso()
+
+        return sucesso
     
+
+    def definicao_sucesso(self):
+
+        if not self.notifica_delete:
+            tocar_notificacao("dv_sucesso", True)
+        else:
+            tocar_notificacao('dv_delete', True)
+
+        if self.att_app:
+            new_dados_receitas = self.att_app()
+            self.dados_receitas = new_dados_receitas
+        
+        self.update()
+
+        self.frame_lista.listar(dados_receitas=self.dados_receitas)
+        self.frame_cadastro.limpa_campos()
+
+
+    def definicao_insucesso(self):
+        tocar_notificacao("dv_erro", True)
+
+
     def controle_dados(self, dados=None):
         
         if dados:
@@ -77,10 +120,6 @@ class Receitas(ctk.CTkToplevel): #fazendo refactor em receitas na branch 'refact
             print('ERRO: detalhar.py(Listar_receitas) não enviou os dados')
         
 
-    def atualizar_lista(self):
-        
-        print("Atualizando a lista de receitas na tela...")
-        self.frame_lista.listar()
         
 
 #Módulo Despesas
