@@ -66,21 +66,15 @@ class Listar_receitas(ctk.CTkFrame):
     def listar(self, dados_receitas=None):
 
         for widget in self.lista_frame.winfo_children():
-            if int(widget.grid_info().get("row", 0)) > 0:
-                widget.destroy()
-
+            widget.destroy()
         
         if dados_receitas is None:
             dados_receitas = self.dados_receitas
 
-        self.lista_frame.update_idletasks()
-        self.lista_frame._parent_canvas.configure(scrollregion=self.lista_frame._parent_canvas.bbox("all"))
-        
-        print(f"DEBUG LISTAR: {len(dados_receitas)} itens")
 
         if dados_receitas:
 
-            for i, dado in enumerate(self.dados_receitas, start=1):
+            for i, dado in enumerate(dados_receitas, start=1):
                 #dado é o dict de uma receita
                 valor = dado.get('valor_recebido')
                 descricao = dado.get('descricao')
@@ -631,8 +625,6 @@ class Listar_desp_tabela(ctk.CTkFrame):
     
     
     def renderizar(self, controle_mes=None, escolha=None, dados_simulacao=None):
-
-        print(f"Renderizando tabela: Mês informado: {escolha}")
 
         for widget in self.tabela_frame.winfo_children():
             widget.destroy()

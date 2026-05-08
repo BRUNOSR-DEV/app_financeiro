@@ -50,6 +50,8 @@ class Receitas(ctk.CTkToplevel):
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
 
+        self.notifica_delete = False
+
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1) 
         self.grid_columnconfigure(1, weight=2) 
@@ -77,7 +79,9 @@ class Receitas(ctk.CTkToplevel):
         elif atualizar:
             sucesso = atualizar_receita(atualizar['id_rec'], atualizar['valor'], atualizar['descricao'], atualizar['data_mysql'])
         elif deletar:
+            self.notifica_delete = True
             sucesso = deletar_receita(deletar['id_rec'])
+        
             
         if sucesso:
             self.definicao_sucesso()
@@ -88,28 +92,24 @@ class Receitas(ctk.CTkToplevel):
     
 
     def definicao_sucesso(self):
-        tocar_notificacao("sucesso")
+
+        if not self.notifica_delete:
+            tocar_notificacao("dv_sucesso", True)
+        else:
+            tocar_notificacao('dv_delete', True)
 
         if self.att_app:
             new_dados_receitas = self.att_app()
-
-            print(f"DEBUG CRUD: retorno de att_app {len(new_dados_receitas)} itens")
-
             self.dados_receitas = new_dados_receitas
         
         self.update()
 
-        print(f"DEBUG CRUD: {len(self.dados_receitas)} itens")
-
-        self.update()
-
         self.frame_lista.listar(dados_receitas=self.dados_receitas)
-
         self.frame_cadastro.limpa_campos()
 
 
     def definicao_insucesso(self):
-        tocar_notificacao("erro")
+        tocar_notificacao("dv_erro", True)
 
 
     def controle_dados(self, dados=None):
