@@ -24,11 +24,12 @@ ctk.set_appearance_mode('dark')
 class Cadastrar_usuarios(ctk.CTkFrame):
     """Classe para registro: configuração da interface para receber dados e a inserção dos dados no BD. (inserir_usuario)"""
 
-    def __init__(self,  parent=None, cb_comandante_crud=None, cb_fechar=None, *args, **kwargs):
+    def __init__(self,  parent=None, cb_comandante_crud=None, nome_users=None, cb_fechar=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.cdt_crud = cb_comandante_crud
         self.fechar = cb_fechar
+        self.nome_users = nome_users
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -38,18 +39,18 @@ class Cadastrar_usuarios(ctk.CTkFrame):
 
         self.nome_completo = ctk.CTkEntry(self, placeholder_text="Nome Completo")
         self.nome_completo.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
-
-        self.sal_fixo = ctk.CTkEntry(self, placeholder_text="Salário Fixo por mês")
-        self.sal_fixo.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
             
         self.novo_usuario = ctk.CTkEntry(self, placeholder_text="Novo Usuário")
-        self.novo_usuario.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        self.novo_usuario.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
 
         self.nova_senha = ctk.CTkEntry(self, placeholder_text="Senha", show="*")
-        self.nova_senha.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        self.nova_senha.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
 
         self.rep_nova_senha = ctk.CTkEntry(self, placeholder_text="Repita a Senha", show="*")
-        self.rep_nova_senha.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+        self.rep_nova_senha.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+
+        self.sal_fixo = ctk.CTkEntry(self, placeholder_text="Salário Fixo por mês")
+        self.sal_fixo.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
 
         self.botao_registrar = ctk.CTkButton(self, text="Confirmar Registro", command=self.processar_registro)
         self.botao_registrar.grid(row=6, column=0, padx=20, pady=10, sticky="ew")
@@ -63,53 +64,70 @@ class Cadastrar_usuarios(ctk.CTkFrame):
 
         nome_comp = self.nome_completo.get().strip()
         usuario = self.novo_usuario.get().strip()
-        senha1 = self.nova_senha.get().strip()
-        senha2 = self.rep_nova_senha.get().strip()
+        senha_um = self.nova_senha.get().strip()
+        senha_dois = self.rep_nova_senha.get().strip()
         sal_fixo = self.sal_fixo.get().strip()
 
 
-        if not usuario or not senha1 or not senha2 or not sal_fixo:
+        if not usuario or not senha_um or not senha_dois or not sal_fixo:
             self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
 
             tocar_notificacao("dv_erro", True)
             self.update_idletasks()
-            self.after(2000, lambda: self.status_label.configure(text='')) 
+            self.after(3000, lambda: self.status_label.configure(text='')) 
             return
 
-        dados = {
+
+        verifica_user = usuario in self.nome_users
+
+        if not verifica_user:
+
+            dados = {
             "nome_comp": nome_comp,
             "usuario": usuario,
-            "senha": senha1,
+            "senha": senha_um,
             "sal_fixo": sal_fixo
-        }
+            }
 
-        if senha1 == senha2:
-            retorno = self.cdt_crud(inserir=dados)
+            if senha_um == senha_dois:
 
-            if retorno:
-                self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
-                self.update_idletasks()
+                sucesso = self.cdt_crud(inserir=dados)
 
-                self.after(2000, lambda: self.status_label.configure(text='')) 
+                if sucesso:
+                    self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+                    self.update_idletasks()
 
-                self.status_label.configure(text=f'Usuário: {usuario} Já pode fazer login no sistema! ', text_color='blue')
-                self.update_idletasks()
+                    self.after(3000, lambda: self.status_label.configure(text='')) 
 
-                self.after(2000, lambda: self.status_label.configure(text=''))
+                    self.status_label.configure(text=f'Usuário: {usuario} Já pode fazer login no sistema! ', text_color='blue')
+                    self.update_idletasks()
 
-                self.fechar()
+                    self.after(3000, lambda: self.status_label.configure(text=''))
+
+                    import time
+                    time.sleep(0.5)
+
+                    self.fechar()
+                
+                else:
+                    self.status_label.configure(text='Não foi possível registrar, contate o adm do sistema...', text_color='red')
+                    self.update_idletasks()
+
+                    self.after(3000, lambda: self.status_label.configure(text='')) 
                 
             else:
-                self.status_label.configure(text='Não foi possível registrar, contate o adm do sistema...', text_color='red')
+                self.status_label.configure(text='As senhas não correspondem!', text_color='red')
                 self.update_idletasks()
 
-                self.after(2000, lambda: self.status_label.configure(text='')) 
-                
-        else:
-            self.status_label.configure(text='As senhas não correspondem!', text_color='red')
-            self.update_idletasks()
+                self.after(3000, lambda: self.status_label.configure(text='')) 
 
-            self.after(2000, lambda: self.status_label.configure(text='')) 
+        else:
+            self.status_label.configure(text='Nome de usuário já utilizado, tente outro!', text_color='red')
+
+            self.update_idletasks()
+            self.after(3000, lambda: self.status_label.configure(text=''))
+        
+        
 
 
 #Filho de Módulo Receitas (crud_app.py)

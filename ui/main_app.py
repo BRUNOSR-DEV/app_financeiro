@@ -287,7 +287,7 @@ class Main_app(ctk.CTk):
 
 
     
-    def atualizar_cores_saldo(self, sal_fixo, despesa, controle_mes=None):
+    def atualizar_cores_saldo(self, sal_fixo=Decimal('0.0'), despesa=Decimal('0.0'), controle_mes=None):
 
         if controle_mes is None:
             controle_mes = datetime.now().month
@@ -323,19 +323,21 @@ class Main_app(ctk.CTk):
 
 
         receita_total = (Decimal(str(sal_fixo)) + receitas_fornecidas)
-        saldo =  receita_total - Decimal(str(despesa))
+
+        if despesa:
+            saldo =  receita_total - Decimal(str(despesa))
 
 
-        if saldo > (receita_total * Decimal(str(0.30))): #se saldo é maior que 30% do que ele ganhou no mês.
-            cor_status = "#2ecc71" # Verde (Sucesso)
-        elif saldo >= 0:
-            cor_status = "#f1c40f" # Amarelo (No limite)
-        else:
-            cor_status = "#e74c3c" # Vermelho (Prejuízo)
+            if saldo > (receita_total * Decimal(str(0.30))): #se saldo é maior que 30% do que ele ganhou no mês.
+                cor_status = "#2ecc71" # Verde (Sucesso)
+            elif saldo >= 0:
+                cor_status = "#f1c40f" # Amarelo (No limite)
+            else:
+                cor_status = "#e74c3c" # Vermelho (Prejuízo)
 
-        # Aplica a cor na borda do Frame e no texto do Saldo
-        self.frame_resumo.configure(border_color=cor_status)
-        self.label_valor_saldo.configure(text=f"{formatar_moeda(saldo)}", text_color=cor_status)
+            # Aplica a cor na borda do Frame e no texto do Saldo
+            self.frame_resumo.configure(border_color=cor_status)
+            self.label_valor_saldo.configure(text=f"{formatar_moeda(saldo)}", text_color=cor_status)
 
 
     def salvar_renda(self):

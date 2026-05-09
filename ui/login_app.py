@@ -53,13 +53,18 @@ class Login(ctk.CTk):
 
         # ---------------- Gerencimento ---------------------
 
-        self.usuarios: List[Dados_usuarios_db] = dados_usuarios()
         self.usuario_logado = None
+
+        self.atualiza_bd()
+
+    def atualiza_bd(self):
+        self.usuarios: List[Dados_usuarios_db] = dados_usuarios()
 
 
     def quit_and_destroy(self):
         self.quit()    # Para o mainloop com elegância
         self.destroy()
+
 
     def validar_login(self):
         """ Valida o login que o usuário inseriu na entry"""
@@ -100,6 +105,7 @@ class Login(ctk.CTk):
 
         tocar_notificacao("open_w", True)
         
-        register_window = Usuarios(self)
+        register_window = Usuarios(self, cb_atualiza_bd=self.atualiza_bd)
+
         
         self.wait_window(register_window) 

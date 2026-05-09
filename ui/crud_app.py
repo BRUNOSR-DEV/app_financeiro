@@ -8,7 +8,7 @@ from utils.audio_helper import(
 )
 
 from models.conecte_bd import (
-    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa, inserir_receita, atualizar_receita, inserir_usuario
+    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa, inserir_receita, atualizar_receita, inserir_usuario, dados_usuarios
      )
 
 from ui.forms import(
@@ -32,19 +32,29 @@ ctk.set_appearance_mode('dark')
 
 class Usuarios(ctk.CTkToplevel):
 
-    def __init__(self,  parent=None, *args, **kwargs):
+    def __init__(self,  parent=None, cb_atualiza_bd=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
     
         self.master = parent 
+        self.atualiza_bd = cb_atualiza_bd
 
+        # --------------- Configuração da janela/'labels' -----------------------
         self.title("Registrar Novo Usuário")
-        self.geometry("350x500")
+        centralizar_janela(self, 350, 500)
         self.transient(parent) 
         self.grab_set() 
         self.focus_set()
 
-        frame_cadastro = Cadastrar_usuarios(self, cb_comandante_crud=self.comandante_crud, cb_fechar=self.fechar)
-        frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+        self.grid_columnconfigure(0, weight=1) 
+
+        # ---------------- Gerencimento ---------------------
+        self.dados_usuarios: List[Dados_usuarios_db] = dados_usuarios()
+
+        self.nome_users = [dado['nome_user'] for dado in self.dados_usuarios]
+
+        # ---------------- Frame Cadastro ------------------------
+        self.frame_cadastro = Cadastrar_usuarios(self, cb_comandante_crud=self.comandante_crud, cb_fechar=self.fechar, nome_users=self.nome_users)
+        self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
     def comandante_crud(self, inserir=None):
@@ -52,10 +62,12 @@ class Usuarios(ctk.CTkToplevel):
         sucesso = None
 
         if inserir:
-            sucessso = inserir_usuario(inserir['nome_comp'], inserir['usuario'], inserir['senha1'], inserir['sal_fixo'] )
+            sucesso = inserir_usuario(inserir['nome_comp'], inserir['usuario'], inserir['senha'], inserir['sal_fixo'] )
         
         if sucesso:
             tocar_notificacao("dv_sucesso", True)
+            
+            self.atualiza_bd()
         else:
             tocar_notificacao("dv_erro", True)
         
@@ -164,21 +176,20 @@ class Despesas(ctk.CTkToplevel):
         self.trocar_mes = trocar_mes
         self.att_app = att_app
 
-        # --------------- Criação da Jenela -----------------------
+        # --------------- Configuração da janela/'labels' -----------------------
         self.title("Gerenciar Despesas")
         centralizar_janela(self, 1700, 800)
         self.transient(parent)
         self.focus_set() 
 
+        self.grid_columnconfigure(0, weight=1) 
+        self.grid_columnconfigure(1, weight=7) 
+        self.grid_rowconfigure(0, weight=1)
+
         # ---------------- Gerencimento ---------------------
         self.data_atual = datetime.now().date()
 
         self.dados_despesas: List[Dados_despesas_db] = dados_despesas(self.user_id)
-
-        # --------------- Configuração da janela/'labels' -----------------------
-        self.grid_columnconfigure(0, weight=1) 
-        self.grid_columnconfigure(1, weight=7) 
-        self.grid_rowconfigure(0, weight=1)
 
          # ---------- formulário de cadastro -----------------------
         self.frame_cadastro = Cadastrar_despesas(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, trocar_mes= self.trocar_mes, atualizar_lista= self.atualizar_lista)
