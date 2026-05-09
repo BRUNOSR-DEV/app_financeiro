@@ -21,20 +21,16 @@ ctk.set_appearance_mode('dark')
 
 
 #Filho de Módulo Login (login_app.py)
-class Registro_usuario(ctk.CTkToplevel):
+class Cadastrar_usuarios(ctk.CTkFrame):
     """Classe para registro: configuração da interface para receber dados e a inserção dos dados no BD. (inserir_usuario)"""
 
-    def __init__(self,  parent=None):
-        super().__init__(parent)
+    def __init__(self,  parent=None, cb_comandante_crud=None, cb_fechar=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
 
-        self.master = parent 
+        self.cdt_crud = cb_comandante_crud
+        self.fechar = cb_fechar
 
-        self.title("Registrar Novo Usuário")
-        self.geometry("350x500")
-        self.transient(parent) # Faz a popup aparecer sobre a janela principal e fechar com ela
-        self.grab_set() # Bloqueia interações com a janela principal enquanto a popup está aberta
-        self.focus_set() # Define o foco para esta janela
-
+        # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7), weight=0)
 
@@ -80,30 +76,37 @@ class Registro_usuario(ctk.CTkToplevel):
             self.after(2000, lambda: self.status_label.configure(text='')) 
             return
 
+        dados = {
+            "nome_comp": nome_comp,
+            "usuario": usuario,
+            "senha": senha1,
+            "sal_fixo": sal_fixo
+        }
+
         if senha1 == senha2:
-            retorno = inserir_usuario(nome_comp, usuario, senha1, sal_fixo)
+            retorno = self.cdt_crud(inserir=dados)
 
             if retorno:
                 self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
-                tocar_notificacao("dv_sucesso", True)
                 self.update_idletasks()
+
                 self.after(2000, lambda: self.status_label.configure(text='')) 
 
                 self.status_label.configure(text=f'Usuário: {usuario} Já pode fazer login no sistema! ', text_color='blue')
                 self.update_idletasks()
-                self.after(2000, lambda: self.status_label.configure(text='')) 
 
-                self.destroy()
+                self.after(2000, lambda: self.status_label.configure(text=''))
+
+                self.fechar()
+                
             else:
                 self.status_label.configure(text='Não foi possível registrar, contate o adm do sistema...', text_color='red')
-                tocar_notificacao('dv_erro', True)
                 self.update_idletasks()
 
                 self.after(2000, lambda: self.status_label.configure(text='')) 
                 
         else:
             self.status_label.configure(text='As senhas não correspondem!', text_color='red')
-            tocar_notificacao('dv_erro', True)
             self.update_idletasks()
 
             self.after(2000, lambda: self.status_label.configure(text='')) 

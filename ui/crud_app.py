@@ -8,11 +8,11 @@ from utils.audio_helper import(
 )
 
 from models.conecte_bd import (
-    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa, inserir_receita, atualizar_receita
+    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa, inserir_receita, atualizar_receita, inserir_usuario
      )
 
 from ui.forms import(
-    Cadastrar_receitas, Cadastrar_despesas, Cadastrar_car_cred, Cadastrar_assinaturas
+    Cadastrar_usuarios, Cadastrar_receitas, Cadastrar_despesas, Cadastrar_car_cred, Cadastrar_assinaturas
 )
 
 from utils.typedDict import(
@@ -30,7 +30,40 @@ from datetime import datetime
 import customtkinter as ctk
 ctk.set_appearance_mode('dark')
 
+class Usuarios(ctk.CTkToplevel):
 
+    def __init__(self,  parent=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+    
+        self.master = parent 
+
+        self.title("Registrar Novo Usuário")
+        self.geometry("350x500")
+        self.transient(parent) 
+        self.grab_set() 
+        self.focus_set()
+
+        frame_cadastro = Cadastrar_usuarios(self, cb_comandante_crud=self.comandante_crud, cb_fechar=self.fechar)
+        frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+
+
+    def comandante_crud(self, inserir=None):
+
+        sucesso = None
+
+        if inserir:
+            sucessso = inserir_usuario(inserir['nome_comp'], inserir['usuario'], inserir['senha1'], inserir['sal_fixo'] )
+        
+        if sucesso:
+            tocar_notificacao("dv_sucesso", True)
+        else:
+            tocar_notificacao("dv_erro", True)
+        
+        return sucesso
+
+    def fechar(self):
+        self.destroy()
+        
 #Módulo Receitas
 class Receitas(ctk.CTkToplevel): #fazendo refactor em receitas na branch 'refactor-estrutura'
 
@@ -118,8 +151,6 @@ class Receitas(ctk.CTkToplevel): #fazendo refactor em receitas na branch 'refact
             self.frame_cadastro.controla_campos(dados)
         else:
             print('ERRO: detalhar.py(Listar_receitas) não enviou os dados')
-        
-
         
 
 #Módulo Despesas
@@ -284,9 +315,6 @@ class Assinaturas(ctk.CTkToplevel):
         self.frame_lista.listar()
 
 
-        
-# --------------------- Detalhes da Fatura de Cartões ----------------------------
-
 #Módulo Faturas
 class Faturas(ctk.CTkToplevel):
     
@@ -424,7 +452,6 @@ class Faturas(ctk.CTkToplevel):
         #tabela 2
         self.frame_tabela_dois.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_b, controle_mes=controle_mes_b)
       
-
 
 #Módulo Simulação
 class Simulacao(ctk.CTkToplevel):

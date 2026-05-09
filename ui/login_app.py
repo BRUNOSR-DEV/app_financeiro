@@ -13,7 +13,7 @@ import customtkinter as ctk
 ctk.set_appearance_mode('dark')
 
 
-from ui.forms import(Registro_usuario)
+from ui.crud_app import(Usuarios)
 
 #Módulo Login
 class Login(ctk.CTk):
@@ -100,6 +100,6 @@ class Login(ctk.CTk):
 
         tocar_notificacao("open_w", True)
         
-        register_window = Registro_usuario(self)
+        register_window = Usuarios(self)
         
         self.wait_window(register_window) 
