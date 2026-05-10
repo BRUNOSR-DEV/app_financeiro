@@ -148,7 +148,7 @@ class Pega_div_cartao_db(TypedDict):
 
 class Envia_despesa_form(TypedDict):
 
-    user_id_or_id_rec: int
+    user_id_or_id_desp: int #user_id ou id_desp
     local: str
     valor_total: float
     parcelas: int

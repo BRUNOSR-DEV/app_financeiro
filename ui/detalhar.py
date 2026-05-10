@@ -147,10 +147,7 @@ class Listar_receitas(ctk.CTkFrame):
         sucesso = self.cdt_crud(deletar=dado)
 
         if sucesso:
-
             print(f"ID {id_rec} receita: '{descricao}'. Mandado pro espaço 🌌​")
-
-            #self.listar()
             popup.destroy()
 
         else:
@@ -291,24 +288,16 @@ class Listar_despesas(ctk.CTkFrame):
         dados_detalhar = {
             'id_desp': id_desp
         }
-        
+
         sucesso = self.cdt_crud(deletar= dados_detalhar)
 
         if sucesso:
-
             print(f"ID: {id_desp} Local: '{local}'. Mandado pro espaço 🌌​")
-            tocar_notificacao('dv_delete', True)
-
-            self.listar()
-
-            if self.att_app():
-                self.att_app()
 
             popup.destroy()
 
         else:
             print("Erro ao deletar")
-            tocar_notificacao("dv_erro", True)
 
 
 #Filho de Módulo Cartões de Crédito (crud_app.py)

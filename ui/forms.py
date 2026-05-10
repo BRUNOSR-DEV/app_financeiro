@@ -488,12 +488,12 @@ class Cadastrar_despesas(ctk.CTkFrame):
         dados_form: Envia_despesa_form = {
             "local": local,
             "valor_total": valor_total,
-            "parcelas ": parcelas,
+            "parcelas": parcelas,
             "descricao": descricao,
-            "categoria ": categoria,
+            "categoria": categoria,
             "dc_select_mysql": dc_select_mysql,
             "prim_dc_select_mysql": prim_dc_select_mysql,
-            "dia_venc ": dia_venc,
+            "dia_venc": dia_venc,
             "id_card": id_card
         }
 

@@ -200,7 +200,7 @@ class Despesas(ctk.CTkToplevel):
 
 
         #-------------------- FRAME DA LISTA (Update/Delete) ----------------------------------
-        self.frame_lista = Listar_despesas(parent=self, user_id=self.user_id, dados_cartoes= self.dados_cartoes, dados_despesas=self.dados_despesas, controle_dados=self.controle_dados, cb_comandante_crud=self.comandante_crud )
+        self.frame_lista = Listar_despesas(parent=self, user_id=self.user_id, dados_cartoes= self.dados_cartoes, dados_despesas=self.dados_despesas, controle_dados=self.controle_dados, cb_comandante_crud=self.comandante_crud)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
@@ -218,7 +218,7 @@ class Despesas(ctk.CTkToplevel):
             sucesso = inserir_despesa(inserir['user_id'], inserir['local'], inserir['valor_total'], inserir['parcelas'], inserir['descricao'], inserir['categoria'], inserir['dc_select_mysql'], inserir['prim_dc_select_mysql'], inserir['dia_venc'], inserir['id_card'])
 
         elif atualizar:
-            sucesso = atualizar_despesa(atualizar['id_rec'], atualizar['local'], atualizar['valor_total'], atualizar['parcelas'], atualizar['descricao'], atualizar['categoria'], atualizar['dc_select_mysql'], atualizar['prim_dc_select_mysql'], atualizar['dia_venc'], atualizar['id_card'])
+            sucesso = atualizar_despesa(atualizar['id_desp'], atualizar['local'], atualizar['valor_total'], atualizar['parcelas'], atualizar['descricao'], atualizar['categoria'], atualizar['dc_select_mysql'], atualizar['prim_dc_select_mysql'], atualizar['dia_venc'], atualizar['id_card'])
 
         elif deletar:
             self.notifica_delete = True
@@ -242,7 +242,8 @@ class Despesas(ctk.CTkToplevel):
 
         if self.att_app:
             self.att_app()
-            self.dados_despesas = dados_despesas(self.user_id)
+        
+        self.dados_despesas = dados_despesas(self.user_id)
         
         self.update()
 
@@ -253,12 +254,16 @@ class Despesas(ctk.CTkToplevel):
     def definicao_insucesso(self):
         tocar_notificacao("dv_erro", True)
 
+
     def controle_dados(self, dados):
 
         if dados:
             self.frame_cadastro.controla_campos(dados)
         else:
             print('ERRO: detalhar(despesas não mandou os dados esperados!)')
+
+    def fechar(self):
+        self.destroy()
 
 
 
