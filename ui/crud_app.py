@@ -1,33 +1,36 @@
 
+# ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
+import models.conecte_bd as db
+
 from utils.helper import(
-    centralizar_janela,gerar_opcoes_meses, formatar_moeda, mysql_para_obj, data_para_exibicao, preparar_dados_completos_cartao
+    centralizar_janela, 
+    gerar_opcoes_meses, 
+    formatar_moeda, 
+    mysql_para_obj, 
+    data_para_exibicao, 
 )
 
-from utils.audio_helper import(
-    tocar_notificacao
-)
+from utils.audio_helper import(tocar_notificacao)
 
-from models.conecte_bd import (
-    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa, inserir_receita, atualizar_receita, inserir_usuario, dados_usuarios, inserir_despesa, atualizar_despesa, deletar_despesa
-     )
+#------ IMPORTAÇÃO DE CLASSES PARA CADASTRO - (forms.py) --------
+from ui.forms import *
 
-from ui.forms import(
-    Cadastrar_usuarios, Cadastrar_receitas, Cadastrar_despesas, Cadastrar_car_cred, Cadastrar_assinaturas
-)
+#------ IMPORTAÇÃO DE CLASSES PARA LISTAGEM - (detalhar.py) --------
+from ui.detalhar import *
 
-from utils.typedDict import(
-    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db, Pega_div_cartao_db, Cartao, Envia_despesa_form
-    )
+#------ IMPORTAÇÃO DE CLASSES TYPEDDICT - (typedDict.py) --------
+from utils.typedDict import *
+
+# ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
+#BILIO PADRÕES
 from typing import List
-
-from ui.detalhar import(
-    Listar_receitas, Listar_despesas, Listar_car_cred, Listar_assinaturas, Listar_faturas_cartao, Listar_cat_grafico, Listar_desp_tabela
-)   
-
-from dateutil.relativedelta import relativedelta
 from datetime import datetime
 
+#BIBLIO VIA PIP
 import customtkinter as ctk
+from dateutil.relativedelta import relativedelta
+
+# ------------- CONFIGURAÇÃO INICIAL ---------------
 ctk.set_appearance_mode('dark')
 
 #Módulo Usuarios
@@ -49,7 +52,7 @@ class Usuarios(ctk.CTkToplevel):
         self.grid_columnconfigure(0, weight=1) 
 
         # ---------------- Gerencimento ---------------------
-        self.dados_usuarios: List[Dados_usuarios_db] = dados_usuarios()
+        self.dados_usuarios: List[Dados_usuarios_db] = db.dados_usuarios()
 
         self.nome_users = [dado['nome_user'] for dado in self.dados_usuarios]
 
@@ -63,7 +66,7 @@ class Usuarios(ctk.CTkToplevel):
         sucesso = None
 
         if inserir:
-            sucesso = inserir_usuario(inserir['nome_comp'], inserir['usuario'], inserir['senha'], inserir['sal_fixo'] )
+            sucesso = db.inserir_usuario(inserir['nome_comp'], inserir['usuario'], inserir['senha'], inserir['sal_fixo'] )
         
         if sucesso:
             tocar_notificacao("dv_sucesso", True)
@@ -77,6 +80,7 @@ class Usuarios(ctk.CTkToplevel):
     def fechar(self):
         self.destroy()
         
+
 #Módulo Receitas
 class Receitas(ctk.CTkToplevel): 
 
@@ -121,12 +125,12 @@ class Receitas(ctk.CTkToplevel):
         sucesso = None
 
         if inserir:
-            sucesso = inserir_receita(inserir['user_id'], inserir['valor'], inserir['descricao'], inserir['data_mysql'])
+            sucesso = db.inserir_receita(inserir['user_id'], inserir['valor'], inserir['descricao'], inserir['data_mysql'])
         elif atualizar:
-            sucesso = atualizar_receita(atualizar['id_rec'], atualizar['valor'], atualizar['descricao'], atualizar['data_mysql'])
+            sucesso = db.atualizar_receita(atualizar['id_rec'], atualizar['valor'], atualizar['descricao'], atualizar['data_mysql'])
         elif deletar:
             self.notifica_delete = True
-            sucesso = deletar_receita(deletar['id_rec'])
+            sucesso = db.deletar_receita(deletar['id_rec'])
         
             
         if sucesso:
@@ -190,7 +194,7 @@ class Despesas(ctk.CTkToplevel):
         # ---------------- Gerencimento ---------------------
         self.data_atual = datetime.now().date()
 
-        self.dados_despesas: List[Dados_despesas_db] = dados_despesas(self.user_id)
+        self.dados_despesas: List[Dados_despesas_db] = db.dados_despesas(self.user_id)
 
         self.notifica_delete = False
 
@@ -215,14 +219,14 @@ class Despesas(ctk.CTkToplevel):
         sucesso = None
 
         if inserir:
-            sucesso = inserir_despesa(inserir['user_id'], inserir['local'], inserir['valor_total'], inserir['parcelas'], inserir['descricao'], inserir['categoria'], inserir['dc_select_mysql'], inserir['prim_dc_select_mysql'], inserir['dia_venc'], inserir['id_card'])
+            sucesso = db.inserir_despesa(inserir['user_id'], inserir['local'], inserir['valor_total'], inserir['parcelas'], inserir['descricao'], inserir['categoria'], inserir['dc_select_mysql'], inserir['prim_dc_select_mysql'], inserir['dia_venc'], inserir['id_card'])
 
         elif atualizar:
-            sucesso = atualizar_despesa(atualizar['id_desp'], atualizar['local'], atualizar['valor_total'], atualizar['parcelas'], atualizar['descricao'], atualizar['categoria'], atualizar['dc_select_mysql'], atualizar['prim_dc_select_mysql'], atualizar['dia_venc'], atualizar['id_card'])
+            sucesso = db.atualizar_despesa(atualizar['id_desp'], atualizar['local'], atualizar['valor_total'], atualizar['parcelas'], atualizar['descricao'], atualizar['categoria'], atualizar['dc_select_mysql'], atualizar['prim_dc_select_mysql'], atualizar['dia_venc'], atualizar['id_card'])
 
         elif deletar:
             self.notifica_delete = True
-            sucesso = deletar_despesa(deletar['id_desp'])
+            sucesso = db.deletar_despesa(deletar['id_desp'])
         
             
         if sucesso:
@@ -243,7 +247,7 @@ class Despesas(ctk.CTkToplevel):
         if self.att_app:
             self.att_app()
         
-        self.dados_despesas = dados_despesas(self.user_id)
+        self.dados_despesas = db.dados_despesas(self.user_id)
         
         self.update()
 
@@ -264,8 +268,6 @@ class Despesas(ctk.CTkToplevel):
 
     def fechar(self):
         self.destroy()
-
-
 
 
 #Módulo Cartões de Crédito
@@ -518,7 +520,7 @@ class Faturas(ctk.CTkToplevel):
 #Módulo Simulação
 class Simulacao(ctk.CTkToplevel):
 
-    def __init__(self, parent, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_usuario=None,nomes_cartoes=None, dados_prontos=None,  *args, **kwargs):
+    def __init__(self, parent, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_usuario=None, nomes_cartoes=None, dados_prontos=None,  *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
