@@ -7,7 +7,7 @@ from utils.helper import(
     gerar_opcoes_meses, data_para_mysql, mysql_para_obj
 )
 
-from utils.typedDict import(Despesa_simulacao)
+from utils.typedDict import(Despesa_simulacao, Envia_despesa_form)
 
 from tkcalendar import DateEntry
 from datetime import datetime
@@ -128,7 +128,6 @@ class Cadastrar_usuarios(ctk.CTkFrame):
             self.after(3000, lambda: self.status_label.configure(text=''))
         
         
-
 
 #Filho de Módulo Receitas (crud_app.py)
 class Cadastrar_receitas(ctk.CTkFrame):
@@ -272,13 +271,12 @@ class Cadastrar_receitas(ctk.CTkFrame):
 #Filho de Despesas e Simulacao (crud_app.py)
 class Cadastrar_despesas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, atualizar_lista=None, simulacao=None, dados_select=None, controle_dados=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, cb_comandante_crud=None, simulacao=None, dados_select=None, controle_dados=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes
-        self.trocar_mes = trocar_mes
-        self.atualizar_lista = atualizar_lista
+        self.cdt_crud = cb_comandante_crud
 
         self.dados_select = dados_select
         self.simulacao = simulacao #boolean passado por mãe Simulacao
@@ -486,41 +484,47 @@ class Cadastrar_despesas(ctk.CTkFrame):
 
                 self.limpa_campos()
                 return
-     
-        #-------------- atualização e inserção --------------------
-        if not atualizar:
-            if verifica:
-                sucesso = inserir_despesa(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
-            else:
-                sucesso = inserir_despesa(self.user_id, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+
+        dados_form: Envia_despesa_form = {
+            "local": local,
+            "valor_total": valor_total,
+            "parcelas ": parcelas,
+            "descricao": descricao,
+            "categoria ": categoria,
+            "dc_select_mysql": dc_select_mysql,
+            "prim_dc_select_mysql": prim_dc_select_mysql,
+            "dia_venc ": dia_venc,
+            "id_card": id_card
+        }
+
+        if not atualizar: # Inserir no bd
+
+            dados_form['user_id'] = self.user_id
+            sucesso = self.cdt_crud(inserir=dados_form)
 
             msg_ok = 'INSERIDOS'
             msg_erro = "SALVAR"
-        else:
-            sucesso = atualizar_despesa(id_desp, local, valor_total, parcelas,  descricao, categoria, dc_select_mysql, prim_dc_select_mysql, dia_venc, id_card)
+
+        else: # Atualiza no BD
+
+            dados_form['id_desp'] =  id_desp
+            sucesso = self.cdt_crud(atualizar=dados_form)
+
             msg_ok = 'ATUALIZADOS'
             msg_erro = "ATUALIZAR"
 
 
         if sucesso:
             self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')
-
-            tocar_notificacao('dv_sucesso', True)
             self.update_idletasks()
 
-            if self.trocar_mes:
-                self.trocar_mes(gerar_opcoes_meses().get(controle_mes))
-
-            self.controla_campos(None)
-
-            if self.atualizar_lista():
-                self.atualizar_lista()
+            if atualizar:
+                self.controla_campos(None)
             
             self.after(3000, lambda: self.status_label.configure(text=''))
 
         else:
             self.status_label.configure(text=f'Não foi possível {msg_erro} os dados, contate o adm do sistema...', text_color='red')
-            tocar_notificacao('dv_erro', True)
             self.update_idletasks()
 
             self.after(3000, lambda: self.status_label.configure(text=''))

@@ -144,3 +144,17 @@ class Pega_div_cartao_db(TypedDict):
     despesas: List[Pega_despesas_cartao_db]
     assinaturas: List[Pega_assinatuas_cartao_db]
 
+
+
+class Envia_despesa_form(TypedDict):
+
+    user_id_or_id_rec: int
+    local: str
+    valor_total: float
+    parcelas: int
+    descricao: str
+    categoria: str
+    dc_select_mysql: datetime
+    prim_dc_select_mysql: datetime
+    dia_venc: int
+    id_card: int

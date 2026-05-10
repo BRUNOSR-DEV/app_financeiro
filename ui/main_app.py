@@ -283,7 +283,11 @@ class Main_app(ctk.CTk):
         self.config(cursor="")
         print("Dashboard atualizado in-place com sucesso! 🚀")
 
-        return self.dados_receitas
+        dados_att = {
+            'receitas': self.dados_receitas,
+            'despesas_avulsas': self.despesas_avulsas
+        }
+        return dados_att
 
 
     

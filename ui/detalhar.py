@@ -160,12 +160,12 @@ class Listar_receitas(ctk.CTkFrame):
 #Filho de Módulo Despesas (crud_app.py)
 class Listar_despesas(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, dados_despesas=None, att_app=None, controle_dados=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, cb_comandante_crud=None, dados_despesas=None, controle_dados=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes
-        self.att_app = att_app
+        self.cdt_crud = cb_comandante_crud
         self.controle_dados = controle_dados
         self.dados_despesas: List[Dados_despesas_db] = dados_despesas
 
@@ -193,16 +193,18 @@ class Listar_despesas(ctk.CTkFrame):
         self.listar()
 
 
-    def listar(self):
+    def listar(self, dados_despesas=None):
         
         for widget in self.lista_frame.winfo_children():
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
 
+        if dados_despesas is None:
+            dados_despesas = self.dados_despesas
 
-        if self.dados_despesas:
+        if dados_despesas:
 
-            for i, dado in enumerate(self.dados_despesas, start=1):
+            for i, dado in enumerate(dados_despesas, start=1):
 
                 nome_card = None
 
@@ -286,7 +288,11 @@ class Listar_despesas(ctk.CTkFrame):
         id_desp = dados.get('id_desp')
         local = dados.get('local')
 
-        sucesso = deletar_despesa(id_desp)
+        dados_detalhar = {
+            'id_desp': id_desp
+        }
+        
+        sucesso = self.cdt_crud(deletar= dados_detalhar)
 
         if sucesso:
 

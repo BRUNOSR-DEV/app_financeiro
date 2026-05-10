@@ -8,7 +8,7 @@ from utils.audio_helper import(
 )
 
 from models.conecte_bd import (
-    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa, inserir_receita, atualizar_receita, inserir_usuario, dados_usuarios
+    pega_despesas_cartao, pega_assinaturas_cartao, dados_receitas, deletar_receita, dados_assinaturas, deletar_assinatura, dados_cartoes, deletar_cartao, dados_despesas, deletar_despesa, inserir_receita, atualizar_receita, inserir_usuario, dados_usuarios, inserir_despesa, atualizar_despesa, deletar_despesa
      )
 
 from ui.forms import(
@@ -16,7 +16,7 @@ from ui.forms import(
 )
 
 from utils.typedDict import(
-    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db, Pega_div_cartao_db, Cartao
+    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db, Pega_div_cartao_db, Cartao, Envia_despesa_form
     )
 from typing import List
 
@@ -30,6 +30,7 @@ from datetime import datetime
 import customtkinter as ctk
 ctk.set_appearance_mode('dark')
 
+#Módulo Usuarios
 class Usuarios(ctk.CTkToplevel):
 
     def __init__(self,  parent=None, cb_atualiza_bd=None, *args, **kwargs):
@@ -77,7 +78,7 @@ class Usuarios(ctk.CTkToplevel):
         self.destroy()
         
 #Módulo Receitas
-class Receitas(ctk.CTkToplevel): #fazendo refactor em receitas na branch 'refactor-estrutura'
+class Receitas(ctk.CTkToplevel): 
 
     def __init__(self,  parent=None, user_id=None, dados_receitas=None, att_app=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -144,8 +145,8 @@ class Receitas(ctk.CTkToplevel): #fazendo refactor em receitas na branch 'refact
             tocar_notificacao('dv_delete', True)
 
         if self.att_app:
-            new_dados_receitas = self.att_app()
-            self.dados_receitas = new_dados_receitas
+            new_dados = self.att_app()
+            self.dados_receitas = new_dados['receitas']
         
         self.update()
 
@@ -191,17 +192,66 @@ class Despesas(ctk.CTkToplevel):
 
         self.dados_despesas: List[Dados_despesas_db] = dados_despesas(self.user_id)
 
+        self.notifica_delete = False
+
          # ---------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_despesas(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, trocar_mes= self.trocar_mes, atualizar_lista= self.atualizar_lista)
+        self.frame_cadastro = Cadastrar_despesas(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, cb_comandante_crud=self.comandante_crud)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
         #-------------------- FRAME DA LISTA (Update/Delete) ----------------------------------
-        self.frame_lista = Listar_despesas(parent=self, user_id=self.user_id, dados_cartoes= self.dados_cartoes, dados_despesas=self.dados_despesas, att_app = self.att_app, controle_dados=self.controle_dados)
+        self.frame_lista = Listar_despesas(parent=self, user_id=self.user_id, dados_cartoes= self.dados_cartoes, dados_despesas=self.dados_despesas, controle_dados=self.controle_dados, cb_comandante_crud=self.comandante_crud )
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
 
+
+
+    def comandante_crud(self, inserir:dict=None, atualizar:dict=None, deletar:dict=None):
+
+        inserir: Envia_despesa_form = inserir
+        atualizar: Envia_despesa_form = atualizar
+
+        sucesso = None
+
+        if inserir:
+            sucesso = inserir_despesa(inserir['user_id'], inserir['local'], inserir['valor_total'], inserir['parcelas'], inserir['descricao'], inserir['categoria'], inserir['dc_select_mysql'], inserir['prim_dc_select_mysql'], inserir['dia_venc'], inserir['id_card'])
+
+        elif atualizar:
+            sucesso = atualizar_despesa(atualizar['id_rec'], atualizar['local'], atualizar['valor_total'], atualizar['parcelas'], atualizar['descricao'], atualizar['categoria'], atualizar['dc_select_mysql'], atualizar['prim_dc_select_mysql'], atualizar['dia_venc'], atualizar['id_card'])
+
+        elif deletar:
+            self.notifica_delete = True
+            sucesso = deletar_despesa(deletar['id_desp'])
+        
+            
+        if sucesso:
+            self.definicao_sucesso()
+        else:
+            self.definicao_insucesso()
+
+        return sucesso
+    
+
+    def definicao_sucesso(self):
+
+        if not self.notifica_delete:
+            tocar_notificacao("dv_sucesso", True)
+        else:
+            tocar_notificacao('dv_delete', True)
+
+        if self.att_app:
+            self.att_app()
+            self.dados_despesas = dados_despesas(self.user_id)
+        
+        self.update()
+
+        self.frame_lista.listar(dados_despesas=self.dados_despesas)
+        self.frame_cadastro.limpa_campos()
+
+
+    def definicao_insucesso(self):
+        tocar_notificacao("dv_erro", True)
 
     def controle_dados(self, dados):
 
@@ -211,10 +261,6 @@ class Despesas(ctk.CTkToplevel):
             print('ERRO: detalhar(despesas não mandou os dados esperados!)')
 
 
-    def atualizar_lista(self):
-
-        print("Atualizando a lista de despesas na tela...")
-        self.frame_lista.listar()
 
 
 #Módulo Cartões de Crédito
