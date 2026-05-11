@@ -1,6 +1,6 @@
 
 from models.conecte_bd import (
-      inserir_usuario, inserir_receita, inserir_cc, inserir_despesa, inserir_assinatura, atualizar_receita, atualiza_assinatura, atualizar_cartao, atualizar_despesa
+      inserir_usuario, inserir_receita, inserir_cc, inserir_despesa, inserir_assinatura, atualizar_receita, atualizar_assinatura, atualizar_cartao, atualizar_despesa
      )
 
 from utils.helper import(
@@ -737,20 +737,18 @@ class Cadastrar_car_cred(ctk.CTkFrame):
 #Filho de Assinaturas (crud_app.py)
 class Cadastrar_assinaturas(ctk.CTkFrame):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, trocar_mes=None, atualizar_lista = None):
-        super().__init__(parent)
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None, cb_comandante_crud=None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
 
-        self.trocar_mes = trocar_mes
-        self.atualizar_lista = atualizar_lista
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes 
+        self.cdt_crud = cb_comandante_crud
         
         # ---------------- Gerencimento de self --------------------
         self.data_atual = datetime.now().date()
         self.sentinela = (self.data_atual.replace(day=1, month=1, year=2099))
 
         self.nomes_cartoes = [c['nome_cartao'] for c in self.dados_cartoes]
-
         
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -789,7 +787,6 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
         self.menu_cat = ctk.CTkOptionMenu(self, values=categorias, width=300)
         self.menu_cat.grid(row=8, column=0, padx=20, pady=10, sticky="ew")
         self.menu_cat.set("Selecione a Categoria")
-
 
         if self.nomes_cartoes:
             campo_cartoes = ["Cartão de Cobrança - Sem Cartão"] + self.nomes_cartoes
@@ -876,38 +873,46 @@ class Cadastrar_assinaturas(ctk.CTkFrame):
             self.after(3000, lambda: self.status_label.configure(text='')) 
             return
         
-        sucesso = False
-        if not atualizar:
-            sucesso = inserir_assinatura(self.user_id, nome, valor, descricao, data_aq_mysql, data_pp_mysql, dia_venc, categoria, id_card )
+        dados_form = {
+            "nome": nome,
+            "valor": valor,
+            "descricao": descricao,
+            "data_aq_mysql": data_aq_mysql,
+            "data_pp_mysql": data_pp_mysql,
+            "dia_venc": dia_venc,
+            "categoria": categoria,
+            "id_card": id_card,
+        }
+
+        if not atualizar: # inserir no banco
+
+            dados_form['user_id'] = self.user_id  #add user_id ao dict
+            sucesso = self.cdt_crud(inserir=dados_form)
+
             msg_ok = "INSERIDOS"
             msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
             
-        else:
-            sucesso = atualiza_assinatura(id_ass, nome, valor, descricao, data_aq_mysql, data_pp_mysql, dia_venc, categoria, id_card )
+        else: # atualizar no banco
+
+            dados_form['id_ass'] =  id_ass
+            sucesso = self.cdt_crud(atualizar=dados_form)
+
             msg_ok = "ATUALIZADOS"
             msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema...'"
 
-        #retorno do banco - texto de indicação
-        if sucesso:
-            tocar_notificacao("dv_sucesso", True)
 
+        if sucesso:
             self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')
             self.update_idletasks()
 
             self.controla_campos(None)
             
-            self.after(2000, lambda: self.status_label.configure(text=''))
-
-            if self.trocar_mes:
-                self.trocar_mes(gerar_opcoes_meses().get(data_pp.month)) 
-
-            if self.atualizar_lista:
-                self.atualizar_lista()     
+            self.after(2000, lambda: self.status_label.configure(text=''))  
 
         else:
             self.status_label.configure(text=f'{msg_falha}', text_color='red')
-            tocar_notificacao("dv_erro", True)
             self.update_idletasks()
+
             self.after(2000, lambda: self.status_label.configure(text=''))
 
 

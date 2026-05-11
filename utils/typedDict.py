@@ -158,3 +158,16 @@ class Envia_despesa_form(TypedDict):
     prim_dc_select_mysql: datetime
     dia_venc: int
     id_card: int
+
+
+class Envia_ass_form(TypedDict):
+
+    user_id_or_id_ass: int
+    nome: str
+    valor: float
+    descricao: str
+    data_aq_mysql: datetime
+    data_pp_mysql: datetime
+    dia_venc: int
+    categoria:str
+    id_card: int

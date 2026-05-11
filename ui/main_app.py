@@ -35,6 +35,7 @@ from decimal import Decimal
 from collections import defaultdict 
 
 
+#-1° Módulo Main app - Janela Principal
 class Main_app(ctk.CTk):
 
     def __init__(self, logged_in_username=None):
@@ -47,8 +48,6 @@ class Main_app(ctk.CTk):
         self.container_principal = ctk.CTkFrame(self, fg_color="transparent")
         self.container_principal.pack(fill="both", expand=True)
 
-        # Registra a função validadora no sistema do Tkinter
-        # O '%P' significa que o Tkinter vai passar o texto "Proposto" para a função
         self.vcmd_num = (self.register(check_entry_num), '%P')
 
         # Carrega os dados e monta a tela pela PRIMEIRA vez
@@ -94,6 +93,7 @@ class Main_app(ctk.CTk):
 
         #chamada de dados 'despesas' e 'assinaturas' nos cartoes de self.dados_cartoes
         self.dados_desp_ass_card = preparar_dados_completos_cartao(self.user_id, self.dados_cartoes)
+
 
     def montar_dashboard(self):
         """ Função exclusiva para desenhar a interface. """
@@ -268,7 +268,6 @@ class Main_app(ctk.CTk):
         self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), ttf_mes, controle_mes)
 
 
-
     def att_app(self):
         """ O botão Atualizar  """
         
@@ -288,7 +287,6 @@ class Main_app(ctk.CTk):
             'despesas_avulsas': self.despesas_avulsas
         }
         return dados_att
-
 
     
     def atualizar_cores_saldo(self, sal_fixo=Decimal('0.0'), despesa=Decimal('0.0'), controle_mes=None):
@@ -368,7 +366,6 @@ class Main_app(ctk.CTk):
             tocar_notificacao('dv_erro', True)
         
 
-# ------------- Fecha janela e volta para login -------------
     def voltar_Plogin(self):
         """ Método para voltar para a tela de login (botão 'Sair')"""
 
@@ -388,28 +385,6 @@ class Main_app(ctk.CTk):
     def quit_and_destroy(self):
         self.quit()  
         self.destroy()
-
-
-# ------------- Detalhamento -------------------
-
-    #classe ---- Faturas -------
-    def abrir_det_cc(self):
-
-        nome_selecionado = self.menu_cartoes.get()
-        id_card = None
-
-        for i in self.dados_cartoes:
-            if i.get('nome_cartao') == nome_selecionado:
-                id_card = i.get('id_cartao')
-
-        if id_card:
-            tocar_notificacao('open_w', True)
-
-            register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado, dados_card=self.dados_cartoes, dados_prontos= self.dados_desp_ass_card)
-
-            self.wait_window(register_window)
-        else:
-            print("Erro: Cartão não encontrado")
 
 
     def abrir_modal_renda(self):
@@ -437,16 +412,29 @@ class Main_app(ctk.CTk):
         btn_salvar.pack(pady=(10, 20))
 
 
-# ---------------- simulação -----------------------
-    def abrir_simulacao(self):
+# ---------------------- Janelas/módulos do crud_app ----------------------------------------
 
-        tocar_notificacao('open_w', True)
-        register_window = Simulacao(self, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_usuario=self.dados_usuario, nomes_cartoes=self.nomes_cartoes, dados_prontos=self.dados_desp_ass_card)
+    #Módulo Faturas
+    def abrir_det_cc(self):
 
-        self.wait_window(register_window) 
+        nome_selecionado = self.menu_cartoes.get()
+        id_card = None
+
+        for i in self.dados_cartoes:
+            if i.get('nome_cartao') == nome_selecionado:
+                id_card = i.get('id_cartao')
+
+        if id_card:
+            tocar_notificacao('open_w', True)
+
+            register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado, dados_card=self.dados_cartoes, dados_prontos= self.dados_desp_ass_card)
+
+            self.wait_window(register_window)
+        else:
+            print("Erro: Cartão não encontrado")
 
 
-# ---------- chamada de classes forms --------------------
+    #Módulo Receitas
     def abrir_receitas(self):
 
         tocar_notificacao('open_w', True)
@@ -454,7 +442,7 @@ class Main_app(ctk.CTk):
 
         self.wait_window(register_window) 
 
-
+    #Módulo Cartão de Crédito
     def abrir_cc(self):
 
         tocar_notificacao('open_w', True)
@@ -462,7 +450,7 @@ class Main_app(ctk.CTk):
 
         self.wait_window(register_window)
 
-
+    #Módulo Despesas
     def abrir_despesas(self):
 
         tocar_notificacao('open_w', True)
@@ -470,13 +458,21 @@ class Main_app(ctk.CTk):
 
         self.wait_window(register_window)
     
-
+    #Módulo Assinaturas
     def abrir_assinaturas(self):
 
         tocar_notificacao('open_w', True)
-        register_window = Assinaturas(self, self.user_id, self.dados_cartoes, trocar_mes=self.trocar_mes)
+        register_window = Assinaturas(self, self.user_id, self.dados_cartoes, cb_att_app=self.att_app)
 
         self.wait_window(register_window)
+
+    #Módulo Simulacao
+    def abrir_simulacao(self):
+
+        tocar_notificacao('open_w', True)
+        register_window = Simulacao(self, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_usuario=self.dados_usuario, nomes_cartoes=self.nomes_cartoes, dados_prontos=self.dados_desp_ass_card)
+
+        self.wait_window(register_window) 
 
 
 

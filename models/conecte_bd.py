@@ -729,7 +729,7 @@ def atualizar_receita(id_rec, valor, descricao, data, conn=None):
             desconectar(conn)
 
 
-def atualiza_assinatura(id_ass, nome,  valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc, conn=None):
+def atualizar_assinatura(id_ass, nome,  valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc, conn=None):
 
     gerenciar_conn = False
     if conn is None:

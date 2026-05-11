@@ -429,14 +429,14 @@ class Listar_car_cred(ctk.CTkFrame):
 #Filho de Módulo Assinaturas (crud_app.py)      
 class Listar_assinaturas(ctk.CTkFrame):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, dados_assinaturas=None, controle_dados=None, trocar_mes=None, *args, **kwargs):
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None, dados_assinaturas=None, controle_dados=None, cb_comandante_crud=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes: List[Dados_cartoes_db] = dados_cartoes 
         self.dados_assinaturas: List[Dados_assinaturas_db] = dados_assinaturas  
         self.controle_dados = controle_dados
-        self.trocar_mes = trocar_mes
+        self.cdt_crud = cb_comandante_crud
 
         # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -461,17 +461,18 @@ class Listar_assinaturas(ctk.CTkFrame):
         self.listar()
 
 
-    def listar(self):
+    def listar(self, dados_ass=None):
 
         for widget in self.lista_frame.winfo_children():
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
 
+        if dados_ass is None:
+            dados_ass = self.dados_assinaturas
 
-        if self.dados_assinaturas:
+        if dados_ass:
             
-            
-            for i, dado in enumerate(self.dados_assinaturas, start=1):
+            for i, dado in enumerate(dados_ass, start=1):
 
                 nome_card = None
 
@@ -546,34 +547,27 @@ class Listar_assinaturas(ctk.CTkFrame):
         btn_confirmar.grid(row=1, column=1, padx=10, pady=10)
 
 
+
     def executar_delete(self, dados, popup):
         
         id_ass = dados.get('id_ass')
-        data_pp = dados.get('data_aquisicao')
-
-        if data_pp:
-            int_mes = mysql_para_obj(data_pp).month
-        else:
-            int_mes = datetime.now().date().month
-        
         nome = dados.get('nome')
 
-        sucesso = deletar_assinatura(id_ass)
+        dados_delete = {
+            'id_ass': id_ass
+        }
+
+        sucesso = self.cdt_crud(deletar=dados_delete)
 
         if sucesso:
-
             print(f"ID: {id_ass} Assinatura: '{nome}'. Mandado pro espaço 🌌​")
             tocar_notificacao('dv_delete', True)
-
-            self.listar()
-
-            self.trocar_mes(escolha=gerar_opcoes_meses().get(int_mes))
 
             popup.destroy()
 
         else:
             print("Erro ao deletar")
-            tocar_notificacao("dv_erro", True)
+
 
 
 # ------------------- Detalhamento Tabela e Gráfico - DASHBOARD -------------------------------

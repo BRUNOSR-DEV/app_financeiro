@@ -33,7 +33,8 @@ from dateutil.relativedelta import relativedelta
 # ------------- CONFIGURAÇÃO INICIAL ---------------
 ctk.set_appearance_mode('dark')
 
-#Módulo Usuarios
+
+#-1° Módulo Usuarios
 class Usuarios(ctk.CTkToplevel):
 
     def __init__(self,  parent=None, cb_atualiza_bd=None, *args, **kwargs):
@@ -81,7 +82,7 @@ class Usuarios(ctk.CTkToplevel):
         self.destroy()
         
 
-#Módulo Receitas
+#-2° Módulo Receitas
 class Receitas(ctk.CTkToplevel): 
 
     def __init__(self,  parent=None, user_id=None, dados_receitas=None, att_app=None, *args, **kwargs):
@@ -170,7 +171,7 @@ class Receitas(ctk.CTkToplevel):
             print('ERRO: detalhar.py(Listar_receitas) não enviou os dados')
         
 
-#Módulo Despesas
+#-3° Módulo Despesas
 class Despesas(ctk.CTkToplevel):
 
     def __init__(self, parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, att_app=None, *args, **kwargs):
@@ -266,11 +267,9 @@ class Despesas(ctk.CTkToplevel):
         else:
             print('ERRO: detalhar(despesas não mandou os dados esperados!)')
 
-    def fechar(self):
-        self.destroy()
 
 
-#Módulo Cartões de Crédito
+#-4 Módulo Cartões de Crédito
 class Car_cred(ctk.CTkToplevel):
 
     def __init__(self,  parent=None, user_id=None, dados_cartoes=None, nomes_cards =None, att_app = None, *args, **kwargs):
@@ -321,15 +320,15 @@ class Car_cred(ctk.CTkToplevel):
         self.frame_lista.listar()
 
 
-#Módulo Assinaturas
+#-5° Módulo Assinaturas
 class Assinaturas(ctk.CTkToplevel):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, trocar_mes=None):
-        super().__init__(parent)
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None, cb_att_app= None, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
 
-        self.trocar_mes = trocar_mes
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes 
+        self.att_app = cb_att_app
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Assinaturas")
@@ -337,13 +336,13 @@ class Assinaturas(ctk.CTkToplevel):
         self.transient(parent) 
         self.focus_set() 
        
-
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
         self.data_futuro = (self.data_atual + relativedelta(years=73)).replace(day=1, month=1)
 
-        self.dados_assinaturas = dados_assinaturas(self.user_id)
+        self.dados_assinaturas = db.dados_assinaturas(self.user_id)
 
+        self.notifica_delete = False
 
         # --------------- Configuração da janela/'labels' -----------------------
 
@@ -352,16 +351,61 @@ class Assinaturas(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_assinaturas(self, self.user_id, self.dados_cartoes, self.trocar_mes, self.atualizar_lista)
+        self.frame_cadastro = Cadastrar_assinaturas(self, self.user_id, self.dados_cartoes, cb_comandante_crud=self.comandante_crud)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
-        self.frame_lista = Listar_assinaturas(self, self.user_id, self.dados_cartoes, self.dados_assinaturas, self.controle_dados, self.trocar_mes )
+        self.frame_lista = Listar_assinaturas(self, self.user_id, self.dados_cartoes, self.dados_assinaturas, self.controle_dados, cb_comandante_crud=self.comandante_crud )
         self.frame_lista.grid(row=0, column=1, padx=(0,20), pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
 
+    def comandante_crud(self, inserir:dict=None, atualizar:dict=None, deletar:dict=None):
+
+        inserir: Envia_ass_form = inserir
+        atualizar: Envia_ass_form = atualizar
+
+        sucesso = None
+
+        if inserir:
+            sucesso = db.inserir_assinatura(inserir['user_id'], inserir['nome'], inserir['valor'], inserir['descricao'], inserir['data_aq_mysql'], inserir['data_pp_mysql'], inserir['dia_venc'], inserir['categoria'], inserir['id_card'])
+
+        elif atualizar:
+            sucesso = db.atualizar_assinatura(atualizar['id_ass'], atualizar['nome'], atualizar['valor'], atualizar['descricao'], atualizar['data_aq_mysql'], atualizar['data_pp_mysql'], atualizar['dia_venc'], atualizar['categoria'], atualizar['id_card'])
+        elif deletar:
+            self.notifica_delete = True
+            sucesso = db.deletar_assinatura(deletar['id_ass'])
+        
+            
+        if sucesso:
+            self.definicao_sucesso()
+        else:
+            self.definicao_insucesso()
+
+        return sucesso
+
+
+    def definicao_sucesso(self):
+
+        if not self.notifica_delete:
+            tocar_notificacao("dv_sucesso", True)
+        else:
+            tocar_notificacao('dv_delete', True)
+
+        if self.att_app:
+            self.att_app()
+        
+        self.dados_assinaturas = db.dados_assinaturas(self.user_id)
+        
+        self.update()
+
+        self.frame_lista.listar(dados_ass=self.dados_assinaturas)
+        self.frame_cadastro.limpa_campos()
+
+
+    def definicao_insucesso(self):
+        tocar_notificacao("dv_erro", True)
 
 
     def controle_dados(self, dados=None):
@@ -372,14 +416,8 @@ class Assinaturas(ctk.CTkToplevel):
             print('ERRO: Detalhar(car_cred não mandou os dados esperados!)')
         
 
-    def atualizar_lista(self):
-        """Método que será chamado após um novo cadastro ou delete para recarregar a tabela"""
-        
-        print("Atualizando a lista de receitas na tela...")
-        self.frame_lista.listar()
 
-
-#Módulo Faturas
+#-6° Módulo Faturas
 class Faturas(ctk.CTkToplevel):
     
     def __init__(self, parent, id_user=None, id_card=None, nome_card=None, dados_prontos=None, dados_card=None, *args, **kwargs):
@@ -517,7 +555,7 @@ class Faturas(ctk.CTkToplevel):
         self.frame_tabela_dois.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_b, controle_mes=controle_mes_b)
       
 
-#Módulo Simulação
+#-7° Módulo Simulação
 class Simulacao(ctk.CTkToplevel):
 
     def __init__(self, parent, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_usuario=None, nomes_cartoes=None, dados_prontos=None,  *args, **kwargs):
