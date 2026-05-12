@@ -28,28 +28,35 @@ class Login(ctk.CTk):
         self.title('Sistema de Login')
         centralizar_janela(self, 350, 400)
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=0)
 
+        # ---- LABEL DE LOCALIZAÇÃO ----
         self.label = ctk.CTkLabel(self, text="Faça seu Login", font=ctk.CTkFont(size=20, weight="bold"))
         self.label.grid(row=0, column=0, pady=20)
 
-        self.usuario_entry = ctk.CTkEntry(self, placeholder_text="Usuário")
-        self.usuario_entry.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+        # ----- NOME DE USUÁRIO -----
+        ctk.CTkLabel(self, text="Nome de Usuário", font=ctk.CTkFont(size=12, weight="bold")).grid(row=1, column=0, padx=20, sticky="w")
+        self.usuario_entry = ctk.CTkEntry(self, placeholder_text="maria123")
+        self.usuario_entry.grid(row=2, column=0, padx=20, pady=(2,10), sticky="ew")
+        
+        # ----- SENHA DE ACESSO -----
+        ctk.CTkLabel(self, text="Senha de Acesso", font=ctk.CTkFont(size=12, weight="bold")).grid(row=3, column=0, padx=20, sticky="w")
+        self.senha_entry = ctk.CTkEntry(self, placeholder_text="*admin", show="*")
+        self.senha_entry.grid(row=4, column=0, padx=20, pady=(2,10), sticky="ew")
 
-        self.senha_entry = ctk.CTkEntry(self, placeholder_text="Senha", show="*")
-        self.senha_entry.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
-
+        # ------ BOTÃO ENTRAR -------
         self.botao_enter = ctk.CTkButton(self, text="Entrar", command=self.validar_login, 
                                          fg_color="#000200", hover_color="#FC0404")
-        self.botao_enter.grid(row=3, column=0, padx=20, pady=10)
+        self.botao_enter.grid(row=5, column=0, padx=20, pady=10)
         self.bind("<Return>", lambda event: self.botao_enter.invoke())
 
+        # ------ BOTÃO REGISTRO -------
         self.registrar = ctk.CTkButton(self, text="Registrar", command=self.abrir_tela_registro,
                                        fg_color="#000200", hover_color="#FC0404")
-        self.registrar.grid(row=4, column=0, padx=20, pady=10)
+        self.registrar.grid(row=6, column=0, padx=20, pady=10)
 
+        # ------- STATUS ----------
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
-        self.status_label.grid(row=5, column=0, pady=5)
+        self.status_label.grid(row=7, column=0, pady=5)
 
         # ---------------- Gerencimento ---------------------
 

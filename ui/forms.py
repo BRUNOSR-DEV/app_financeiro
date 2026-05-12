@@ -33,30 +33,42 @@ class Cadastrar_usuarios(ctk.CTkFrame):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7), weight=0)
+        
+        # --- TÍTULO DO FORMULÁRIO ---
+        ctk.CTkLabel(self, text="Crie sua nova conta", font=ctk.CTkFont(size=20, weight="bold")).grid(row=0, column=0, pady=(20, 10))
 
-        ctk.CTkLabel(self, text="Crie sua nova conta", font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, pady=15)
+        # --- NOME COMPLETO ---
+        ctk.CTkLabel(self, text="Nome e Sobrenome", font=ctk.CTkFont(size=12, weight="bold")).grid(row=1, column=0, padx=20, sticky="w")
+        self.nome_completo = ctk.CTkEntry(self, placeholder_text="Ex: Maria Silva")
+        self.nome_completo.grid(row=2, column=0, padx=20, pady=(2, 10), sticky="ew")
 
-        self.nome_completo = ctk.CTkEntry(self, placeholder_text="Nome Completo")
-        self.nome_completo.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
-            
-        self.novo_usuario = ctk.CTkEntry(self, placeholder_text="Novo Usuário")
-        self.novo_usuario.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        # --- USUÁRIO ---
+        ctk.CTkLabel(self, text="Nome de Usuário", font=ctk.CTkFont(size=12, weight="bold")).grid(row=3, column=0, padx=20, sticky="w")
+        self.novo_usuario = ctk.CTkEntry(self, placeholder_text="maria_silva123")
+        self.novo_usuario.grid(row=4, column=0, padx=20, pady=(2, 10), sticky="ew")
 
-        self.nova_senha = ctk.CTkEntry(self, placeholder_text="Senha", show="*")
-        self.nova_senha.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        # --- SENHA ---
+        ctk.CTkLabel(self, text="Senha de Acesso", font=ctk.CTkFont(size=12, weight="bold")).grid(row=5, column=0, padx=20, sticky="w")
+        self.nova_senha = ctk.CTkEntry(self, placeholder_text="Mínimo 6 caracteres", show="*")
+        self.nova_senha.grid(row=6, column=0, padx=20, pady=(2, 10), sticky="ew")
 
-        self.rep_nova_senha = ctk.CTkEntry(self, placeholder_text="Repita a Senha", show="*")
-        self.rep_nova_senha.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        # --- REPETIR SENHA ---
+        ctk.CTkLabel(self, text="Confirmar Senha", font=ctk.CTkFont(size=12, weight="bold")).grid(row=7, column=0, padx=20, sticky="w")
+        self.rep_nova_senha = ctk.CTkEntry(self, placeholder_text="Repita a senha", show="*")
+        self.rep_nova_senha.grid(row=8, column=0, padx=20, pady=(2, 10), sticky="ew")
 
-        self.sal_fixo = ctk.CTkEntry(self, placeholder_text="Salário Fixo por mês")
-        self.sal_fixo.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+        # --- SALÁRIO ---
+        ctk.CTkLabel(self, text="Salário Mensal Fixo", font=ctk.CTkFont(size=12, weight="bold")).grid(row=9, column=0, padx=20, sticky="w")
+        self.sal_fixo = ctk.CTkEntry(self, placeholder_text="Ex: 2500.00")
+        self.sal_fixo.grid(row=10, column=0, padx=20, pady=(2, 15), sticky="ew")
 
-        self.botao_registrar = ctk.CTkButton(self, text="Confirmar Registro", command=self.processar_registro)
-        self.botao_registrar.grid(row=6, column=0, padx=20, pady=10, sticky="ew")
+        # --- BOTÃO ---
+        self.botao_registrar = ctk.CTkButton(self, text="Confirmar Registro", font=ctk.CTkFont(weight="bold"), command=self.processar_registro)
+        self.botao_registrar.grid(row=11, column=0, padx=20, pady=10, sticky="ew")
 
+        # --- STATUS ---
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
-        self.status_label.grid(row=7, column=0, pady=5)
+        self.status_label.grid(row=12, column=0, pady=5)
 
 
     def processar_registro(self):
@@ -126,8 +138,7 @@ class Cadastrar_usuarios(ctk.CTkFrame):
 
             self.update_idletasks()
             self.after(3000, lambda: self.status_label.configure(text=''))
-        
-        
+             
 
 #Filho de Módulo Receitas (crud_app.py)
 class Cadastrar_receitas(ctk.CTkFrame):
@@ -147,25 +158,32 @@ class Cadastrar_receitas(ctk.CTkFrame):
 
         ctk.CTkLabel(self, text="Cadastre Seus Ganhos", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=10)
 
-        self.valor = ctk.CTkEntry(self, placeholder_text="Valor Ganho")
-        self.valor.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+        # -------- VALOR GANHO ----------
+        ctk.CTkLabel(self, text="Valor Ganho", font=ctk.CTkFont(size=12, weight="bold")).grid(row=1, column=0, padx=20, sticky="w")
+        self.valor = ctk.CTkEntry(self, placeholder_text="300,00")
+        self.valor.grid(row=2, column=0, padx=20, pady=(2,10), sticky="ew")
 
-        self.descricao = ctk.CTkEntry(self, placeholder_text="Descrição")
-        self.descricao.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        # -------- DESCRIÇÃO ----------- 
+        ctk.CTkLabel(self, text="Descrição", font=ctk.CTkFont(size=12, weight="bold")).grid(row=3, column=0, padx=20, sticky="w")
+        self.descricao = ctk.CTkEntry(self, placeholder_text="Tigrinho")
+        self.descricao.grid(row=4, column=0, padx=20, pady=(2,10), sticky="ew")
 
-        self.label_data_compra = ctk.CTkLabel(self, text="Data de recebimento:", font=ctk.CTkFont(size=16, weight="bold"))
-        self.label_data_compra.grid(row=3, column=0)
+        # --------- DATA DO GANHO ----------
+        self.label_data_compra = ctk.CTkLabel(self, text="Data do Ganho", font=ctk.CTkFont(size=12, weight="bold"))
+        self.label_data_compra.grid(row=5, column=0)
             
         self.data_recebimento = DateEntry(self, width=12, background='darkblue',
                             foreground='white', borderwidth=2, day=1, month=1, year=2099, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
-        self.data_recebimento.grid(row=4, column=0, padx=10, pady=10)
+        self.data_recebimento.grid(row=6, column=0, padx=10, pady=(2,10))
 
+        # --------- BOTÃO ------------
         self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
-        self.botao_salvar.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
+        self.botao_salvar.grid(row=7, column=0, padx=20, pady=10, sticky="ew")
 
+        # ---------- STATUS ------------
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
-        self.status_label.grid(row=6, column=0, pady=5)
+        self.status_label.grid(row=8, column=0, pady=5)
 
 
 

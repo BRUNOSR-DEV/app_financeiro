@@ -354,7 +354,6 @@ class Car_cred(ctk.CTkToplevel):
             print('ERRO: Detalhar(car_cred não mandou os dados esperados!)')
         
 
-
 #-5° Módulo Assinaturas
 class Assinaturas(ctk.CTkToplevel):
 
