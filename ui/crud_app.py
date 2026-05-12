@@ -151,7 +151,7 @@ class Receitas(ctk.CTkToplevel):
 
         if self.att_app:
             new_dados = self.att_app()
-            self.dados_receitas = new_dados['receitas']
+            self.dados_receitas = new_dados['dados_receitas']
         
         self.update()
 
@@ -289,20 +289,60 @@ class Car_cred(ctk.CTkToplevel):
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
 
+        self.notifica_delete = False
+
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1) 
         self.grid_columnconfigure(1, weight=2) 
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_car_cred(parent=self, user_id=self.user_id, nomes_cards=self.nomes_cards, att_app= self.att_app, atualizar_lista= self.atualizar_lista)
+        self.frame_cadastro = Cadastrar_car_cred(parent=self, user_id=self.user_id, nomes_cards=self.nomes_cards, cb_comandante_crud=self.comandante_crud)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
-        self.frame_lista = Listar_car_cred(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, controle_dados = self.controle_dados, att_app = self.att_app)
+        self.frame_lista = Listar_car_cred(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, controle_dados = self.controle_dados, cb_comandante_crud=self.comandante_crud)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
     
         self.frame_lista.grid_columnconfigure(0, weight=1)
+
+
+    def comandante_crud(self, inserir=None, atualizar=None, deletar=None):
+    
+        sucesso = None
+
+        if inserir:
+            sucesso = db.inserir_cc(inserir['user_id'], inserir['nome'], inserir['limite'], inserir['dia_fech'], inserir['dia_venc'])
+        elif atualizar:
+            sucesso = db.atualizar_cartao(atualizar['id_card'], atualizar['nome'], atualizar['limite'], atualizar['dia_fech'], atualizar['dia_venc'])
+        elif deletar:
+            sucesso =  db.deletar_cartao(deletar['id_card'])
+
+        if sucesso:
+            self.definicao_sucesso()
+        else:
+            self.definicao_insucesso()
+
+
+    def definicao_sucesso(self):
+
+        if not self.notifica_delete:
+            tocar_notificacao("dv_sucesso", True)
+        else:
+            tocar_notificacao('dv_delete', True)
+
+        if self.att_app:
+            retorno = self.att_app()
+            self.dados_cartoes = retorno['dados_cartoes']
+        
+        self.update()
+
+        self.frame_lista.listar(dados_cartoes=self.dados_cartoes)
+        self.frame_cadastro.limpa_campos()
+
+
+    def definicao_insucesso(self):
+        tocar_notificacao("dv_erro", True)
 
 
     def controle_dados(self, dados=None):
@@ -312,12 +352,6 @@ class Car_cred(ctk.CTkToplevel):
         else:
             print('ERRO: Detalhar(car_cred não mandou os dados esperados!)')
         
-
-    def atualizar_lista(self):
-
-
-        print("Atualizando a lista de receitas na tela...")
-        self.frame_lista.listar()
 
 
 #-5° Módulo Assinaturas

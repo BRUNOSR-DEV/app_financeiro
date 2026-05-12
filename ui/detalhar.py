@@ -303,14 +303,14 @@ class Listar_despesas(ctk.CTkFrame):
 #Filho de Módulo Cartões de Crédito (crud_app.py)
 class Listar_car_cred(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes=None, nomes_cards =None, controle_dados = None, att_app = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes=None, nomes_cards =None, cb_comandante_crud=None, controle_dados = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.nomes_cards = nomes_cards
         self.controle_dados = controle_dados
-        self.att_app = att_app
         self.dados_cartoes: List[Dados_cartoes_db] = dados_cartoes
+        self.cdt_crud = cb_comandante_crud
 
         # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -333,15 +333,17 @@ class Listar_car_cred(ctk.CTkFrame):
         self.listar()
 
 
-    def listar(self):
+    def listar(self, dados_cartoes=None):
 
         for widget in self.lista_frame.winfo_children():
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
 
-        if self.dados_cartoes:
+        if dados_cartoes is None:
+            dados_cartoes = self.dados_cartoes
 
-            for i, dado in enumerate(self.dados_cartoes, start=1):
+        if dados_cartoes:
+            for i, dado in enumerate(dados_cartoes, start=1):
 
                 nome = dado.get('nome_cartao')
                 limite = dado.get('limite_cartao')
@@ -408,22 +410,19 @@ class Listar_car_cred(ctk.CTkFrame):
         id_card = dados.get('id_cartao')
         nome = dados.get('nome_cartao')
 
-        sucesso = deletar_cartao(id_card)
+        dados_delete = {
+            'id_card': id_card
+        }
+        sucesso = self.cdt_crud(deletar=dados_delete)
 
         if sucesso:
 
             print(f"ID: {id_card} None: '{nome}'. Mandado pro espaço 🌌​")
-            tocar_notificacao('dv_delete', True)
-
-            self.listar()
-
-            self.att_app()
 
             popup.destroy()
 
         else:
             print("Erro ao deletar")
-            tocar_notificacao("dv_erro", True)
 
 
 #Filho de Módulo Assinaturas (crud_app.py)      

@@ -597,13 +597,12 @@ class Cadastrar_despesas(ctk.CTkFrame):
 #Filho de Cartões de Crédito (crud_app.py)
 class Cadastrar_car_cred(ctk.CTkFrame):
 
-    def __init__(self,  parent=None, user_id=None, nomes_cards =None, att_app= None, atualizar_lista =None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, nomes_cards=None, cb_comandante_crud=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.nomes_cards = nomes_cards
-        self.att_app = att_app
-        self.atualizar_lista = atualizar_lista
+        self.cdt_crud = cb_comandante_crud
 
         # ---------------- Gerencimento de self ---------------------
         
@@ -661,38 +660,37 @@ class Cadastrar_car_cred(ctk.CTkFrame):
             
             return
         
-        sucesso = False
+        dados_form = {
+            "nome": nome_cc,
+            "limite": limite,
+            "dia_fech": dia_f,
+            "dia_venc":dia_v,
+        }
 
-        if not atualizar:
-            sucesso = inserir_cc(self.user_id, nome_cc, limite, dia_f, dia_v)
+        if not atualizar: #inserir
+            dados_form['user_id'] = self.user_id
+            sucesso = self.cdt_crud(inserir=dados_form)
+
             msg_ok = "INSERIDOS"
             msg_erro = "SALVAR"
-        else:
-            sucesso = atualizar_cartao(id_card, nome_cc, limite, dia_f, dia_v)
+
+        else:# Atualizar
+            dados_form['id_card'] = id_card
+            sucesso = self.cdt_crud(atualizar=dados_form)
+
             msg_ok = "ATUALIZADOS"
             msg_erro = "ATUALIZAR"
 
         if sucesso:
             self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')
-            tocar_notificacao("dv_sucesso", True)
             self.update_idletasks()
             
             self.after(2000, lambda: self.status_label.configure(text=''))
 
             self.controla_campos(None)
-
-            if self.atualizar_lista:
-                self.atualizar_lista()
-
-            if self.att_app:
-                self.att_app()
-                
-    
                 
         else:
             self.status_label.configure(text=f'Não foi possível {msg_erro} os dados, contate o adm do sistema...', text_color='red')
-
-            tocar_notificacao("dv_erro", True)
             self.update_idletasks()
 
             self.after(2000, lambda: self.status_label.configure(text=''))
