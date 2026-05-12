@@ -309,19 +309,20 @@ class Car_cred(ctk.CTkToplevel):
 
     def comandante_crud(self, inserir=None, atualizar=None, deletar=None):
     
-        sucesso = None
-
         if inserir:
             sucesso = db.inserir_cc(inserir['user_id'], inserir['nome'], inserir['limite'], inserir['dia_fech'], inserir['dia_venc'])
         elif atualizar:
             sucesso = db.atualizar_cartao(atualizar['id_card'], atualizar['nome'], atualizar['limite'], atualizar['dia_fech'], atualizar['dia_venc'])
         elif deletar:
+            self.notifica_delete = True
             sucesso =  db.deletar_cartao(deletar['id_card'])
 
         if sucesso:
             self.definicao_sucesso()
         else:
             self.definicao_insucesso()
+        
+        return sucesso
 
 
     def definicao_sucesso(self):

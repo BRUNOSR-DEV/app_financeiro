@@ -645,11 +645,12 @@ class Cadastrar_car_cred(ctk.CTkFrame):
             if nome == nome_cc:
                 tocar_notificacao("dv_erro", True)
 
-                self.status_label.configure(text=f'Por favor, Não repitir nome de cartões, tente - ex: *{nome_cc}700', text_color='red')
-                self.update_idletasks()
+                if not atualizar:
+                    self.status_label.configure(text=f'Por favor, Não repitir nome de cartões, tente - ex: *{nome_cc}700', text_color='red')
+                    self.update_idletasks()
 
-                self.after(3000, lambda: self.status_label.configure(text=''))
-                return
+                    self.after(3000, lambda: self.status_label.configure(text=''))
+                    return
 
         if not nome_cc or not limite or not dia_f or not dia_v:
             self.status_label.configure(text='Por favor, preencha todos os campos obrigarórios', text_color='red')
