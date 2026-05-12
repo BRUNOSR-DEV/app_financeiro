@@ -171,6 +171,7 @@ class Main_app(ctk.CTk):
 
         self.menu_cartoes = ctk.CTkOptionMenu(self.cadastro_frame, values=self.nomes_cartoes, fg_color="#B76500")
         self.menu_cartoes.grid(row=1, column=4, padx=10, pady=5,  sticky="ew")
+        self.menu_cartoes.set('Cartões')
 
         self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=self.abrir_det_cc, fg_color="#B76500", hover_color="#472201")
         self.det_despesas_cc.grid(row=1, column=5, padx=2, pady=2, sticky="ew")

@@ -308,81 +308,80 @@ class Cadastrar_despesas(ctk.CTkFrame):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
 
-        self.frame_cadastro = ctk.CTkFrame(self)
-        self.frame_cadastro.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        ctk.CTkLabel(self, text="Cadastre Suas Despesas", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=10)
 
-        self.frame_cadastro.grid_columnconfigure(0, weight=1)
-        self.frame_cadastro.grid_rowconfigure(0, weight=1)
+        # ----- LOCAL DA COMPRA ------
+        ctk.CTkLabel(self, text="Local da Compra*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=1, column=0, padx=20, sticky="w")
+        self.local = ctk.CTkEntry(self, placeholder_text="EX: Casas Bahia")
+        self.local.grid(row=2, column=0, padx=20, pady=(2, 10), sticky="ew")
 
-        ctk.CTkLabel(self.frame_cadastro, text="Cadastre Suas Despesas", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=(5,10))
+        # ----- TOTAL DA COMPRA ------
+        ctk.CTkLabel(self, text="Total da Compra*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=3, column=0, padx=20, sticky="w")
+        self.valor_total = ctk.CTkEntry(self, placeholder_text="EX: 1.100,99")
+        self.valor_total.grid(row=4, column=0, padx=20, pady=(2, 10), sticky="ew")
 
-        # LOCAL DA COMPRA
-        self.local = ctk.CTkEntry(self.frame_cadastro, placeholder_text="Local da compra*")
-        self.local.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
-
-        # TOTAL DA COMPRA
-        self.valor_total = ctk.CTkEntry(self.frame_cadastro, placeholder_text="Valor total da compra*")
-        self.valor_total.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
-
-        # PARCELAS
+        # ------ PARCELAS ------
         parcelas_opcoes = [str(i) for i in range(1, 13)]
-        self.menu_parcelas = ctk.CTkOptionMenu(self.frame_cadastro, values=parcelas_opcoes)
-        self.menu_parcelas.grid(row=3, column=0, padx=20, pady=20, sticky="ew")
-        self.menu_parcelas.set("N° Parcelas")
 
-        # DESCRIÇÃO DA COMPRA
-        self.descricao = ctk.CTkEntry(self.frame_cadastro, placeholder_text="Descrição da Compra")
-        self.descricao.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        ctk.CTkLabel(self, text="N° Parcelas*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=5, column=0, padx=20, sticky="w")
+        self.menu_parcelas = ctk.CTkOptionMenu(self, values=parcelas_opcoes)
+        self.menu_parcelas.grid(row=6, column=0, padx=20, pady=(2, 10), sticky="ew")
 
-        # CATEGORIA
-        categorias = ['Essencial', 'Lazer', 'Hobby', 'Vestimenta/Acessórios', 'Evolução Pessoal', 'Saúde', 'Empréstimo', 'Reforma e Construção']
-        self.categoria = ctk.CTkOptionMenu(self.frame_cadastro, values=categorias)
-        self.categoria.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
-        self.categoria.set("Categoria")
+        # ----- DESCRIÇÃO DA COMPRA -------
+        ctk.CTkLabel(self, text="Descrição", font=ctk.CTkFont(size=12, weight="bold")).grid(row=7, column=0, padx=20, sticky="w")
+        self.descricao = ctk.CTkEntry(self, placeholder_text="EX: Celular Novo")
+        self.descricao.grid(row=8, column=0, padx=20, pady=(2, 10), sticky="ew")
 
-        # DATA DA COMPRA
-        self.label_data_compra = ctk.CTkLabel(self.frame_cadastro, text="Data da Compra:", font=ctk.CTkFont(size=16, weight="bold"))
-        self.label_data_compra.grid(row=6, column=0)
+        # ------ CATEGORIA ------
+        categorias = ['Outros', 'Essencial', 'Lazer', 'Hobby', 'Vestimenta/Acessórios', 'Evolução Pessoal', 'Saúde', 'Empréstimo', 'Reforma e Construção']
 
-        self.campo_data_compra = DateEntry(self.frame_cadastro, width=12, background='darkblue',
+        ctk.CTkLabel(self, text="Categoria*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=9, column=0, padx=20, sticky="w")
+        self.categoria = ctk.CTkOptionMenu(self, values=categorias)
+        self.categoria.grid(row=10, column=0, padx=20, pady=(2, 10), sticky="ew")
+  
+
+        # ------- DATA DA COMPRA --------
+        self.label_data_compra = ctk.CTkLabel(self, text="Data da Compra*", font=ctk.CTkFont(size=12, weight="bold"))
+        self.label_data_compra.grid(row=11, column=0)
+
+        self.campo_data_compra = DateEntry(self, width=12, background='darkblue',
                             foreground='white', borderwidth=2, year=2026, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
-        self.campo_data_compra.grid(row=7, column=0, padx=10, pady=10)
+        self.campo_data_compra.grid(row=12, column=0, padx=(2, 10), pady=10)
 
-        # data primeira parcela - se não for no cartão
-        self.label_primeira_dc = ctk.CTkLabel(self.frame_cadastro, text="Data do Primeiro Pagamento: \n(obs. Não preencher se a compra for no Cartão)", font=ctk.CTkFont(size=12, weight="bold"))
-        self.label_primeira_dc.grid(row=8, column=0)
+        # ---- DATA PRIMEIRO PAGAMENTO - SE NÃO FOR NO CARTÃO -----
+        self.label_primeira_dc = ctk.CTkLabel(self, text="Data do Primeiro Pagamento: \n(obs. Não preencher se a compra for no Cartão)", font=ctk.CTkFont(size=12, weight="bold"))
+        self.label_primeira_dc.grid(row=13, column=0)
 
-        self.campo_primeira_dc = DateEntry(self.frame_cadastro, width=12, background='darkblue',
+        self.campo_primeira_dc = DateEntry(self, width=12, background='darkblue',
                             foreground='white', borderwidth=2, day=1, month=1, year=2099, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
-        self.campo_primeira_dc.grid(row=9, column=0, padx=10, pady=10)
+        self.campo_primeira_dc.grid(row=14, column=0, padx=(2, 10), pady=10)
         
-        #Seleção de cartão de crédito
+        # ---- MENU CARTÕES DE CRÉDITO ----
         if self.nomes_cartoes:
             campo_cartoes = ["Cartão de Cobrança - Sem Cartão"] + self.nomes_cartoes
 
-            self.car_cred = ctk.CTkOptionMenu(self.frame_cadastro, values=campo_cartoes)
-            self.car_cred.grid(row=10, column=0, padx=20, pady=10, sticky="ew")
+            self.car_cred = ctk.CTkOptionMenu(self, values=campo_cartoes)
+            self.car_cred.grid(row=15, column=0, padx=20, pady=(2, 10), sticky="ew")
             self.car_cred.set("Cartão de Cobrança")
         else:
-            self.car_cred = ctk.CTkOptionMenu(self.frame_cadastro, values=[' ', ' ',])
-            self.car_cred.grid(row=10, column=0, padx=20, pady=10, sticky="ew")
+            self.car_cred = ctk.CTkOptionMenu(self, values=[' ', ' ',])
+            self.car_cred.grid(row=15, column=0, padx=20, pady=(2, 10), sticky="ew")
             self.car_cred.set("Cadastre Seus Cartões Na Área Destinada")
 
-        #bortão salvar / atualizar e simular
+        # ----- BOTÃO SALVER E ATUALIZAR -----
         if not self.simulacao:
-            self.botao_salvar = ctk.CTkButton(self.frame_cadastro, text="Salvar Dados", command=self.salvar_dados)
-            self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
+            self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
+            self.botao_salvar.grid(row=16, column=0, padx=20, pady=(2, 10), sticky="ew")
         else:
-            self.botao_salvar = ctk.CTkButton(self.frame_cadastro, text="Simular despesa", command=lambda: self.salvar_dados(simulacao=True, dados_select=self.dados_select))
-            self.botao_salvar.grid(row=11, column=0, padx=20, pady=20, sticky="ew")
+            self.botao_salvar = ctk.CTkButton(self, text="Simular despesa", command=lambda: self.salvar_dados(simulacao=True, dados_select=self.dados_select))
+            self.botao_salvar.grid(row=16, column=0, padx=20, pady=(2, 10), sticky="ew")
 
-        #status label - campo informativo
-        self.status_label = ctk.CTkLabel(self.frame_cadastro, text="", text_color="red")
-        self.status_label.grid(row=12, column=0, pady=5)
+        # ------ STATUS ------
+        self.status_label = ctk.CTkLabel(self, text="", text_color="red")
+        self.status_label.grid(row=17, column=0, pady=5)
 
 
     def salvar_dados(self, id_desp=None, atualizar=None, simulacao=False, dados_select=None):
@@ -479,11 +478,8 @@ class Cadastrar_despesas(ctk.CTkFrame):
             self.update_idletasks()
             self.after(3000, lambda: self.status_label.configure(text=''))
 
-
-        #----------------- simulação ---------------------------
+        #----------------- SIMULAÇÃO ---------------------------
         if simulacao:
-
-            
             dict_dados: Despesa_simulacao = {
                 "local": local,
                 "valor_total": valor_total,
@@ -502,6 +498,7 @@ class Cadastrar_despesas(ctk.CTkFrame):
 
                 self.limpa_campos()
                 return
+        # -------------- SIMULAÇÃO END ---------------
 
         dados_form: Envia_despesa_form = {
             "local": local,
@@ -550,7 +547,6 @@ class Cadastrar_despesas(ctk.CTkFrame):
 
 
     def controla_campos(self, dados=None):
-        #'id_desp', 'local', 'valor_total', 'parcelas','descricao', 'categoria', 'data_compra', 'data_pp', 'dia_venc', 'id_cc' 
 
         self.limpa_campos()
         
