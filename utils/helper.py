@@ -58,7 +58,6 @@ def check_entry_num(P):
         "",             # Permite apagar tudo
         "R$ 0,00",      # Placeholder de Despesas/Receitas
         "Ex: 4500.00",  # Placeholder da Renda Fixa
-        "Valor Ganho",
     ]
 
     if P == placeholders_permitidos: # Permite que o usuário apague tudo com o Backspace

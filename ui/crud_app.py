@@ -37,11 +37,12 @@ ctk.set_appearance_mode('dark')
 #-1° Módulo Usuarios
 class Usuarios(ctk.CTkToplevel):
 
-    def __init__(self,  parent=None, cb_atualiza_bd=None, *args, **kwargs):
+    def __init__(self,  parent=None, cb_atualiza_bd=None, cb_vcmd_num=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
     
         self.master = parent 
         self.atualiza_bd = cb_atualiza_bd
+        self.vcmd_num = cb_vcmd_num
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title("Registrar Novo Usuário")
@@ -58,7 +59,7 @@ class Usuarios(ctk.CTkToplevel):
         self.nome_users = [dado['nome_user'] for dado in self.dados_usuarios]
 
         # ---------------- Frame Cadastro ------------------------
-        self.frame_cadastro = Cadastrar_usuarios(self, cb_comandante_crud=self.comandante_crud, cb_fechar=self.fechar, nome_users=self.nome_users)
+        self.frame_cadastro = Cadastrar_usuarios(self, cb_comandante_crud=self.comandante_crud, cb_fechar=self.fechar, nome_users=self.nome_users, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
@@ -85,12 +86,13 @@ class Usuarios(ctk.CTkToplevel):
 #-2° Módulo Receitas
 class Receitas(ctk.CTkToplevel): 
 
-    def __init__(self,  parent=None, user_id=None, dados_receitas=None, att_app=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_receitas=None, att_app=None, cb_vcmd_num=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_receitas = dados_receitas
         self.att_app = att_app
+        self.vcmd_num = cb_vcmd_num
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Receitas")
@@ -109,7 +111,7 @@ class Receitas(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
         # ---------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_receitas(parent=self, user_id=self.user_id, callback_comandante_crud=self.comandante_crud)
+        self.frame_cadastro = Cadastrar_receitas(parent=self, user_id=self.user_id, callback_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
@@ -174,13 +176,14 @@ class Receitas(ctk.CTkToplevel):
 #-3° Módulo Despesas
 class Despesas(ctk.CTkToplevel):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, att_app=None, *args, **kwargs):
+    def __init__(self, parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, att_app=None, cb_vcmd_num=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes
         self.trocar_mes = trocar_mes
         self.att_app = att_app
+        self.vcmd_num = cb_vcmd_num
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title("Gerenciar Despesas")
@@ -200,7 +203,7 @@ class Despesas(ctk.CTkToplevel):
         self.notifica_delete = False
 
          # ---------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_despesas(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, cb_comandante_crud=self.comandante_crud)
+        self.frame_cadastro = Cadastrar_despesas(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, cb_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
@@ -272,13 +275,14 @@ class Despesas(ctk.CTkToplevel):
 #-4 Módulo Cartões de Crédito
 class Car_cred(ctk.CTkToplevel):
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes=None, nomes_cards =None, att_app = None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes=None, nomes_cards =None, att_app = None, cb_vcmd_num=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.att_app = att_app
         self.nomes_cards = nomes_cards
         self.dados_cartoes = dados_cartoes
+        self.vcmd_num = cb_vcmd_num
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Cartões de Crédito")
@@ -297,7 +301,7 @@ class Car_cred(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_car_cred(parent=self, user_id=self.user_id, nomes_cards=self.nomes_cards, cb_comandante_crud=self.comandante_crud)
+        self.frame_cadastro = Cadastrar_car_cred(parent=self, user_id=self.user_id, nomes_cards=self.nomes_cards, cb_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
@@ -357,12 +361,13 @@ class Car_cred(ctk.CTkToplevel):
 #-5° Módulo Assinaturas
 class Assinaturas(ctk.CTkToplevel):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, cb_att_app= None, *args, **kwargs):
+    def __init__(self, parent=None, user_id=None, dados_cartoes=None, cb_att_app= None, cb_vcmd_num=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes 
         self.att_app = cb_att_app
+        self.vcmd_num = cb_vcmd_num
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Assinaturas")
@@ -385,7 +390,7 @@ class Assinaturas(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_assinaturas(self, self.user_id, self.dados_cartoes, cb_comandante_crud=self.comandante_crud)
+        self.frame_cadastro = Cadastrar_assinaturas(self, self.user_id, self.dados_cartoes, cb_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
@@ -449,7 +454,6 @@ class Assinaturas(ctk.CTkToplevel):
         else:
             print('ERRO: Detalhar(car_cred não mandou os dados esperados!)')
         
-
 
 #-6° Módulo Faturas
 class Faturas(ctk.CTkToplevel):
@@ -592,7 +596,7 @@ class Faturas(ctk.CTkToplevel):
 #-7° Módulo Simulação
 class Simulacao(ctk.CTkToplevel):
 
-    def __init__(self, parent, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_usuario=None, nomes_cartoes=None, dados_prontos=None,  *args, **kwargs):
+    def __init__(self, parent, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_usuario=None, nomes_cartoes=None, dados_prontos=None, cb_vcmd_num=None,  *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
@@ -602,6 +606,7 @@ class Simulacao(ctk.CTkToplevel):
         self.dados_usuario = dados_usuario
         self.nomes_cartoes = nomes_cartoes
         self.dados_prontos: List[Pega_div_cartao_db] = dados_prontos
+        self.vcmd_num = cb_vcmd_num
 
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
@@ -696,7 +701,7 @@ class Simulacao(ctk.CTkToplevel):
         self.main_section.grid_rowconfigure(0, weight=1)
 
         # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_despesas(self.main_section, self.id_user, self.dados_cartoes, simulacao=True, dados_select= self.dados_select, controle_dados=self.controle_dados)
+        self.frame_cadastro = Cadastrar_despesas(self.main_section, self.id_user, self.dados_cartoes, simulacao=True, dados_select= self.dados_select, controle_dados=self.controle_dados, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 
         # ------------------- FRAME TABELA -----------------------------

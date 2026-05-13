@@ -401,7 +401,7 @@ class Main_app(ctk.CTk):
     
         self.entry_nova_renda = ctk.CTkEntry(
             self.modal_renda, 
-            placeholder_text="Ex: 2500.00", 
+            placeholder_text="2500,00", 
             justify="center",
             validate='key',
             validatecommand= self.vcmd_num
@@ -428,7 +428,7 @@ class Main_app(ctk.CTk):
         if id_card:
             tocar_notificacao('open_w', True)
 
-            register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado, dados_card=self.dados_cartoes, dados_prontos= self.dados_desp_ass_card)
+            register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado, dados_card=self.dados_cartoes, dados_prontos= self.dados_desp_ass_card,)
 
             self.wait_window(register_window)
         else:
@@ -437,41 +437,41 @@ class Main_app(ctk.CTk):
 
     #Módulo Receitas
     def abrir_receitas(self):
-
         tocar_notificacao('open_w', True)
-        register_window = Receitas(self, self.user_id, dados_receitas=self.dados_receitas, att_app = self.att_app)
+        
+        register_window = Receitas(self, self.user_id, dados_receitas=self.dados_receitas, att_app = self.att_app, cb_vcmd_num=self.vcmd_num)
 
         self.wait_window(register_window) 
 
     #Módulo Cartão de Crédito
     def abrir_cc(self):
-
         tocar_notificacao('open_w', True)
-        register_window = Car_cred(self, self.user_id, dados_cartoes=self.dados_cartoes, nomes_cards=self.nomes_cartoes, att_app=self.att_app)
+
+        register_window = Car_cred(self, self.user_id, dados_cartoes=self.dados_cartoes, nomes_cards=self.nomes_cartoes, att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
 
         self.wait_window(register_window)
 
     #Módulo Despesas
     def abrir_despesas(self):
-
         tocar_notificacao('open_w', True)
-        register_window = Despesas(self, self.user_id, self.dados_cartoes, trocar_mes=self.trocar_mes, att_app=self.att_app)
+
+        register_window = Despesas(self, self.user_id, self.dados_cartoes, trocar_mes=self.trocar_mes, att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
 
         self.wait_window(register_window)
     
     #Módulo Assinaturas
     def abrir_assinaturas(self):
-
         tocar_notificacao('open_w', True)
-        register_window = Assinaturas(self, self.user_id, self.dados_cartoes, cb_att_app=self.att_app)
+
+        register_window = Assinaturas(self, self.user_id, self.dados_cartoes, cb_att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
 
         self.wait_window(register_window)
 
     #Módulo Simulacao
     def abrir_simulacao(self):
-
         tocar_notificacao('open_w', True)
-        register_window = Simulacao(self, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_usuario=self.dados_usuario, nomes_cartoes=self.nomes_cartoes, dados_prontos=self.dados_desp_ass_card)
+
+        register_window = Simulacao(self, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_usuario=self.dados_usuario, nomes_cartoes=self.nomes_cartoes, dados_prontos=self.dados_desp_ass_card, cb_vcmd_num=self.vcmd_num)
 
         self.wait_window(register_window) 
 

@@ -35,7 +35,7 @@ class Login(ctk.CTk):
 
         # ----- NOME DE USUÁRIO -----
         ctk.CTkLabel(self, text="Nome de Usuário", font=ctk.CTkFont(size=12, weight="bold")).grid(row=1, column=0, padx=20, sticky="w")
-        self.usuario_entry = ctk.CTkEntry(self, placeholder_text="maria123")
+        self.usuario_entry = ctk.CTkEntry(self, placeholder_text="Dante123")
         self.usuario_entry.grid(row=2, column=0, padx=20, pady=(2,10), sticky="ew")
         
         # ----- SENHA DE ACESSO -----
