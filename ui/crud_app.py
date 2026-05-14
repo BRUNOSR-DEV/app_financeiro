@@ -271,7 +271,6 @@ class Despesas(ctk.CTkToplevel):
             print('ERRO: detalhar(despesas não mandou os dados esperados!)')
 
 
-
 #-4 Módulo Cartões de Crédito
 class Car_cred(ctk.CTkToplevel):
 
@@ -887,9 +886,4 @@ class Simulacao(ctk.CTkToplevel):
 
                 self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, escolha=str_cartao_mes, controle_mes=self.controle_mes)
                 
-            
-            
-            
-        
-
 

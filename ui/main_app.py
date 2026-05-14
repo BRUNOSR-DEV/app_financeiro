@@ -1,4 +1,14 @@
 
+# ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
+from utils.typedDict import(
+    Dados_usuarios_db, 
+    Dados_receitas_db, 
+    Dados_cartoes_db, 
+    Pega_despesas_avulsas_bd, 
+    Pega_assinaturas_avulças_db, 
+    )
+
+
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import locale
@@ -18,9 +28,6 @@ from ui.crud_app import (
     Faturas, Receitas, Despesas, Car_cred, Assinaturas, Simulacao
 )
 
-from utils.typedDict import(
-    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db
-    )
 from typing import List
 
 from ui.detalhar import(
