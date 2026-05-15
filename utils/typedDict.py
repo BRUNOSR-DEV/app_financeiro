@@ -8,7 +8,7 @@ class Dados_usuarios_db(TypedDict):
     nome_completo: str
     nome_user: str
     senha: str
-    sal_fixo: str
+    sal_fixo: float
 
 
 class Dados_receitas_db(TypedDict):
