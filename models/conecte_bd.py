@@ -259,6 +259,7 @@ def dados_assinaturas(id_user, conn=None):
             desconectar(conn)
 
 
+
 #Pega dados separadamente
 def pega_id(usuario, conn=None): 
     '''função que busca id do usuário no bd, passando o nome do usuário ''' 
