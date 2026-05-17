@@ -1,6 +1,8 @@
 
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
-import models.conecte_bd as db
+from models.database import Database
+from models.repositorios import *
+import models.conecte_bd as db 
 
 from utils.helper import(
     centralizar_janela, 
@@ -44,6 +46,10 @@ class Usuarios(ctk.CTkToplevel):
         self.atualiza_bd = cb_atualiza_bd
         self.vcmd_num = cb_vcmd_num
 
+        #instância do db - classe Rep_Usuario - entidade Usuario
+        self.db_conn= Database()
+        self.db = Rep_Usuario(self.db_conn)
+
         # --------------- Configuração da janela/'labels' -----------------------
         self.title("Registrar Novo Usuário")
         centralizar_janela(self, 350, 500)
@@ -54,12 +60,12 @@ class Usuarios(ctk.CTkToplevel):
         self.grid_columnconfigure(0, weight=1) 
 
         # ---------------- Gerencimento ---------------------
-        self.dados_usuarios: List[Dados_usuarios_db] = db.dados_usuarios()
+        self.dados_usuarios: List[Dados_usuarios_db] = self.db.dados_usuarios()
 
         self.nome_users = [dado['nome_user'] for dado in self.dados_usuarios]
 
         # ---------------- Frame Cadastro ------------------------
-        self.frame_cadastro = Cadastrar_usuarios(self, cb_comandante_crud=self.comandante_crud, cb_fechar=self.fechar, nome_users=self.nome_users, cb_vcmd_num=self.vcmd_num)
+        self.frame_cadastro = Cadastrar_usuario(self, cb_comandante_crud=self.comandante_crud, cb_fechar=self.fechar, nome_users=self.nome_users, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
@@ -68,7 +74,7 @@ class Usuarios(ctk.CTkToplevel):
         sucesso = None
 
         if inserir:
-            sucesso = db.inserir_usuario(inserir['nome_comp'], inserir['usuario'], inserir['senha'], inserir['sal_fixo'] )
+            sucesso = self.db.inserir_usuario(inserir['nome_comp'], inserir['usuario'], inserir['senha'], inserir['sal_fixo'] )
         
         if sucesso:
             tocar_notificacao("dv_sucesso", True)
@@ -111,7 +117,7 @@ class Receitas(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
         # ---------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_receitas(parent=self, user_id=self.user_id, callback_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
+        self.frame_cadastro = Cadastrar_receita(parent=self, user_id=self.user_id, callback_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
@@ -203,7 +209,7 @@ class Despesas(ctk.CTkToplevel):
         self.notifica_delete = False
 
          # ---------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_despesas(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, cb_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
+        self.frame_cadastro = Cadastrar_despesa(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, cb_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
@@ -389,7 +395,7 @@ class Assinaturas(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_assinaturas(self, self.user_id, self.dados_cartoes, cb_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
+        self.frame_cadastro = Cadastrar_assinatura(self, self.user_id, self.dados_cartoes, cb_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
@@ -700,7 +706,7 @@ class Simulacao(ctk.CTkToplevel):
         self.main_section.grid_rowconfigure(0, weight=1)
 
         # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_despesas(self.main_section, self.id_user, self.dados_cartoes, simulacao=True, dados_select= self.dados_select, controle_dados=self.controle_dados, cb_vcmd_num=self.vcmd_num)
+        self.frame_cadastro = Cadastrar_despesa(self.main_section, self.id_user, self.dados_cartoes, simulacao=True, dados_select= self.dados_select, controle_dados=self.controle_dados, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 
         # ------------------- FRAME TABELA -----------------------------

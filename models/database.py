@@ -55,7 +55,6 @@ class Database:
             print(f'Erro na conexão ao MySql Server: {e}')
 
 
-    def desconectar(self):
-
-        if self.conn:
-            self.conn.close()
+    def desconectar(self, conn):
+        if conn:
+            conn.close()

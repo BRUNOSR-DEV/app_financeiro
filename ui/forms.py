@@ -21,7 +21,7 @@ ctk.set_appearance_mode('dark')
 
 
 #Filho de Módulo Login (login_app.py)
-class Cadastrar_usuarios(ctk.CTkFrame):
+class Cadastrar_usuario(ctk.CTkFrame):
     """Classe para registro: configuração da interface para receber dados e a inserção dos dados no BD. (inserir_usuario)"""
 
     def __init__(self,  parent=None, cb_comandante_crud=None, nome_users=None, cb_fechar=None, cb_vcmd_num=None, *args, **kwargs):
@@ -142,7 +142,7 @@ class Cadastrar_usuarios(ctk.CTkFrame):
              
 
 #Filho de Módulo Receitas (crud_app.py)
-class Cadastrar_receitas(ctk.CTkFrame):
+class Cadastrar_receita(ctk.CTkFrame):
 
     def __init__(self,  parent=None, user_id=None, callback_comandante_crud=None, cb_vcmd_num=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -290,7 +290,7 @@ class Cadastrar_receitas(ctk.CTkFrame):
 
 
 #Filho de Despesas e Simulacao (crud_app.py)
-class Cadastrar_despesas(ctk.CTkFrame):
+class Cadastrar_despesa(ctk.CTkFrame):
 
     def __init__(self,  parent=None, user_id=None, dados_cartoes =None, cb_comandante_crud=None, simulacao=None, dados_select=None, controle_dados=None, cb_vcmd_num=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -763,7 +763,7 @@ class Cadastrar_car_cred(ctk.CTkFrame):
 
 
 #Filho de Assinaturas (crud_app.py)
-class Cadastrar_assinaturas(ctk.CTkFrame):
+class Cadastrar_assinatura(ctk.CTkFrame):
 
     def __init__(self, parent=None, user_id=None, dados_cartoes=None, cb_comandante_crud=None, cb_vcmd_num=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)

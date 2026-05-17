@@ -6,8 +6,8 @@ from models.entidades import *
 
 class Rep_Usuario:
 
-    def __init__(self, db: Database):
-        self.db = db
+    def __init__(self, db_conn: Database):
+        self.db_conn = db_conn
     
 
     def dados_usuarios(self, conn=None):
@@ -17,7 +17,7 @@ class Rep_Usuario:
         gerenciar_conn = False
 
         if conn is None:
-            conn= self.db.conectar_bd_original()
+            conn= self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -39,7 +39,7 @@ class Rep_Usuario:
 
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def pega_usuario(self, id_user, conn=None):
@@ -49,7 +49,7 @@ class Rep_Usuario:
         gerenciar_conn = False
 
         if conn is None:
-            conn= self.db.conectar_bd_original()
+            conn= self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -73,7 +73,7 @@ class Rep_Usuario:
 
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def pega_id(self, usuario, conn=None): 
@@ -82,7 +82,7 @@ class Rep_Usuario:
         gerenciar_conn = False
 
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn= self.db_conn.conectar_bd_original()
             gerenciar_conn= True
 
         cursor = conn.cursor() 
@@ -104,7 +104,7 @@ class Rep_Usuario:
 
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def inserir_usuario(self, nome_comp, nome_usu, senha, sal_fixo, conn=None):
@@ -114,7 +114,7 @@ class Rep_Usuario:
         gerenciar_conn = False
 
         if conn is None:
-            conn= self.db.conectar_bd_original()
+            conn= self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -146,14 +146,14 @@ class Rep_Usuario:
         
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def atualizar_renda(self, id_user, nova_renda, conn=None):
 
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn= self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -178,7 +178,7 @@ class Rep_Usuario:
         
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
 
