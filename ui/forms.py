@@ -323,8 +323,8 @@ class Cadastrar_despesa(ctk.CTkFrame):
 
         # ----- TOTAL DA COMPRA ------
         ctk.CTkLabel(self, text="Total da Compra*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=3, column=0, padx=20, sticky="w")
-        self.valor_total = ctk.CTkEntry(self, placeholder_text="1.100,99")
-        self.valor_total.grid(row=4, column=0, padx=20, pady=(2, 10), sticky="ew", validate='key', validatecommand= self.vcmd_num)
+        self.valor_total = ctk.CTkEntry(self, placeholder_text="1000", validate='key', validatecommand= self.vcmd_num)
+        self.valor_total.grid(row=4, column=0, padx=20, pady=(2, 10), sticky="ew")
 
         # ------ PARCELAS ------
         parcelas_opcoes = [str(i) for i in range(1, 13)]

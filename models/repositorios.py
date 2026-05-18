@@ -184,8 +184,8 @@ class Rep_Usuario:
 
 class Rep_Receita:
 
-    def __init__(self, db: Database):
-        self.db = db
+    def __init__(self, db_conn: Database):
+        self.db_conn = db_conn
     
     def dados_receitas(self, id_user, conn=None):
         """
@@ -194,7 +194,7 @@ class Rep_Receita:
         gerenciar_conn = False
 
         if conn is None:
-            conn= self.db.conectar_bd_original()
+            conn= self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -217,7 +217,7 @@ class Rep_Receita:
 
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def inserir_receita(self, id_usu, valor, descricao, data, conn=None):
@@ -226,7 +226,7 @@ class Rep_Receita:
         gerenciar_conn = False
 
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -248,14 +248,14 @@ class Rep_Receita:
         
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def atualizar_receita(self, id_rec, valor, descricao, data, conn=None):
 
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -280,14 +280,14 @@ class Rep_Receita:
         
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def deletar_receita(self, id_rec, conn=None):
 
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -304,21 +304,21 @@ class Rep_Receita:
     
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
 
 class Rep_Despesa:
 
-    def __init__(self, db: Database):
-        self.db = db
+    def __init__(self, db_conn: Database):
+        self.db_conn = db_conn
 
 
     def dados_despesas(self, id_user, conn=None):
 
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -353,7 +353,7 @@ class Rep_Despesa:
             return []
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
     
     # método de busca join - (despesas-cartoes_credito)
@@ -364,7 +364,7 @@ class Rep_Despesa:
         """
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -401,7 +401,7 @@ class Rep_Despesa:
             return []
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     #Método que busca só despesas avulsas
@@ -411,7 +411,7 @@ class Rep_Despesa:
         """
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -446,7 +446,7 @@ class Rep_Despesa:
             return []
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def inserir_despesa(self, id_usu, local, valor_total, parcelas, descricao, categoria, data, dc_prim_parc=None, dia_vencimento = None, id_cc= None, conn= None):
@@ -454,7 +454,7 @@ class Rep_Despesa:
     
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -476,14 +476,14 @@ class Rep_Despesa:
         
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def atualizar_despesa(self, id_desp, local, valor_total, parcelas, descricao, categoria, data, dc_prim_parc, dia_venc, id_cc, conn= None):
 
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -508,14 +508,14 @@ class Rep_Despesa:
         
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def deletar_despesa(self, id_desp, conn=None):
 
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -532,14 +532,14 @@ class Rep_Despesa:
     
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn) 
+                self.db_conn.desconectar(conn) 
 
 
 
 class Rep_Cartao_credito:
 
-    def __init__(self, db: Database):
-        self.db = db
+    def __init__(self, db_conn: Database):
+        self.db_conn = db_conn
 
     
     def dados_cartoes(self, id_user, conn=None):
@@ -549,7 +549,7 @@ class Rep_Cartao_credito:
         gerenciar_conn = False
 
         if conn is None:
-            conn= self.db.conectar_bd_original()
+            conn= self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -580,7 +580,7 @@ class Rep_Cartao_credito:
     
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -602,14 +602,14 @@ class Rep_Cartao_credito:
         
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def atualizar_cartao(self, id_card, nome, limite,  dia_fec, dia_venc, conn=None):
 
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -634,14 +634,14 @@ class Rep_Cartao_credito:
         
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def deletar_cartao(self, id_card, conn=None):
 
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -658,14 +658,14 @@ class Rep_Cartao_credito:
     
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
 
 class Rep_Assinatura:
 
-    def __init__(self, db: Database):
-        self.db = db
+    def __init__(self, db_conn: Database):
+        self.db_conn = db_conn
 
     
     def dados_assinaturas(self, id_user, conn=None):
@@ -674,7 +674,7 @@ class Rep_Assinatura:
         """
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -698,7 +698,7 @@ class Rep_Assinatura:
             return []
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def pega_assinaturas_cartao(self, id_user, id_card, conn=None):
@@ -707,7 +707,7 @@ class Rep_Assinatura:
         """
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -746,7 +746,7 @@ class Rep_Assinatura:
             return []
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def pega_assinaturas_avulsas(self, id_user, conn=None):
@@ -755,7 +755,7 @@ class Rep_Assinatura:
         """
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -779,12 +779,12 @@ class Rep_Assinatura:
             return []
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def inserir_assinatura(self, id_user, nome, valor, descricao, data_aq, data_prim_pag, dia_venc, categoria, id_cc):
 
-        conn = self.db.conectar_bd_original()
+        conn = self.db_conn.conectar_bd_original()
         cursor = conn.cursor()
         try:
             query = """
@@ -801,14 +801,14 @@ class Rep_Assinatura:
             print(f"Erro ao salvar assinatura: {e}")
             return False
         finally:
-            self.db.desconectar(conn)       
+            self.db_conn.desconectar(conn)       
 
 
     def atualizar_assinatura(self, id_ass, nome,  valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc, conn=None):
 
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -833,14 +833,14 @@ class Rep_Assinatura:
         
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
     
     def deletar_assinatura(self, id_ass, conn =None):
 
         gerenciar_conn = False
         if conn is None:
-            conn = self.db.conectar_bd_original()
+            conn = self.db_conn.conectar_bd_original()
             gerenciar_conn = True
 
         cursor = conn.cursor()
@@ -857,6 +857,6 @@ class Rep_Assinatura:
     
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
