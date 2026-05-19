@@ -639,7 +639,7 @@ class Simulacao(ctk.CTkToplevel):
 
         self.controle_mes = 0
 
-        self.valor_renda = self.dados_usuario.get('sal_fixo', 0.0)
+        self.valor_renda = self.dados_usuario[0].get('sal_fixo', 0.0)
 
 
         # --------------- Configuração da janela/'labels' -----------------------
@@ -668,7 +668,7 @@ class Simulacao(ctk.CTkToplevel):
         self.top_section.grid_columnconfigure(1, weight=1) 
 
                         # ------------ Apresentação ------------------
-        texto = f"Simulação: Usuário - {self.dados_usuario.get('nome_completo')}!"
+        texto = f"Simulação: Usuário - {self.dados_usuario[0].get('nome_completo')}!"
         self.nomeusuario_label = ctk.CTkLabel(self.top_section, text=texto, font=ctk.CTkFont(size=18, weight="bold"))
         self.nomeusuario_label.grid(row=0, column=0, padx=5, sticky="w")
 

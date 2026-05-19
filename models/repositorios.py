@@ -572,7 +572,7 @@ class Rep_Cartao_credito:
 
         finally:
             if gerenciar_conn:
-                self.db.desconectar(conn)
+                self.db_conn.desconectar(conn)
 
 
     def inserir_cc(self, id_usu, nome, limite, dia_f, dia_v, conn=None):
@@ -681,7 +681,7 @@ class Rep_Assinatura:
 
         try:
             query = """
-                SELECT id, nome, valor, descricao, data_aquisicao, data_prim_pag, categoria, id_cc
+                SELECT id, nome, valor, descricao, data_aquisicao, data_prim_pag, dia_vencimento, categoria, id_cc
                 FROM assinaturas 
                 WHERE id_usuario = %s 
             """
@@ -762,7 +762,7 @@ class Rep_Assinatura:
 
         try:
             query = """
-                SELECT id, nome, valor, descricao, data_prim_pag, dia_vencimento, categoria
+                SELECT id, nome, valor, descricao, data_aquisicao, data_prim_pag, dia_vencimento, categoria
                 FROM assinaturas 
                 WHERE id_usuario = %s and id_cc IS NULL
             """

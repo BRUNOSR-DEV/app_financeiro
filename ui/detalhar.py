@@ -621,8 +621,8 @@ class Listar_desp_tabela(ctk.CTkFrame):
             controle_mes = int(datetime.now().month)
 
 
-        despesas = self.despesas_avulsas
-        assin = self.assinaturas_avulsas
+        despesas: List[Pega_despesas_avulsas_bd] = self.despesas_avulsas
+        assin: List[Pega_assinaturas_avulças_db] = self.assinaturas_avulsas
 
         total_avulsas = Decimal('0.0')
         total_cards = Decimal('0.0')
@@ -750,10 +750,10 @@ class Listar_desp_tabela(ctk.CTkFrame):
                 
                 for ass in assin:
 
-                        data_pp = mysql_para_obj(ass.get('data_pp'))
-                        dia_venc = ass.get('dia_vencimento')
-                        nome = ass.get('nome')
-                        valor = ass.get('valor')
+                        data_pp = mysql_para_obj(ass['data_pp'])
+                        dia_venc = ass['dia_vencimento']
+                        nome = ass['nome']
+                        valor = ass["valor"]
 
                         resultado = controle_data_parc(data_pp, dia_venc, total_parcelas=None, controle_mes = controle_mes )
                         str_sit, entra_no_mes, data_vencimento = resultado
@@ -775,7 +775,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
             if despesas:
 
                 for _, dados in enumerate(despesas):
-                    primeira_parc = mysql_para_obj(dados.get('primeira_parc'))
+                    primeira_parc = mysql_para_obj(dados['data_pp'])
                     dia_venc = primeira_parc.day
                 
                     resultado_avulso = controle_data_parc(primeira_parc, dia_venc, dados.get('parcelas'), controle_mes= controle_mes)
@@ -930,8 +930,8 @@ class Listar_cat_grafico(ctk.CTkFrame):
         if controle_mes is None:
             controle_mes = datetime.now().month
 
-        assin_avulsas = self.assinaturas_avulsas
-        desp_avulsas = self.despesas_avulsas
+        assin_avulsas: List[Pega_assinaturas_avulças_db] = self.assinaturas_avulsas
+        desp_avulsas: List[Pega_despesas_avulsas_bd]= self.despesas_avulsas
 
         gastos_por_categoria = defaultdict(Decimal)
         total_previsto = Decimal('0.0')
@@ -990,9 +990,9 @@ class Listar_cat_grafico(ctk.CTkFrame):
             if desp_avulsas:
                 for desp in desp_avulsas:
 
-                    primeira_parc = mysql_para_obj(desp.get('primeira_parc'))
-                    parcelas = desp.get('parcelas')
-                    dia_venc = desp.get('dia_vencimento')
+                    primeira_parc = mysql_para_obj(desp["data_pp"])
+                    parcelas = desp['parcelas']
+                    dia_venc = desp['dia_vencimento']
         
                     resultado = controle_data_parc(primeira_parc, dia_venc , parcelas, controle_mes = controle_mes)
                     _, entra_no_mes, _ = resultado

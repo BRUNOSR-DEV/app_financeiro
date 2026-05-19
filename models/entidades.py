@@ -17,8 +17,14 @@ class Usuario:
         return self._sal_fixo
     
     def to_dict(self):
-        """Converte o objeto em dicionário para as Frames."""
-        return self.__dict__
+        """Monta o dicionário com as chaves limpas que a UI espera."""
+        return {
+            'id_user': self.id_user,
+            'nome_completo': self.nome_completo,
+            'nome_user': self.nome_user,
+            'senha': self.senha,       
+            'sal_fixo': self.sal_fixo  
+        }
     
  
 class Receita:
@@ -42,7 +48,7 @@ class Despesa:
         self.categoria: str = cat
         self.data_compra: datetime = data_compra
         self.data_pp: datetime = data_pp
-        self.dia_venc: int = dia_venc
+        self.dia_vencimento: int = dia_venc
         self.id_cc: int = id_cc
     
     def to_dict(self):
@@ -85,13 +91,14 @@ class Cartao_credito:
 
 
 class Assinatura:
-    def __init__(self, id, nome, valor, desc, data_aq, data_pp, cat, id_cc=None):
+    def __init__(self, id, nome, valor, desc, data_aq, data_pp, dia_venc, cat, id_cc=None):
         self.id_ass: int = id
         self.nome: str = nome
         self.valor: float = valor
         self.descricao: str = desc
         self.data_aquisicao: datetime = data_aq
-        self.data_prim_pag: datetime = data_pp
+        self.data_pp: datetime = data_pp
+        self.dia_vencimento = dia_venc
         self.categoria: str = cat
         self.id_cc: int = id_cc
 

@@ -1,5 +1,8 @@
 
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
+from models.database import Database
+from models.repositorios import *
+
 from utils.typedDict import(
     Dados_usuarios_db, 
     Dados_receitas_db, 
@@ -48,6 +51,14 @@ class Main_app(ctk.CTk):
     def __init__(self, logged_in_username=None):
         super().__init__()
 
+        self.db_conn = Database()
+        self.rep_user = Rep_Usuario(self.db_conn)
+        self.rep_card = Rep_Cartao_credito(self.db_conn)
+        self.rep_rec = Rep_Receita(self.db_conn)
+        self.rep_desp = Rep_Despesa(self.db_conn)
+        self.rep_ass = Rep_Assinatura(self.db_conn)
+
+
         self.usuario_logado = logged_in_username
         self.title("Controle Financeiro")
         centralizar_janela(self, 1300, 800)
@@ -68,11 +79,11 @@ class Main_app(ctk.CTk):
 
     def buscar_dados_banco(self):
         """ Função exclusiva para buscar/calcular dados. """
-        self.user_id = pega_id(self.usuario_logado)
-        self.dados_usuario: List[Dados_usuarios_db] = pega_usuario(self.user_id)
-        self.dados_receitas: List[Dados_receitas_db] = dados_receitas(self.user_id)
+        self.user_id = self.rep_user.pega_id(self.usuario_logado)
+        self.dados_usuario: List[Dados_usuarios_db] = self.rep_user.pega_usuario(self.user_id)
+        self.dados_receitas: List[Dados_receitas_db] = self.rep_rec.dados_receitas(self.user_id)
 
-        self.valor_renda = self.dados_usuario.get('sal_fixo', 0.0) 
+        self.valor_renda = self.dados_usuario[0].get('sal_fixo', 0.0) 
 
         self.data_atual = datetime.now()
         self.mes_atual = self.data_atual.month
@@ -92,11 +103,11 @@ class Main_app(ctk.CTk):
 
         self.nomes_datas = [self.mes_atual_str, self.prox_mes_str, self.seg_prox_mes_str, self.ter_prox_mes_str, self.quart_prox_mes_str, self.quint_prox_mes_str]
 
-        self.dados_cartoes: List[Dados_cartoes_db] = dados_cartoes(self.user_id)
+        self.dados_cartoes: List[Dados_cartoes_db] = self.rep_card.dados_cartoes(id_user=self.user_id)
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
 
-        self.despesas_avulsas: List[Pega_despesas_avulsas_bd] = pega_despesas_avulsas(self.user_id)
-        self.assinaturas_avulsas: List[Pega_assinaturas_avulças_db] = pega_assinaturas_avulsas(self.user_id)
+        self.despesas_avulsas: List[Pega_despesas_avulsas_bd] = self.rep_desp.pega_despesas_avulsas(self.user_id)
+        self.assinaturas_avulsas: List[Pega_assinaturas_avulças_db] = self.rep_ass.pega_assinaturas_avulsas(self.user_id)
 
         #chamada de dados 'despesas' e 'assinaturas' nos cartoes de self.dados_cartoes
         self.dados_desp_ass_card = preparar_dados_completos_cartao(self.user_id, self.dados_cartoes)
@@ -123,7 +134,7 @@ class Main_app(ctk.CTk):
         self.top_section_frame.grid_columnconfigure(1, weight=1) # Renda Fixa (EXPANDE e empurra o resto pra direita)
         self.top_section_frame.grid_columnconfigure((2, 3, 4, 5, 6), weight=0) # Outros botões fixos
 
-        texto_boas_vindas = f"Bem-vindo, {self.dados_usuario.get('nome_completo')}!" if self.usuario_logado else "Bem-vindo!"
+        texto_boas_vindas = f"Bem-vindo, {self.dados_usuario[0].get('nome_completo')}!" if self.usuario_logado else "Bem-vindo!"
         self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame, text=texto_boas_vindas, font=ctk.CTkFont(size=18, weight="bold"))
         self.nomeusuario_label.grid(row=0, column=0, padx=5, pady=(0, 10), sticky="w")
 
