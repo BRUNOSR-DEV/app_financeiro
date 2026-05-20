@@ -1,3 +1,8 @@
+
+from models.database import Database
+from models.repositorios import *
+
+
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import calendar
@@ -31,13 +36,18 @@ def preparar_dados_completos_cartao(id_user, dados_cartoes)-> List[dict]:
     """
     Transforma uma lista simples de cartões em uma lista robusta com despesas e assinaturas.
     """
+    db_conn = Database()
+    rep_despesa = Rep_Despesa(db_conn)
+    rep_assinatura = Rep_Assinatura(db_conn)
+
+
     dados_completos = []
     
     for cartao in dados_cartoes:
         id_card = cartao['id_cartao']
         
-        despesas = pega_despesas_cartao(id_user, id_card)
-        assinaturas = pega_assinaturas_cartao(id_user, id_card)
+        despesas = rep_despesa.pega_despesas_cartao(id_user, id_card)
+        assinaturas = rep_assinatura.pega_assinaturas_cartao(id_user, id_card)
         
         dados_completos.append({
             'info': cartao,

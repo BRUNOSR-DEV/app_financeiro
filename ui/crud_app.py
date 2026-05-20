@@ -2,6 +2,7 @@
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
 from models.database import Database
 from models.repositorios import *
+
 import models.conecte_bd as db 
 
 from utils.helper import(
@@ -100,6 +101,10 @@ class Receitas(ctk.CTkToplevel):
         self.att_app = att_app
         self.vcmd_num = cb_vcmd_num
 
+        #instância do db - classe Rep_Usuario - entidade Usuario
+        self.db_conn= Database()
+        self.db = Rep_Receita(self.db_conn)
+
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Receitas")
         centralizar_janela(self, 1000, 800)
@@ -134,12 +139,12 @@ class Receitas(ctk.CTkToplevel):
         sucesso = None
 
         if inserir:
-            sucesso = db.inserir_receita(inserir['user_id'], inserir['valor'], inserir['descricao'], inserir['data_mysql'])
+            sucesso = self.db.inserir_receita(inserir['user_id'], inserir['valor'], inserir['descricao'], inserir['data_mysql'])
         elif atualizar:
-            sucesso = db.atualizar_receita(atualizar['id_rec'], atualizar['valor'], atualizar['descricao'], atualizar['data_mysql'])
+            sucesso = self.db.atualizar_receita(atualizar['id_rec'], atualizar['valor'], atualizar['descricao'], atualizar['data_mysql'])
         elif deletar:
             self.notifica_delete = True
-            sucesso = db.deletar_receita(deletar['id_rec'])
+            sucesso = self.db.deletar_receita(deletar['id_rec'])
         
             
         if sucesso:
@@ -191,6 +196,10 @@ class Despesas(ctk.CTkToplevel):
         self.att_app = att_app
         self.vcmd_num = cb_vcmd_num
 
+        #instância do db - classe Rep_Usuario - entidade Usuario
+        self.db_conn= Database()
+        self.db = Rep_Despesa(self.db_conn)
+
         # --------------- Configuração da janela/'labels' -----------------------
         self.title("Gerenciar Despesas")
         centralizar_janela(self, 1700, 800)
@@ -204,7 +213,7 @@ class Despesas(ctk.CTkToplevel):
         # ---------------- Gerencimento ---------------------
         self.data_atual = datetime.now().date()
 
-        self.dados_despesas: List[Dados_despesas_db] = db.dados_despesas(self.user_id)
+        self.dados_despesas: List[Dados_despesas_db] = self.db.dados_despesas(self.user_id)
 
         self.notifica_delete = False
 
@@ -229,14 +238,14 @@ class Despesas(ctk.CTkToplevel):
         sucesso = None
 
         if inserir:
-            sucesso = db.inserir_despesa(inserir['user_id'], inserir['local'], inserir['valor_total'], inserir['parcelas'], inserir['descricao'], inserir['categoria'], inserir['dc_select_mysql'], inserir['prim_dc_select_mysql'], inserir['dia_venc'], inserir['id_card'])
+            sucesso = self.db.inserir_despesa(inserir['user_id'], inserir['local'], inserir['valor_total'], inserir['parcelas'], inserir['descricao'], inserir['categoria'], inserir['dc_select_mysql'], inserir['prim_dc_select_mysql'], inserir['dia_venc'], inserir['id_card'])
 
         elif atualizar:
-            sucesso = db.atualizar_despesa(atualizar['id_desp'], atualizar['local'], atualizar['valor_total'], atualizar['parcelas'], atualizar['descricao'], atualizar['categoria'], atualizar['dc_select_mysql'], atualizar['prim_dc_select_mysql'], atualizar['dia_venc'], atualizar['id_card'])
+            sucesso = self.db.atualizar_despesa(atualizar['id_desp'], atualizar['local'], atualizar['valor_total'], atualizar['parcelas'], atualizar['descricao'], atualizar['categoria'], atualizar['dc_select_mysql'], atualizar['prim_dc_select_mysql'], atualizar['dia_venc'], atualizar['id_card'])
 
         elif deletar:
             self.notifica_delete = True
-            sucesso = db.deletar_despesa(deletar['id_desp'])
+            sucesso = self.db.deletar_despesa(deletar['id_desp'])
         
             
         if sucesso:
@@ -257,7 +266,7 @@ class Despesas(ctk.CTkToplevel):
         if self.att_app:
             self.att_app()
         
-        self.dados_despesas = db.dados_despesas(self.user_id)
+        self.dados_despesas = self.db.dados_despesas(self.user_id)
         
         self.update()
 
@@ -289,6 +298,10 @@ class Car_cred(ctk.CTkToplevel):
         self.dados_cartoes = dados_cartoes
         self.vcmd_num = cb_vcmd_num
 
+        #instância do db - classe Rep_Usuario - entidade Usuario
+        self.db_conn= Database()
+        self.db = Rep_Cartao_credito(self.db_conn)
+
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Cartões de Crédito")
         centralizar_janela(self, 1200, 800)
@@ -319,12 +332,12 @@ class Car_cred(ctk.CTkToplevel):
     def comandante_crud(self, inserir=None, atualizar=None, deletar=None):
     
         if inserir:
-            sucesso = db.inserir_cc(inserir['user_id'], inserir['nome'], inserir['limite'], inserir['dia_fech'], inserir['dia_venc'])
+            sucesso = self.db.inserir_cc(inserir['user_id'], inserir['nome'], inserir['limite'], inserir['dia_fech'], inserir['dia_venc'])
         elif atualizar:
-            sucesso = db.atualizar_cartao(atualizar['id_card'], atualizar['nome'], atualizar['limite'], atualizar['dia_fech'], atualizar['dia_venc'])
+            sucesso = self.db.atualizar_cartao(atualizar['id_card'], atualizar['nome'], atualizar['limite'], atualizar['dia_fech'], atualizar['dia_venc'])
         elif deletar:
             self.notifica_delete = True
-            sucesso =  db.deletar_cartao(deletar['id_card'])
+            sucesso =  self.db.deletar_cartao(deletar['id_card'])
 
         if sucesso:
             self.definicao_sucesso()
@@ -374,6 +387,10 @@ class Assinaturas(ctk.CTkToplevel):
         self.att_app = cb_att_app
         self.vcmd_num = cb_vcmd_num
 
+        #instância do db - classe Rep_Usuario - entidade Usuario
+        self.db_conn= Database()
+        self.db = Rep_Assinatura(self.db_conn)
+
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Assinaturas")
         centralizar_janela(self, 1800, 800)
@@ -384,7 +401,7 @@ class Assinaturas(ctk.CTkToplevel):
         self.data_atual = datetime.now().date()
         self.data_futuro = (self.data_atual + relativedelta(years=73)).replace(day=1, month=1)
 
-        self.dados_assinaturas = db.dados_assinaturas(self.user_id)
+        self.dados_assinaturas = self.db.dados_assinaturas(self.user_id)
 
         self.notifica_delete = False
 
@@ -413,13 +430,13 @@ class Assinaturas(ctk.CTkToplevel):
         sucesso = None
 
         if inserir:
-            sucesso = db.inserir_assinatura(inserir['user_id'], inserir['nome'], inserir['valor'], inserir['descricao'], inserir['data_aq_mysql'], inserir['data_pp_mysql'], inserir['dia_venc'], inserir['categoria'], inserir['id_card'])
+            sucesso = self.db.inserir_assinatura(inserir['user_id'], inserir['nome'], inserir['valor'], inserir['descricao'], inserir['data_aq_mysql'], inserir['data_pp_mysql'], inserir['dia_venc'], inserir['categoria'], inserir['id_card'])
 
         elif atualizar:
-            sucesso = db.atualizar_assinatura(atualizar['id_ass'], atualizar['nome'], atualizar['valor'], atualizar['descricao'], atualizar['data_aq_mysql'], atualizar['data_pp_mysql'], atualizar['dia_venc'], atualizar['categoria'], atualizar['id_card'])
+            sucesso = self.db.atualizar_assinatura(atualizar['id_ass'], atualizar['nome'], atualizar['valor'], atualizar['descricao'], atualizar['data_aq_mysql'], atualizar['data_pp_mysql'], atualizar['dia_venc'], atualizar['categoria'], atualizar['id_card'])
         elif deletar:
             self.notifica_delete = True
-            sucesso = db.deletar_assinatura(deletar['id_ass'])
+            sucesso = self.db.deletar_assinatura(deletar['id_ass'])
         
             
         if sucesso:
@@ -440,7 +457,7 @@ class Assinaturas(ctk.CTkToplevel):
         if self.att_app:
             self.att_app()
         
-        self.dados_assinaturas = db.dados_assinaturas(self.user_id)
+        self.dados_assinaturas = self.db.dados_assinaturas(self.user_id)
         
         self.update()
 
@@ -499,8 +516,8 @@ class Faturas(ctk.CTkToplevel):
             if self.id_card == card['id_cartao']:
 
                 self.limite = card["limite_cartao"]
-                self.fechamento = card['fechamento_fatura']
-                self.vencimento = card['vencimento_fatura']
+                self.fechamento = card['dia_fechamento']
+                self.vencimento = card['dia_vencimento']
         
 
         self.data_atual = datetime.now().date()
@@ -765,8 +782,8 @@ class Simulacao(ctk.CTkToplevel):
                         
                         if card.get('nome_cartao') == nome_cartao:
                             id_card = card.get('id_cartao')
-                            fech = card.get('fechamento_fatura')
-                            venc = card.get('vencimento_fatura')
+                            fech = card.get('dia_fechamento')
+                            venc = card.get('dia_vencimento')
                             
                             data_compra = mysql_para_obj(dado.get('data_compra'))
 
@@ -854,10 +871,6 @@ class Simulacao(ctk.CTkToplevel):
 
         else:
             self.controle_dados(dados=dados, controle_mes=self.controle_mes, trocar_card=self.id_card_atual)
-
-            #cartao = self.menu_cartao.get()
-            #self.trocar_frame_cartao(escolha=cartao)
-
 
 
     def trocar_frame_cartao(self, escolha):

@@ -69,8 +69,8 @@ class DespesaDetalhadoDTO:
         #Entidade cartao_credito
         self.nome_cartao: str = nome_card
         self.limite_cartao: float = limite_card
-        self.fechamento_fatura: int = fech_card
-        self.vencimento_fatura: int = venc_card
+        self.dia_fechamento: int = fech_card
+        self.dia_vencimento: int = venc_card
     
     def to_dict(self):
         """Converte o objeto em dicionário para as Frames."""
@@ -82,8 +82,8 @@ class Cartao_credito:
         self.id_cartao: int = id
         self.nome_cartao: str = nome
         self.limite_cartao: float = limite
-        self.fechamento_fatura: int = fech
-        self.vencimento_fatura: int = venc
+        self.dia_fechamento: int = fech
+        self.dia_vencimento: int = venc
     
     def to_dict(self):
         """Converte o objeto em dicionário para as Frames."""
@@ -120,8 +120,8 @@ class AssinaturaDetalhadoDTO:
 
         self.nome_cartao: str = nome_card
         self.limite_cartao: float = limite_card
-        self.fechamento_fatura: int = fech_card
-        self.vencimento_fatura: int = venc_card
+        self.dia_fechamento_cc: int = fech_card
+        self.dia_vencimento_cc: int = venc_card
         
     
     def to_dict(self):

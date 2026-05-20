@@ -347,8 +347,8 @@ class Listar_car_cred(ctk.CTkFrame):
 
                 nome = dado.get('nome_cartao')
                 limite = dado.get('limite_cartao')
-                dia_fec = dado.get('fechamento_fatura')
-                dia_venc = dado.get('vencimento_fatura')
+                dia_fec = dado.get('dia_fechamento')
+                dia_venc = dado.get('dia_vencimento')
 
                 #cabeçalho
                 ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
@@ -670,8 +670,8 @@ class Listar_desp_tabela(ctk.CTkFrame):
                         for desp in despesas_do_cartao:
 
                             data_compra = mysql_para_obj(desp.get('data_compra'))
-                            dia_venc = desp.get('vencimento_fatura')
-                            fechamento = desp.get('fechamento_fatura')
+                            dia_venc = desp.get('dia_vencimento')
+                            fechamento = desp.get('dia_fechamento')
                             parcelas = desp.get('parcelas')
 
 
@@ -969,8 +969,8 @@ class Listar_cat_grafico(ctk.CTkFrame):
                     for desp in desp_cc:
 
                         data_compra = mysql_para_obj(desp.get('data_compra'))
-                        dia_venc = desp.get('vencimento_fatura')
-                        fechamento = desp.get('fechamento_fatura')
+                        dia_venc = desp.get('dia_vencimento')
+                        fechamento = desp.get('dia_fechamento')
                         parcelas = desp.get('parcelas')
 
                         resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes= controle_mes)
@@ -1169,8 +1169,8 @@ class Listar_faturas_cartao(ctk.CTkFrame):
                 for _, item_desp  in enumerate(dados_desp_card):
                 
                     data_compra = mysql_para_obj(item_desp.get('data_compra'))
-                    fecha_fatura = item_desp.get('fechamento_fatura')
-                    dia_venc = item_desp.get('vencimento_fatura')
+                    fecha_fatura = item_desp.get('dia_fechamento')
+                    dia_venc = item_desp.get('dia_vencimento')
                     parcelas = item_desp.get('parcelas')
 
 

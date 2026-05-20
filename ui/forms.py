@@ -339,7 +339,7 @@ class Cadastrar_despesa(ctk.CTkFrame):
         self.descricao.grid(row=8, column=0, padx=20, pady=(2, 10), sticky="ew")
 
         # ------ CATEGORIA ------
-        categorias = ['Não Selecionado', 'Essencial', 'Lazer', 'Hobby', 'Vestimenta/Acessórios', 'Evolução Pessoal', 'Saúde', 'Empréstimo', 'Reforma e Construção', 'Outros']
+        categorias = ['Não Selecionado', 'Essencial', 'Lazer', 'Hobby', 'Vestimenta/Acessórios','Eletrônicos', 'Evolução Pessoal', 'Saúde', 'Empréstimo', 'Reforma e Construção', 'Outros']
 
         ctk.CTkLabel(self, text="Categoria*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=9, column=0, padx=20, sticky="w")
         self.categoria = ctk.CTkOptionMenu(self, values=categorias)
@@ -450,8 +450,8 @@ class Cadastrar_despesa(ctk.CTkFrame):
             for dado in self.dados_cartoes:
                 if dado.get('nome_cartao') == car_cred:
                     id_card = dado.get('id_cartao')
-                    dia_fechamento = dado.get('fechamento_fatura')
-                    dia_vencimento = dado['vencimento_fatura']
+                    dia_fechamento = dado.get('dia_fechamento')
+                    dia_vencimento = dado['dia_vencimento']
 
                     if dia_vencimento < 12: #se o fech é num mês e vencimento no outro
                         mes_fech = self.dc_select.month - 1
@@ -727,8 +727,6 @@ class Cadastrar_car_cred(ctk.CTkFrame):
     
 
     def controla_campos(self, dados=None):
-
-        #'id_cartao', 'nome_cartao', 'limite_cartao', 'fechamento_fatura', 'vencimento_fatura'
         
         self.limpa_campos()
 
@@ -738,8 +736,8 @@ class Cadastrar_car_cred(ctk.CTkFrame):
 
             self.nome_cc.insert(0, (dados.get('nome_cartao')))
             self.limite.insert(0, str(dados.get('limite_cartao')))
-            self.dia_fechamento.insert(0, dados.get('fechamento_fatura'))
-            self.dia_vencimento.insert(0, dados.get('vencimento_fatura'))
+            self.dia_fechamento.insert(0, dados.get('dia_fechamento'))
+            self.dia_vencimento.insert(0, dados.get('dia_vencimento'))
 
             self.botao_salvar.configure(text='Atualizar Cartão', fg_color="orange", command=lambda: self.salvar_dados(id_card, atualizar=True))
         
@@ -796,55 +794,55 @@ class Cadastrar_assinatura(ctk.CTkFrame):
         self.entry_valor.grid(row=4, column=0, padx=20, pady=(2,10), sticky="ew")
         
         # -------- DESCRIÇÃO ---------
-        ctk.CTkLabel(self, text="Descrição", font=ctk.CTkFont(size=12, weight="bold")).grid(row=3, column=0, padx=20, sticky="w")
+        ctk.CTkLabel(self, text="Descrição", font=ctk.CTkFont(size=12, weight="bold")).grid(row=5, column=0, padx=20, sticky="w")
         self.entry_desc = ctk.CTkEntry(self, placeholder_text="'Serviço de Streaming'", width=300)
-        self.entry_desc.grid(row=4, column=0, padx=20, pady=(2,10), sticky="ew")
+        self.entry_desc.grid(row=6, column=0, padx=20, pady=(2,10), sticky="ew")
 
         # ------- DATA DE AQUISIÇÃO -------
         self.label_prim_dp = ctk.CTkLabel(self, text="Data Aquisição", font=ctk.CTkFont(size=12, weight="bold"))
-        self.label_prim_dp.grid(row=5, column=0)
+        self.label_prim_dp.grid(row=7, column=0)
 
         self.data_aquisicao = DateEntry(self, width=12, background='darkblue',
                             foreground='white', borderwidth=2, year=2026, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
         
-        self.data_aquisicao.grid(row=6, column=0, padx=(2,10), pady=10)
+        self.data_aquisicao.grid(row=8, column=0, padx=(2,10), pady=10)
 
         # -------- DATA PRIMEIRO PAGAMENTO - COMPRA SEM CARTÃO ------
         self.label_primeira_dc = ctk.CTkLabel(self, text="Data do Primeiro Pagamento: \n(obs. Não preencher se a compra for no C. Crédito)", font=ctk.CTkFont(size=12, weight="bold"))
-        self.label_primeira_dc.grid(row=7, column=0)
+        self.label_primeira_dc.grid(row=9, column=0)
 
         self.campo_prim_dp = DateEntry(self, width=12, background='darkblue',
                             foreground='white', borderwidth=2, day=1, month=1, year=2099, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
-        self.campo_prim_dp.grid(row=8, column=0, padx=(2,10), pady=10)
+        self.campo_prim_dp.grid(row=10, column=0, padx=(2,10), pady=10)
 
         # ------- MENU DE CATEGORIAS ---------
         categorias = ['Não Selecionado','Lazer', 'Essencial', 'Estudos', 'Saúde', ' Hobby','Streaming', 'Outros']
 
-        ctk.CTkLabel(self, text="Categorias*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=9, column=0, padx=20, sticky="w")
+        ctk.CTkLabel(self, text="Categorias*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=11, column=0, padx=20, sticky="w")
         self.menu_cat = ctk.CTkOptionMenu(self, values=categorias, width=300)
-        self.menu_cat.grid(row=10, column=0, padx=20, pady=(2,10), sticky="ew")
+        self.menu_cat.grid(row=12, column=0, padx=20, pady=(2,10), sticky="ew")
 
         # ------- MENU DE CARTÕES ---------
         if self.nomes_cartoes:
             campo_cartoes = ["Cartão de Cobrança - Sem Cartão"] + self.nomes_cartoes
 
             self.menu_cc = ctk.CTkOptionMenu(self, values=campo_cartoes, width=300)
-            self.menu_cc.grid(row=11, column=0, padx=20, pady=(2,10), sticky="ew")
+            self.menu_cc.grid(row=13, column=0, padx=20, pady=(2,10), sticky="ew")
             self.menu_cc.set("Cartão de Cobrança - Sem Cartão")
         else:
             self.car_cred = ctk.CTkOptionMenu(self, values=[' ', ' ',])
-            self.car_cred.grid(row=11, column=0, padx=20, pady=(2,10), sticky="ew")
+            self.car_cred.grid(row=13, column=0, padx=20, pady=(2,10), sticky="ew")
             self.car_cred.set("Cadastre Seus Cartões Na Área Destinada")
     
         # ------ BOTÃO SALVAR -------
         self.btn_salvar = ctk.CTkButton(self, text="Confirmar Assinatura", command=self.salvar_dados, fg_color="#2c3e50", hover_color="#34495e")
-        self.btn_salvar.grid(row=12, column=0, padx=20, pady=10, sticky="ew")
+        self.btn_salvar.grid(row=14, column=0, padx=20, pady=10, sticky="ew")
 
         # --------- STATUS ----------
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
-        self.status_label.grid(row=13, column=0, pady=5)
+        self.status_label.grid(row=15, column=0, pady=5)
 
 
     def salvar_dados(self, id_ass=None, atualizar=None):

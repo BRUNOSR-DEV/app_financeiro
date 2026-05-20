@@ -30,37 +30,13 @@ class Dados_despesas_db(TypedDict):
     categoria: str
     data_compra: datetime
     data_pp: datetime
-    dia_venc: int
-    id_cc: int
-
-
-class Dados_cartoes_db(TypedDict):
-    """ Dict dos cartões """
-
-    id_cartao: int
-    nome_cartao: str
-    limite_cartao: float
-    fechamento_fatura: int
-    vencimento_fatura: int
-
-
-class Dados_assinaturas_db(TypedDict):
-
-    id_ass: int
-    nome: str
-    valor: float
-    descricao: str
-    data_aquisicao: datetime
-    data_prim_pag: datetime
-    categoria: str
     dia_vencimento: int
     id_cc: int
-
 
 class Pega_despesas_cartao_db(TypedDict):
     """ Dict de despesas do cartão informado """
 
-    despesa_id: int
+    id_desp: int
     local: str
     valor_total: float
     parcelas: int
@@ -84,6 +60,29 @@ class Pega_despesas_avulsas_bd(TypedDict):
     data_compra: datetime
     data_pp: datetime
     dia_vencimento: int
+
+
+class Dados_cartoes_db(TypedDict):
+    """ Dict dos cartões """
+
+    id_cartao: int
+    nome_cartao: str
+    limite_cartao: float
+    fechamento_fatura: int
+    vencimento_fatura: int
+
+
+class Dados_assinaturas_db(TypedDict):
+
+    id_ass: int
+    nome: str
+    valor: float
+    descricao: str
+    data_aquisicao: datetime
+    data_prim_pag: datetime
+    categoria: str
+    dia_vencimento: int
+    id_cc: int
 
 
 class Pega_assinaturas_avulças_db(TypedDict):
@@ -135,8 +134,6 @@ class Despesa_simulacao(TypedDict):
     prim_data_pag: datetime
     nome_cartao: str
     info_cartao: Cartao
-
-
 
 
 class Pega_div_cartao_db(TypedDict):

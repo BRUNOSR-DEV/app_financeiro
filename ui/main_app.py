@@ -284,7 +284,7 @@ class Main_app(ctk.CTk):
             ttf_mes = self.frame_tabela.renderizar(escolha=escolha)
             self.frame_grafico.renderizar()
 
-        self.atualizar_cores_saldo(self.dados_usuario.get('sal_fixo'), ttf_mes, controle_mes)
+        self.atualizar_cores_saldo(self.valor_renda, ttf_mes, controle_mes)
 
 
     def att_app(self):
