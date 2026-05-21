@@ -37,6 +37,38 @@ from dateutil.relativedelta import relativedelta
 ctk.set_appearance_mode('dark')
 
 
+class  CrudManage:
+
+    def __init__(
+            self, parent=None,
+            # ------- dependencias de dados ---------
+            user_id=None, dados_usuario=None, dados_receitas=None, dados_cartoes=None, 
+            nomes_cartoes=None, despesas_avulcas=None, assinaturas_avulcas=None, dados_prontos=None,
+            # ------- callbacks ----------
+            cb_atualiza_bd=None, cb_vcmd_num=None):
+        
+        self.parent = parent
+        self.user_id = user_id
+        self.dados_usuario = dados_usuario
+        self.dados_receitas = dados_receitas
+        self.dados_cartoes = dados_cartoes
+        self.nomes_cartoes = nomes_cartoes
+        self.despesas_avulcas = despesas_avulcas
+        self.assinaturas_avulcas = assinaturas_avulcas
+        self.dados_prontos = dados_prontos
+
+        #------ callbacks
+        self.atualiza_bd = cb_atualiza_bd
+        self.vcmd_num = cb_vcmd_num
+
+
+    def tela_usuarios(self):
+        tocar_notificacao("open_w", True)
+
+        register_window = Usuarios(parent=self.parent, cb_atualiza_bd=self.atualiza_bd, cb_vcmd_num=self.vcmd_num)
+        self.parent.wait_window(register_window)
+
+
 #-1° Módulo Usuarios
 class Usuarios(ctk.CTkToplevel):
 

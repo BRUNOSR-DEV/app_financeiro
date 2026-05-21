@@ -4,7 +4,7 @@ from models.conecte_bd import (dados_usuarios)
 from utils.typedDict import(Dados_usuarios_db)
 
 from utils.audio_helper import tocar_notificacao 
-from utils.helper import(centralizar_janela)
+from utils.helper import(centralizar_janela, check_entry_num)
 import time
 
 from typing import List
@@ -13,7 +13,7 @@ import customtkinter as ctk
 ctk.set_appearance_mode('dark')
 
 
-from ui.crud_app import(Usuarios)
+from ui.crud_app import(Usuarios, CrudManage)
 
 #Módulo Login
 class Login(ctk.CTk):
@@ -24,6 +24,9 @@ class Login(ctk.CTk):
     def __init__(self):
         super().__init__()
 
+        self.vcmd_num = (self.register(check_entry_num), '%P')
+        self.crudManager = CrudManage(self, cb_atualiza_bd=self.atualiza_bd, cb_vcmd_num=self.vcmd_num)
+        
         # --------------- Configuração da janela/'labels' -----------------------
         self.title('Sistema de Login')
         centralizar_janela(self, 350, 400)
@@ -108,11 +111,4 @@ class Login(ctk.CTk):
     
 
     def abrir_tela_registro(self):
-        """ Direciona o usuário para fazer cadastro, chamando a classe Registro_usuario"""
-
-        tocar_notificacao("open_w", True)
-        
-        register_window = Usuarios(self, cb_atualiza_bd=self.atualiza_bd)
-
-        
-        self.wait_window(register_window) 
+        self.crudManager.tela_usuarios()

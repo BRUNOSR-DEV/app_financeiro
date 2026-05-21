@@ -28,7 +28,7 @@ from utils.helper import(
 from utils.audio_helper import tocar_notificacao 
 
 from ui.crud_app import (
-    Faturas, Receitas, Despesas, Car_cred, Assinaturas, Simulacao
+    Faturas, Receitas, Despesas, Car_cred, Assinaturas, Simulacao, CrudManage
 )
 
 from typing import List
@@ -111,6 +111,8 @@ class Main_app(ctk.CTk):
 
         #chamada de dados 'despesas' e 'assinaturas' nos cartoes de self.dados_cartoes
         self.dados_desp_ass_card = preparar_dados_completos_cartao(self.user_id, self.dados_cartoes)
+
+        self.crudManager = CrudManage(self, )
 
 
     def montar_dashboard(self):
@@ -431,10 +433,20 @@ class Main_app(ctk.CTk):
         btn_salvar.pack(pady=(10, 20))
 
 
-# ---------------------- Janelas/módulos do crud_app ----------------------------------------
 
+
+
+    def crud_manager(self, ):
+        pass
+        
+
+
+
+
+# -------------------------- Janelas/módulos do crud_app ----------------------------------------
     #Módulo Faturas
     def abrir_det_cc(self):
+        tocar_notificacao('open_w', True)
 
         nome_selecionado = self.menu_cartoes.get()
         id_card = None
