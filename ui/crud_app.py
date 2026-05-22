@@ -41,11 +41,11 @@ class  CrudManage:
 
     def __init__(
             self, parent=None,
-            # ------- dependencias de dados ---------
+            # ------- dependências de dados ---------
             user_id=None, dados_usuario=None, dados_receitas=None, dados_cartoes=None, 
-            nomes_cartoes=None, despesas_avulcas=None, assinaturas_avulcas=None, dados_prontos=None,
+            nomes_cartoes=None, despesas_avulsas=None, assinaturas_avulsas=None, dados_prontos=None,
             # ------- callbacks ----------
-            cb_atualiza_bd=None, cb_vcmd_num=None):
+            cb_atualiza_bd=None, cb_vcmd_num=None, cb_att_app=None, cb_trocar_mes=None):
         
         self.parent = parent
         self.user_id = user_id
@@ -53,13 +53,16 @@ class  CrudManage:
         self.dados_receitas = dados_receitas
         self.dados_cartoes = dados_cartoes
         self.nomes_cartoes = nomes_cartoes
-        self.despesas_avulcas = despesas_avulcas
-        self.assinaturas_avulcas = assinaturas_avulcas
+        self.despesas_avulsas = despesas_avulsas
+        self.assinaturas_avulsas = assinaturas_avulsas
         self.dados_prontos = dados_prontos
 
+
         #------ callbacks
-        self.atualiza_bd = cb_atualiza_bd
-        self.vcmd_num = cb_vcmd_num
+        self.atualiza_bd = cb_atualiza_bd #vem do login_app
+        self.vcmd_num = cb_vcmd_num #vem do login_app e main_app
+        self.att_app = cb_att_app # vem do main_app
+        self.trocar_mes = cb_trocar_mes #vem do main_app
 
 
     def tela_usuarios(self):
@@ -69,13 +72,62 @@ class  CrudManage:
         self.parent.wait_window(register_window)
 
 
+    def tela_receitas(self):
+        tocar_notificacao('open_w', True)
+        
+        register_window = Receitas(parent=self.parent, user_id=self.user_id, dados_receitas=self.dados_receitas, att_app = self.att_app, cb_vcmd_num=self.vcmd_num)
+        self.parent.wait_window(register_window) 
+
+
+    def tela_despesas(self):
+        tocar_notificacao('open_w', True)
+
+        register_window = Despesas(parent=self.parent, user_id=self.user_id, dados_cartoes=self.dados_cartoes, cb_trocar_mes=self.trocar_mes, cb_att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
+        self.parent.wait_window(register_window)
+
+
+    def tela_car_cred(self):
+        tocar_notificacao('open_w', True)
+
+        register_window = Car_cred(parent=self.parent, user_id=self.user_id, dados_cartoes=self.dados_cartoes, nomes_cards=self.nomes_cartoes, cb_att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
+        self.parent.wait_window(register_window)
+
+
+    def tela_assinaturas(self):
+        tocar_notificacao('open_w', True)
+
+        register_window = Assinaturas(parent=self.parent, user_id=self.user_id, dados_cartoes=self.dados_cartoes, cb_att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
+        self.parent.wait_window(register_window)
+        
+
+    def tela_simulacao(self):
+        tocar_notificacao('open_w', True)
+
+        register_window = Simulacao(parent=self.parent, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_usuario=self.dados_usuario, nomes_cartoes=self.nomes_cartoes, dados_prontos=self.dados_prontos, cb_vcmd_num=self.vcmd_num)
+
+        self.parent.wait_window(register_window) 
+
+
+    def tela_faturas(self, nome_select=None):
+
+        id_card = [card['id_cartao'] for card in self.dados_cartoes if card['nome_cartao'] == nome_select]
+
+        if id_card:
+            tocar_notificacao('open_w', True)
+
+            register_window = Faturas(parent=self.parent, id_user=self.user_id, id_card=id_card[0], nome_card=nome_select, dados_card=self.dados_cartoes, dados_prontos= self.dados_prontos)
+            self.parent.wait_window(register_window)
+        else:
+            print('ERRO: ID card não encontrado!')
+
+
 #-1° Módulo Usuarios
 class Usuarios(ctk.CTkToplevel):
 
     def __init__(self,  parent=None, cb_atualiza_bd=None, cb_vcmd_num=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
     
-        self.master = parent 
+        self.parent = parent 
         self.atualiza_bd = cb_atualiza_bd
         self.vcmd_num = cb_vcmd_num
 
@@ -128,6 +180,7 @@ class Receitas(ctk.CTkToplevel):
     def __init__(self,  parent=None, user_id=None, dados_receitas=None, att_app=None, cb_vcmd_num=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
+        self.parent = parent
         self.user_id = user_id
         self.dados_receitas = dados_receitas
         self.att_app = att_app
@@ -140,7 +193,7 @@ class Receitas(ctk.CTkToplevel):
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Receitas")
         centralizar_janela(self, 1000, 800)
-        self.transient(parent) # Faz a popup aparecer sobre a janela principal e fechar com ela
+        self.transient(self.parent) # Faz a popup aparecer sobre a janela principal e fechar com ela
         self.focus_set() # Define o foco para esta janela
 
         # ---------------- Gerencimento de self ---------------------
@@ -219,13 +272,13 @@ class Receitas(ctk.CTkToplevel):
 #-3° Módulo Despesas
 class Despesas(ctk.CTkToplevel):
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes =None, trocar_mes=None, att_app=None, cb_vcmd_num=None, *args, **kwargs):
+    def __init__(self, parent=None, user_id=None, dados_cartoes =None, cb_trocar_mes=None, cb_att_app=None, cb_vcmd_num=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes
-        self.trocar_mes = trocar_mes
-        self.att_app = att_app
+        self.trocar_mes = cb_trocar_mes
+        self.att_app = cb_att_app
         self.vcmd_num = cb_vcmd_num
 
         #instância do db - classe Rep_Usuario - entidade Usuario
@@ -321,14 +374,15 @@ class Despesas(ctk.CTkToplevel):
 #-4 Módulo Cartões de Crédito
 class Car_cred(ctk.CTkToplevel):
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes=None, nomes_cards =None, att_app = None, cb_vcmd_num=None, *args, **kwargs):
+    def __init__(self,  parent=None, user_id=None, dados_cartoes=None, nomes_cards =None, cb_att_app = None, cb_vcmd_num=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.att_app = att_app
         self.nomes_cards = nomes_cards
         self.dados_cartoes = dados_cartoes
+
         self.vcmd_num = cb_vcmd_num
+        self.att_app = cb_att_app
 
         #instância do db - classe Rep_Usuario - entidade Usuario
         self.db_conn= Database()
@@ -415,7 +469,8 @@ class Assinaturas(ctk.CTkToplevel):
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.dados_cartoes = dados_cartoes 
+        self.dados_cartoes = dados_cartoes
+
         self.att_app = cb_att_app
         self.vcmd_num = cb_vcmd_num
 

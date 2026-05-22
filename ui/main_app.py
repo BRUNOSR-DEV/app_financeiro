@@ -112,7 +112,16 @@ class Main_app(ctk.CTk):
         #chamada de dados 'despesas' e 'assinaturas' nos cartoes de self.dados_cartoes
         self.dados_desp_ass_card = preparar_dados_completos_cartao(self.user_id, self.dados_cartoes)
 
-        self.crudManager = CrudManage(self, )
+
+        self.crudManager = CrudManage(
+            parent=self, user_id=self.user_id, dados_usuario=self.dados_usuario, 
+            dados_receitas=self.dados_receitas, dados_cartoes=self.dados_cartoes, 
+            nomes_cartoes=self.nomes_cartoes, despesas_avulsas=self.despesas_avulsas, 
+            assinaturas_avulsas=self.assinaturas_avulsas, dados_prontos=self.dados_desp_ass_card,
+
+                # ------- callbacks ----------
+            cb_vcmd_num=self.vcmd_num, cb_att_app=self.att_app, cb_trocar_mes=self.trocar_mes, 
+        )
 
 
     def montar_dashboard(self):
@@ -152,7 +161,7 @@ class Main_app(ctk.CTk):
         # --- END Renda fixa -----
         
         # ----- Top section botões func ---------
-        self.btn_simulacao = ctk.CTkButton(self.top_section_frame, text='Simulação', command=self.abrir_simulacao, fg_color="#F87979", hover_color="#823737")
+        self.btn_simulacao = ctk.CTkButton(self.top_section_frame, text='Simulação', command=lambda: self.window_manager(simulacao=True), fg_color="#F87979", hover_color="#823737")
         self.btn_simulacao.grid(row=0, column=2, padx=10, pady=10, sticky="ew")
 
         self.mes_vigente_label = ctk.CTkLabel(self.top_section_frame, text=f"Mês: ", font=ctk.CTkFont(size=16, weight="bold"))
@@ -174,16 +183,16 @@ class Main_app(ctk.CTk):
         self.cadastro_frame.grid(row=1, column=0, columnspan=6, padx=10, pady=(0, 10), sticky="ew")
         self.cadastro_frame.grid_columnconfigure((0, 1, 2, 3, 4, 5), weight=1) 
 
-        self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Receitas", command=self.abrir_receitas, fg_color="#676666", hover_color="#005E02")
+        self.btn_receitas = ctk.CTkButton(self.cadastro_frame, text="Receitas", command=lambda: self.window_manager(receitas=True), fg_color="#676666", hover_color="#005E02")
         self.btn_receitas.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
-        self.btn_despesas = ctk.CTkButton(self.cadastro_frame, text="Despesas", command=self.abrir_despesas, fg_color="#676666", hover_color="#670000")
+        self.btn_despesas = ctk.CTkButton(self.cadastro_frame, text="Despesas", command= lambda: self.window_manager(despesas=True), fg_color="#676666", hover_color="#670000")
         self.btn_despesas.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
 
-        self.btn_cc = ctk.CTkButton(self.cadastro_frame, text="Cartões de Crédito",  command=self.abrir_cc, fg_color="#676666", hover_color="#B56300")
+        self.btn_cc = ctk.CTkButton(self.cadastro_frame, text="Cartões de Crédito",  command=lambda: self.window_manager(car_cred=True), fg_color="#676666", hover_color="#B56300")
         self.btn_cc.grid(row=1, column=2, padx=5, pady=5, sticky="ew")
 
-        self.btn_assin = ctk.CTkButton(self.cadastro_frame, text="Assinaturas", command=self.abrir_assinaturas, fg_color="#676666", hover_color="#140062")
+        self.btn_assin = ctk.CTkButton(self.cadastro_frame, text="Assinaturas", command= lambda: self.window_manager(assinaturas=True), fg_color="#676666", hover_color="#140062")
         self.btn_assin.grid(row=1, column=3, padx=5, pady=5, sticky="ew")
 
         self.label_cc = ctk.CTkLabel(self.cadastro_frame, text="Selecione o Cartão:")
@@ -193,7 +202,7 @@ class Main_app(ctk.CTk):
         self.menu_cartoes.grid(row=1, column=4, padx=10, pady=5,  sticky="ew")
         self.menu_cartoes.set('Cartões')
 
-        self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=self.abrir_det_cc, fg_color="#B76500", hover_color="#472201")
+        self.det_despesas_cc = ctk.CTkButton(self.cadastro_frame, text="Detalhar", command=lambda: self.window_manager(faturas=True), fg_color="#B76500", hover_color="#472201")
         self.det_despesas_cc.grid(row=1, column=5, padx=2, pady=2, sticky="ew")
         #---- End frame botões -----
 
@@ -435,13 +444,26 @@ class Main_app(ctk.CTk):
 
 
 
-
-    def crud_manager(self, ):
-        pass
+    def window_manager(self, receitas=None, despesas=None, car_cred=None, assinaturas=None, simulacao=None, faturas=None):
         
+        if receitas:
+            self.crudManager.tela_receitas()
 
+        elif despesas:
+            self.crudManager.tela_despesas()
 
+        elif car_cred:
+            self.crudManager.tela_car_cred()
 
+        elif assinaturas:
+            self.crudManager.tela_assinaturas()
+
+        elif simulacao:
+            self.crudManager.tela_simulacao()
+
+        elif faturas:
+            self.crudManager.tela_faturas(nome_select=self.menu_cartoes.get())
+        
 
 # -------------------------- Janelas/módulos do crud_app ----------------------------------------
     #Módulo Faturas

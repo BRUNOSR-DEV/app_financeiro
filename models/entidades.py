@@ -109,13 +109,14 @@ class Assinatura:
     
 
 class AssinaturaDetalhadoDTO:
-    def __init__(self, id, nome, valor, desc, data_aq, data_pp, cat, nome_card, limite_card, fech_card, venc_card):
+    def __init__(self, id, nome, valor, desc, data_aq, data_pp, dia_venc, cat, nome_card, limite_card, fech_card, venc_card):
         self.id_ass: int = id
         self.nome: str = nome
         self.valor: float = valor
         self.descricao: str = desc
         self.data_aquisicao: datetime = data_aq
         self.data_prim_pag: datetime = data_pp
+        self.dia_vencimento: int = dia_venc
         self.categoria: str = cat
 
         self.nome_cartao: str = nome_card

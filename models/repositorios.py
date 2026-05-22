@@ -403,7 +403,6 @@ class Rep_Despesa:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
-
     #Método que busca só despesas avulsas
     def pega_despesas_avulsas(self, id_user, conn= None):
         """
@@ -738,11 +737,11 @@ class Rep_Assinatura:
             if resultados:
 
                 objetos = [AssinaturaDetalhadoDTO(*resul)  for resul in resultados]
-                return [obj.to_dict()  for obj in objetos]
+                return [obj.to_dict() for obj in objetos]
      
 
         except Exception as e:
-            print(f"Erro ao buscar assinaturas do cartão informado ID:{id_card}: {e}")
+            print(f"[repositórios] Erro ao buscar assinaturas do cartão informado, ID:{id_card}: {e}")
             return []
         finally:
             if gerenciar_conn:
