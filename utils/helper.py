@@ -2,7 +2,6 @@
 from models.database import Database
 from models.repositorios import *
 
-
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import calendar
@@ -12,9 +11,6 @@ from typing import List
 
 from utils.audio_helper import tocar_notificacao
 
-from models.conecte_bd import (
-    pega_despesas_cartao, pega_assinaturas_cartao
-    )
 #-------- opções meses ----------
 def gerar_opcoes_meses(id=None, str_mes =None):
     meses_nome = {1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril", 

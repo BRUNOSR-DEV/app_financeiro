@@ -1,48 +1,35 @@
 
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
+# ----- BANCO DE DADOS ------
 from models.database import Database
 from models.repositorios import *
+#------ IMPORTAÇÃO DE CLASSE GERENCIADORA DE JANELAS - (crud_app.py) --------
+from ui.crud_app import (CrudManage)
 
-from utils.typedDict import(
-    Dados_usuarios_db, 
-    Dados_receitas_db, 
-    Dados_cartoes_db, 
-    Pega_despesas_avulsas_bd, 
-    Pega_assinaturas_avulças_db, 
-    )
+#------ IMPORTAÇÃO DE CLASSES TYPEDDICT - (typedDict.py) --------
+from utils.typedDict import(Dados_usuarios_db, Dados_receitas_db, Dados_cartoes_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db)
 
+# ----- FUNÇÕES DE AJUDA - (helper.py/audio_helper.py) -------
+from utils.helper import *
+from utils.audio_helper import tocar_notificacao
 
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-import locale
-locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
+#------ IMPORTAÇÃO DE CLASSES PARA LISTAGEM - (detalhar.py) --------
+from ui.detalhar import (Listar_desp_tabela, Listar_cat_grafico)
 
-from models.conecte_bd import (
-     pega_usuario, pega_id, dados_cartoes, pega_despesas_avulsas, dados_receitas, pega_assinaturas_avulsas, atualizar_renda
-     )
-
-from utils.helper import(
-    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, centralizar_janela, check_entry_num, preparar_dados_completos_cartao
-)
-
-from utils.audio_helper import tocar_notificacao 
-
-from ui.crud_app import (
-    Faturas, Receitas, Despesas, Car_cred, Assinaturas, Simulacao, CrudManage
-)
-
+# ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
+#BILIO PADRÕES
 from typing import List
-
-from ui.detalhar import(
-    Listar_desp_tabela, Listar_cat_grafico
-)
-
-
-import customtkinter as ctk
-ctk.set_appearance_mode('dark')
-
+from datetime import datetime
+import locale
 from decimal import Decimal
-from collections import defaultdict 
+
+#BIBLIO VIA PIP
+import customtkinter as ctk
+from dateutil.relativedelta import relativedelta
+
+# ------------- CONFIGURAÇÃO INICIAL ---------------
+locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
+ctk.set_appearance_mode('dark')
 
 
 #-1° Módulo Main app - Janela Principal
@@ -217,8 +204,6 @@ class Main_app(ctk.CTk):
         self.main_content_frame.grid_rowconfigure(0, weight=1)
 
         # FRAME TABELA - Chamando do detalhar
-        
-
         self.frame_tabela = Listar_desp_tabela(parent=self.main_content_frame, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_prontos= self.dados_desp_ass_card)
 
         self.frame_tabela.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
@@ -233,7 +218,6 @@ class Main_app(ctk.CTk):
 
         self.frame_grafico.renderizar()
 
-
         # FRAME SALDO
         self.frame_resumo = ctk.CTkFrame(self.top_section_frame, width=200, height=100, corner_radius=15, border_width=2 )
         self.frame_resumo.grid(row=1, column=6, padx=20, pady=10, sticky="e")
@@ -243,10 +227,11 @@ class Main_app(ctk.CTk):
 
         self.label_valor_saldo = ctk.CTkLabel(self.frame_resumo, text="R$ 0,00", font=ctk.CTkFont(size=24, weight="bold"))
         self.label_valor_saldo.pack(pady=(0, 10), padx=20)
+        # ----- END Frame Saldo ----------
 
         # Chama a função de cores usando o valor retornado
         self.atualizar_cores_saldo(self.valor_renda, ret)
-        # ----- END Frame Saldo ----------
+        
 
 
 # ------------------- Lógica de atualização de dados ----------------------
@@ -442,8 +427,7 @@ class Main_app(ctk.CTk):
         btn_salvar.pack(pady=(10, 20))
 
 
-
-
+# -------------------------- Janelas/ chama o Gerente crudManager  ----------------------------------------
     def window_manager(self, receitas=None, despesas=None, car_cred=None, assinaturas=None, simulacao=None, faturas=None):
         
         if receitas:
@@ -464,69 +448,6 @@ class Main_app(ctk.CTk):
         elif faturas:
             self.crudManager.tela_faturas(nome_select=self.menu_cartoes.get())
         
-
-# -------------------------- Janelas/módulos do crud_app ----------------------------------------
-    #Módulo Faturas
-    def abrir_det_cc(self):
-        tocar_notificacao('open_w', True)
-
-        nome_selecionado = self.menu_cartoes.get()
-        id_card = None
-
-        for i in self.dados_cartoes:
-            if i.get('nome_cartao') == nome_selecionado:
-                id_card = i.get('id_cartao')
-
-        if id_card:
-            tocar_notificacao('open_w', True)
-
-            register_window = Faturas(self, self.user_id, id_card, nome_card=nome_selecionado, dados_card=self.dados_cartoes, dados_prontos= self.dados_desp_ass_card,)
-
-            self.wait_window(register_window)
-        else:
-            print("Erro: Cartão não encontrado")
-
-
-    #Módulo Receitas
-    def abrir_receitas(self):
-        tocar_notificacao('open_w', True)
-        
-        register_window = Receitas(self, self.user_id, dados_receitas=self.dados_receitas, att_app = self.att_app, cb_vcmd_num=self.vcmd_num)
-
-        self.wait_window(register_window) 
-
-    #Módulo Cartão de Crédito
-    def abrir_cc(self):
-        tocar_notificacao('open_w', True)
-
-        register_window = Car_cred(self, self.user_id, dados_cartoes=self.dados_cartoes, nomes_cards=self.nomes_cartoes, att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
-
-        self.wait_window(register_window)
-
-    #Módulo Despesas
-    def abrir_despesas(self):
-        tocar_notificacao('open_w', True)
-
-        register_window = Despesas(self, self.user_id, self.dados_cartoes, trocar_mes=self.trocar_mes, att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
-
-        self.wait_window(register_window)
-    
-    #Módulo Assinaturas
-    def abrir_assinaturas(self):
-        tocar_notificacao('open_w', True)
-
-        register_window = Assinaturas(self, self.user_id, self.dados_cartoes, cb_att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
-
-        self.wait_window(register_window)
-
-    #Módulo Simulacao
-    def abrir_simulacao(self):
-        tocar_notificacao('open_w', True)
-
-        register_window = Simulacao(self, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_usuario=self.dados_usuario, nomes_cartoes=self.nomes_cartoes, dados_prontos=self.dados_desp_ass_card, cb_vcmd_num=self.vcmd_num)
-
-        self.wait_window(register_window) 
-
 
 
   

@@ -1,28 +1,19 @@
 
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
+# ----- BANCO DE DADOS ------
 from models.database import Database
 from models.repositorios import *
 
-import models.conecte_bd as db 
-
-from utils.helper import(
-    centralizar_janela, 
-    gerar_opcoes_meses, 
-    formatar_moeda, 
-    mysql_para_obj, 
-    data_para_exibicao, 
-)
-
-from utils.audio_helper import(tocar_notificacao)
-
 #------ IMPORTAÇÃO DE CLASSES PARA CADASTRO - (forms.py) --------
 from ui.forms import *
-
 #------ IMPORTAÇÃO DE CLASSES PARA LISTAGEM - (detalhar.py) --------
 from ui.detalhar import *
-
 #------ IMPORTAÇÃO DE CLASSES TYPEDDICT - (typedDict.py) --------
 from utils.typedDict import *
+
+# ----- FUNÇÕES DE AJUDA - (helper.py/audio_helper.py) -------
+from utils.helper import(centralizar_janela, gerar_opcoes_meses, formatar_moeda, mysql_para_obj, data_para_exibicao)
+from utils.audio_helper import(tocar_notificacao)
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
 #BILIO PADRÕES
@@ -37,14 +28,15 @@ from dateutil.relativedelta import relativedelta
 ctk.set_appearance_mode('dark')
 
 
+# -1° MÓDULO CrudManager - GERENCIADOR DE JANELAS
 class  CrudManage:
 
     def __init__(
             self, parent=None,
-            # ------- dependências de dados ---------
+            # ------- dependências
             user_id=None, dados_usuario=None, dados_receitas=None, dados_cartoes=None, 
             nomes_cartoes=None, despesas_avulsas=None, assinaturas_avulsas=None, dados_prontos=None,
-            # ------- callbacks ----------
+            # ------- callbacks
             cb_atualiza_bd=None, cb_vcmd_num=None, cb_att_app=None, cb_trocar_mes=None):
         
         self.parent = parent
@@ -109,19 +101,18 @@ class  CrudManage:
 
 
     def tela_faturas(self, nome_select=None):
+        tocar_notificacao('open_w', True)
 
         id_card = [card['id_cartao'] for card in self.dados_cartoes if card['nome_cartao'] == nome_select]
 
         if id_card:
-            tocar_notificacao('open_w', True)
-
             register_window = Faturas(parent=self.parent, id_user=self.user_id, id_card=id_card[0], nome_card=nome_select, dados_card=self.dados_cartoes, dados_prontos= self.dados_prontos)
             self.parent.wait_window(register_window)
         else:
             print('ERRO: ID card não encontrado!')
 
 
-#-1° Módulo Usuarios
+#-2° Módulo Usuarios
 class Usuarios(ctk.CTkToplevel):
 
     def __init__(self,  parent=None, cb_atualiza_bd=None, cb_vcmd_num=None, *args, **kwargs):
@@ -174,7 +165,7 @@ class Usuarios(ctk.CTkToplevel):
         self.destroy()
         
 
-#-2° Módulo Receitas
+#-3° Módulo Receitas
 class Receitas(ctk.CTkToplevel): 
 
     def __init__(self,  parent=None, user_id=None, dados_receitas=None, att_app=None, cb_vcmd_num=None, *args, **kwargs):
@@ -269,7 +260,7 @@ class Receitas(ctk.CTkToplevel):
             print('ERRO: detalhar.py(Listar_receitas) não enviou os dados')
         
 
-#-3° Módulo Despesas
+#-4° Módulo Despesas
 class Despesas(ctk.CTkToplevel):
 
     def __init__(self, parent=None, user_id=None, dados_cartoes =None, cb_trocar_mes=None, cb_att_app=None, cb_vcmd_num=None, *args, **kwargs):
@@ -371,7 +362,7 @@ class Despesas(ctk.CTkToplevel):
             print('ERRO: detalhar(despesas não mandou os dados esperados!)')
 
 
-#-4 Módulo Cartões de Crédito
+#-5 Módulo Cartões de Crédito
 class Car_cred(ctk.CTkToplevel):
 
     def __init__(self,  parent=None, user_id=None, dados_cartoes=None, nomes_cards =None, cb_att_app = None, cb_vcmd_num=None, *args, **kwargs):
@@ -462,7 +453,7 @@ class Car_cred(ctk.CTkToplevel):
             print('ERRO: Detalhar(car_cred não mandou os dados esperados!)')
         
 
-#-5° Módulo Assinaturas
+#-6° Módulo Assinaturas
 class Assinaturas(ctk.CTkToplevel):
 
     def __init__(self, parent=None, user_id=None, dados_cartoes=None, cb_att_app= None, cb_vcmd_num=None, *args, **kwargs):
@@ -564,7 +555,7 @@ class Assinaturas(ctk.CTkToplevel):
             print('ERRO: Detalhar(car_cred não mandou os dados esperados!)')
         
 
-#-6° Módulo Faturas
+#-7° Módulo Faturas
 class Faturas(ctk.CTkToplevel):
     
     def __init__(self, parent, id_user=None, id_card=None, nome_card=None, dados_prontos=None, dados_card=None, *args, **kwargs):
@@ -702,7 +693,7 @@ class Faturas(ctk.CTkToplevel):
         self.frame_tabela_dois.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_b, controle_mes=controle_mes_b)
       
 
-#-7° Módulo Simulação
+#-8° Módulo Simulação
 class Simulacao(ctk.CTkToplevel):
 
     def __init__(self, parent, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_usuario=None, nomes_cartoes=None, dados_prontos=None, cb_vcmd_num=None,  *args, **kwargs):
