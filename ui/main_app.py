@@ -91,13 +91,17 @@ class Main_app(ctk.CTk):
         self.nomes_datas = [self.mes_atual_str, self.prox_mes_str, self.seg_prox_mes_str, self.ter_prox_mes_str, self.quart_prox_mes_str, self.quint_prox_mes_str]
 
         self.dados_cartoes: List[Dados_cartoes_db] = self.rep_card.dados_cartoes(id_user=self.user_id)
+
         self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
+
+        self.dados_desp_ass_card = preparar_dados_completos_cartao(self.user_id, self.dados_cartoes)
 
         self.despesas_avulsas: List[Pega_despesas_avulsas_bd] = self.rep_desp.pega_despesas_avulsas(self.user_id)
         self.assinaturas_avulsas: List[Pega_assinaturas_avulças_db] = self.rep_ass.pega_assinaturas_avulsas(self.user_id)
 
         #chamada de dados 'despesas' e 'assinaturas' nos cartoes de self.dados_cartoes
-        self.dados_desp_ass_card = preparar_dados_completos_cartao(self.user_id, self.dados_cartoes)
+        
+        
 
 
         self.crudManager = CrudManage(

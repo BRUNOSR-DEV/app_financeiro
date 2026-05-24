@@ -1,11 +1,9 @@
 
-from models.conecte_bd import (
-      inserir_usuario, inserir_receita, inserir_cc, inserir_despesa, inserir_assinatura, atualizar_receita, atualizar_assinatura, atualizar_cartao, atualizar_despesa
-     )
 
 from utils.helper import(
     gerar_opcoes_meses, data_para_mysql, mysql_para_obj
 )
+from utils.segurança import SegurancaService
 
 from utils.typedDict import(Despesa_simulacao, Envia_despesa_form)
 
@@ -95,14 +93,16 @@ class Cadastrar_usuario(ctk.CTkFrame):
 
         if not verifica_user:
 
-            dados = {
-            "nome_comp": nome_comp,
-            "usuario": usuario,
-            "senha": senha_um,
-            "sal_fixo": sal_fixo
-            }
-
             if senha_um == senha_dois:
+                
+                senha_protegida = SegurancaService.criptografar_senha(senha_um)
+
+                dados = {
+                    "nome_comp": nome_comp,
+                    "usuario": usuario,
+                    "senha": senha_protegida,
+                    "sal_fixo": sal_fixo
+                    }
 
                 sucesso = self.cdt_crud(inserir=dados)
 

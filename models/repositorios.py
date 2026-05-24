@@ -3,12 +3,42 @@ from models.database import Database
 
 from models.entidades import *
 
+from utils.segurança import SegurancaService
+
 
 class Rep_Usuario:
 
     def __init__(self, db_conn: Database):
         self.db_conn = db_conn
     
+    def validar_credenciais(self, username, senha_digitada):
+        # 1. Busca o usuário no banco por username
+        user_id = self.pega_id(username)
+        usuario = self.pega_usuario(user_id) # Deve retornar uma Entidade Usuario
+        
+        if not user_id:
+            return None # Usuário não existe
+            
+        senha_salva = usuario[0]['senha'] # O que está gravado hoje no banco
+
+        # 2. Identifica se a senha já está criptografada com Bcrypt
+        # O hash do bcrypt sempre começa com $2a$, $2b$ ou $2y$
+        if senha_salva.startswith('$2b$') or senha_salva.startswith('$2a$'):
+            if SegurancaService.verificar_senha(senha_digitada, senha_salva):
+                return usuario
+            return None
+        
+        # 3. MIGRACAO: Se não for bcrypt, valida no formato antigo (texto limpo)
+        else:
+            if senha_digitada == senha_salva:
+                # Se a senha antiga bateu, atualiza o banco para o formato seguro agora!
+                nova_senha_cripto = SegurancaService.criptografar_senha(senha_digitada)
+                self.atualizar_senha_usuario(user_id, nova_senha_cripto)
+                
+                print(f"🔒 Usuário {usuario[0]['nome_user']} migrado com sucesso para criptografia avançada!")
+                return usuario
+            return None
+
 
     def dados_usuarios(self, conn=None):
         """
@@ -29,6 +59,8 @@ class Rep_Usuario:
             if usuarios:
                 objetos = [Usuario(*user) for user in usuarios]
                 return [obj.to_dict() for obj in objetos]
+            else:
+                return []
         
         except MySQLdb.Error as e: # Captura erro específico do MySQL
             print(f'Erro no MySQL ao pegar dados: {e}')
@@ -181,6 +213,37 @@ class Rep_Usuario:
                 self.db_conn.desconectar(conn)
 
 
+    def atualizar_senha_usuario(self, user_id, nova_senha, conn=None):
+
+        gerenciar_conn = False
+        if conn is None:
+            conn= self.db_conn.conectar_bd_original()
+            gerenciar_conn = True
+
+        cursor = conn.cursor()
+    
+        try:
+            sql = "UPDATE usuarios SET senha = %s WHERE id = %s"
+            cursor.execute(sql, (nova_senha, user_id))
+            conn.commit()
+
+            print(f"Senha do usuário ID: {user_id} atualizada com sucesso!")
+            return True
+    
+        except MySQLdb.Error as e:
+            print(f"Erro MySQL ao fazer atualização: {e}")
+            conn.rollback()
+            return None 
+    
+        except Exception as e:
+            print(f"Erro inesperado ao atualizar senha: {e}")
+            conn.rollback()
+            return None
+        
+        finally:
+            if gerenciar_conn:
+                self.db_conn.desconectar(conn)
+                                         
 
 class Rep_Receita:
 
@@ -207,6 +270,8 @@ class Rep_Receita:
             if receitas:
                 objetos = [Receita(*rec) for rec in receitas]
                 return [obj.to_dict() for obj in objetos]
+            else:
+                return []
         
         except MySQLdb.Error as e: # Captura erro específico do MySQL
             print(f'Erro no MySQL ao buscar dados de receitas: {e}')
@@ -395,6 +460,8 @@ class Rep_Despesa:
             if resultados:
                 objetos = [DespesaDetalhadoDTO(*resul) for resul in resultados]
                 return [obj.to_dict()  for obj in objetos]
+            else:
+                return []
 
         except Exception as e:
             print(f"Erro ao buscar despesas e cartão (JOIN): {e}")
@@ -558,9 +625,7 @@ class Rep_Cartao_credito:
             cursor.execute(query, (id_user, ))
             cartoes = cursor.fetchall()
 
-            if cartoes:
-                objetos = [Cartao_credito(*car)  for car in cartoes]
-                return [obj.to_dict()  for obj in objetos]
+            return [Cartao_credito(*car).to_dict() for car in cartoes] if cartoes else []
         
         except MySQLdb.Error as e: # Captura erro específico do MySQL
             print(f'Erro no MySQL ao buscar cartões de crédito: {e}')

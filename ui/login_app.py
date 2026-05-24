@@ -93,14 +93,12 @@ class Login(ctk.CTk):
 
         usuario_entry = self.usuario_entry.get()
         senha_entry = self.senha_entry.get()
+
         login_sucesso = False
         usuario_logado = usuario_entry
 
-        for _, user in enumerate(self.usuarios):
-            if usuario_entry == user["nome_user"] and senha_entry == user["senha"]:
-                login_sucesso = True
-                break
-         
+        login_sucesso = self.db.validar_credenciais(username=usuario_entry, senha_digitada=senha_entry)
+
         if login_sucesso:
             self.status_label.configure(text='Login feito com sucesso', text_color='green')
             self.update_idletasks()
