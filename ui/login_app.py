@@ -1,28 +1,40 @@
 
-from models.conecte_bd import (dados_usuarios)
+# ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
+# ----- BANCO DE DADOS ------
+from models.database import Database
+from models.repositorios import Rep_Usuario
 
+#------ IMPORTAÇÃO DE CLASSE GERENCIADORA DE JANELAS - (crud_app.py) --------
+from ui.crud_app import(CrudManage)
+
+#------ IMPORTAÇÃO DE CLASSES TYPEDDICT - (typedDict.py) --------
 from utils.typedDict import(Dados_usuarios_db)
 
+# ----- FUNÇÕES DE AJUDA - (helper.py/audio_helper.py) -------
 from utils.audio_helper import tocar_notificacao 
 from utils.helper import(centralizar_janela, check_entry_num)
-import time
 
+# ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
+#BILIO PADRÕES
+import time
 from typing import List
 
+#BIBLIO VIA PIP
 import customtkinter as ctk
+
+# ------------- CONFIGURAÇÃO INICIAL ---------------
 ctk.set_appearance_mode('dark')
 
-
-from ui.crud_app import(Usuarios, CrudManage)
 
 #Módulo Login
 class Login(ctk.CTk):
 
     tocar_notificacao("open", True)
 
-
     def __init__(self):
         super().__init__()
+        self.db_conn = Database()
+        self.db = Rep_Usuario(self.db_conn)
 
         self.vcmd_num = (self.register(check_entry_num), '%P')
         self.crudManager = CrudManage(self, cb_atualiza_bd=self.atualiza_bd, cb_vcmd_num=self.vcmd_num)
@@ -68,7 +80,7 @@ class Login(ctk.CTk):
         self.atualiza_bd()
 
     def atualiza_bd(self):
-        self.usuarios: List[Dados_usuarios_db] = dados_usuarios()
+        self.usuarios: List[Dados_usuarios_db] = self.db.dados_usuarios()
 
 
     def quit_and_destroy(self):
