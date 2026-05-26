@@ -12,26 +12,21 @@ class Rep_Usuario:
         self.db_conn = db_conn
     
     def validar_credenciais(self, username, senha_digitada):
-        # 1. Busca o usuário no banco por username
         user_id = self.pega_id(username)
-        usuario = self.pega_usuario(user_id) # Deve retornar uma Entidade Usuario
+        usuario = self.pega_usuario(user_id) 
         
         if not user_id:
-            return None # Usuário não existe
+            return None 
             
-        senha_salva = usuario[0]['senha'] # O que está gravado hoje no banco
+        senha_salva = usuario[0]['senha'] 
 
-        # 2. Identifica se a senha já está criptografada com Bcrypt
-        # O hash do bcrypt sempre começa com $2a$, $2b$ ou $2y$
         if senha_salva.startswith('$2b$') or senha_salva.startswith('$2a$'):
             if SegurancaService.verificar_senha(senha_digitada, senha_salva):
                 return usuario
             return None
         
-        # 3. MIGRACAO: Se não for bcrypt, valida no formato antigo (texto limpo)
         else:
             if senha_digitada == senha_salva:
-                # Se a senha antiga bateu, atualiza o banco para o formato seguro agora!
                 nova_senha_cripto = SegurancaService.criptografar_senha(senha_digitada)
                 self.atualizar_senha_usuario(user_id, nova_senha_cripto)
                 
