@@ -48,7 +48,7 @@ class Rep_Usuario:
         cursor = conn.cursor()
 
         try:
-            cursor.execute('SELECT * FROM usuarios')
+            cursor.execute('SELECT id, nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id FROM usuarios')
             usuarios = cursor.fetchall()
 
             if usuarios:
@@ -82,7 +82,7 @@ class Rep_Usuario:
         cursor = conn.cursor()
 
         try:
-            sql = "SELECT * FROM usuarios WHERE id= %s"
+            sql = "SELECT id, nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id FROM usuarios WHERE id= %s"
             cursor.execute(sql, (id_user, ))
             usuario = cursor.fetchall()
 
@@ -134,7 +134,7 @@ class Rep_Usuario:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_usuario(self, nome_comp, nome_usu, senha, sal_fixo, conn=None):
+    def inserir_usuario(self, nome_comp, nome_usu, senha, email, sal_fixo, num_tel, telegram_chat_id, conn=None):
         """
         Função para inserir um usuário novo completo
         """  
@@ -149,7 +149,7 @@ class Rep_Usuario:
 
         try:
 
-            cursor.execute("INSERT INTO usuarios (nome_completo, nome_usuario, senha, salario_fixo) VALUES (%s, %s, %s, %s)",(nome_comp, nome_usu, senha, sal_fixo))
+            cursor.execute("INSERT INTO usuarios (nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id) VALUES (%s, %s, %s, %s, %s, %s, %s)",(nome_comp, nome_usu, senha, email, sal_fixo, num_tel, telegram_chat_id))
             conn.commit()
 
             if cursor.rowcount == 1: #retorna o número de linhas afetadas pela última operação executada.
@@ -240,6 +240,7 @@ class Rep_Usuario:
                 self.db_conn.desconectar(conn)
                                          
 
+
 class Rep_Receita:
 
     def __init__(self, db_conn: Database):
@@ -258,7 +259,7 @@ class Rep_Receita:
         cursor = conn.cursor()
 
         try:
-            query = "SELECT id, valor, descricao, data FROM receitas WHERE id_usuario= %s"
+            query = "SELECT id, fonte, valor, descricao, data_recebimento FROM receitas WHERE id_usuario= %s"
             cursor.execute(query, (id_user, ))
             receitas = cursor.fetchall()
 
@@ -280,7 +281,7 @@ class Rep_Receita:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_receita(self, id_usu, valor, descricao, data, conn=None):
+    def inserir_receita(self, id_usu, fonte, valor, descricao, data, conn=None):
         """ Função que inseri a receita do usuário no BD e retorna o id da mesma"""
     
         gerenciar_conn = False
@@ -291,8 +292,8 @@ class Rep_Receita:
 
         cursor = conn.cursor()
         try:
-            sql = "INSERT INTO receitas (id_usuario, valor, descricao, data) VALUES (%s, %s, %s, %s)"
-            cursor.execute(sql, (id_usu, valor, descricao, data))
+            sql = "INSERT INTO receitas (id_usuario, fonte, valor, descricao, data_recibimento) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(sql, (id_usu, fonte, valor, descricao, data))
             conn.commit()
             return cursor.lastrowid # Retorna o ID da receita recém-inserida
     
@@ -311,7 +312,7 @@ class Rep_Receita:
                 self.db_conn.desconectar(conn)
 
 
-    def atualizar_receita(self, id_rec, valor, descricao, data, conn=None):
+    def atualizar_receita(self, id_rec, fonte, valor, descricao, data, conn=None):
 
         gerenciar_conn = False
         if conn is None:
@@ -321,8 +322,8 @@ class Rep_Receita:
         cursor = conn.cursor()
     
         try:
-            sql = "UPDATE receitas SET valor = %s, descricao = %s, data = %s WHERE id = %s"
-            cursor.execute(sql, (valor, descricao, data, id_rec))
+            sql = "UPDATE receitas SET fonte = %s, valor = %s, descricao = %s, data_recibimento = %s WHERE id = %s"
+            cursor.execute(sql, (fonte, valor, descricao, data, id_rec))
             conn.commit()
 
             print(f"Receita com ID {id_rec} atualizada com sucesso!")
@@ -393,10 +394,10 @@ class Rep_Despesa:
                     parcelas,
                     descricao,
                     categoria,
-                    data,
-                    data_primeira_parc,
+                    data_compra,
+                    data_primeiro_pagamento,
                     dia_vencimento,
-                    id_cc
+                    id_cartao
                 FROM despesas 
                 WHERE id_usuario = %s
             """
@@ -407,6 +408,8 @@ class Rep_Despesa:
             if despesas:
                 objetos = [Despesa(*desp) for desp in despesas]
                 return [obj.to_dict() for obj in objetos]
+            else:
+                return []
 
         except Exception as e:
             print(f"Erro ao buscar despesas: {e}")
@@ -439,14 +442,14 @@ class Rep_Despesa:
                     d.parcelas,
                     d.descricao,
                     d.categoria,
-                    d.data,
+                    d.data_compra,
                     c.nome,
                     c.limite, 
                     c.dia_fechamento, 
                     c.dia_vencimento
                 FROM despesas d
-                INNER JOIN cartoes_credito c ON d.id_cc = c.id
-                WHERE d.id_usuario = %s AND d.id_cc = %s
+                INNER JOIN cartoes_credito c ON d.id_cartao = c.id
+                WHERE d.id_usuario = %s AND d.id_cartao = %s
             """
         
             cursor.execute(query, (id_user, id_card))
@@ -487,11 +490,11 @@ class Rep_Despesa:
                     parcelas,
                     descricao,
                     categoria,
-                    data,
-                    data_primeira_parc,
+                    data_compra,
+                    data_primeiro_pagamento,
                     dia_vencimento
                 FROM despesas 
-                WHERE id_usuario = %s AND id_cc IS NULL
+                WHERE id_usuario = %s AND id_cartao IS NULL
             """
         
             cursor.execute(query, (id_user, ))
@@ -510,7 +513,7 @@ class Rep_Despesa:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_despesa(self, id_usu, local, valor_total, parcelas, descricao, categoria, data, dc_prim_parc=None, dia_vencimento = None, id_cc= None, conn= None):
+    def inserir_despesa(self, id_usu, local, valor_total, parcelas, descricao, categoria, data, data_pp=None, dia_vencimento = None, id_cc= None, conn= None):
         """ Função que inseri as despesas do usuário no BD e retorna o id da mesma"""
     
         gerenciar_conn = False
@@ -520,8 +523,8 @@ class Rep_Despesa:
 
         cursor = conn.cursor()
         try:
-            sql = "INSERT INTO despesas (id_usuario, local, valor_total, parcelas, descricao, categoria, data, data_primeira_parc, dia_vencimento, id_cc) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s)"
-            cursor.execute(sql, (id_usu, local,valor_total, parcelas, descricao, categoria, data, dc_prim_parc, dia_vencimento, id_cc))
+            sql = "INSERT INTO despesas (id_usuario, local, valor_total, parcelas, descricao, categoria, data_compra, data_primeiro_pagamento, dia_vencimento, id_cartao) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s)"
+            cursor.execute(sql, (id_usu, local,valor_total, parcelas, descricao, categoria, data, data_pp, dia_vencimento, id_cc))
             conn.commit()
             return cursor.lastrowid # Retorna o ID da despesa recém-inserida
     
@@ -540,7 +543,7 @@ class Rep_Despesa:
                 self.db_conn.desconectar(conn)
 
 
-    def atualizar_despesa(self, id_desp, local, valor_total, parcelas, descricao, categoria, data, dc_prim_parc, dia_venc, id_cc, conn= None):
+    def atualizar_despesa(self, id_desp, local, valor_total, parcelas, descricao, categoria, data, data_pp, dia_venc, id_cc, conn= None):
 
         gerenciar_conn = False
         if conn is None:
@@ -550,8 +553,8 @@ class Rep_Despesa:
         cursor = conn.cursor()
     
         try:
-            sql = "UPDATE despesas SET local = %s, valor_total= %s, parcelas= %s, descricao= %s, categoria= %s, data= %s, data_primeira_parc= %s, dia_vencimento= %s, id_cc= %s WHERE id = %s"
-            cursor.execute(sql, (local, valor_total, parcelas, descricao, categoria, data, dc_prim_parc, dia_venc, id_cc, id_desp))
+            sql = "UPDATE despesas SET local = %s, valor_total= %s, parcelas= %s, descricao= %s, categoria= %s, data_compra= %s, data_primeiro_pagamento= %s, dia_vencimento= %s, id_cartao= %s WHERE id = %s"
+            cursor.execute(sql, (local, valor_total, parcelas, descricao, categoria, data, data_pp, dia_venc, id_cc, id_desp))
             conn.commit()
 
             print(f"Despesa - '{local}' Atualizado com Sucesso!")
@@ -616,11 +619,15 @@ class Rep_Cartao_credito:
         cursor = conn.cursor()
 
         try:
-            query = "SELECT id, nome, limite, dia_fechamento, dia_vencimento FROM cartoes_credito WHERE id_usuario= %s"
+            query = "SELECT id, nome, limite, dia_fechamento, dia_vencimento, bandeira, cor  FROM cartoes_credito WHERE id_usuario= %s"
             cursor.execute(query, (id_user, ))
             cartoes = cursor.fetchall()
 
-            return [Cartao_credito(*car).to_dict() for car in cartoes] if cartoes else []
+            if cartoes:
+                objetos = [Cartao_credito(*card) for card in cartoes]
+                return [obj.to_dict() for obj in objetos]
+            else:
+                return []
         
         except MySQLdb.Error as e: # Captura erro específico do MySQL
             print(f'Erro no MySQL ao buscar cartões de crédito: {e}')
@@ -634,7 +641,7 @@ class Rep_Cartao_credito:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_cc(self, id_usu, nome, limite, dia_f, dia_v, conn=None):
+    def inserir_cc(self, id_usu, nome, limite, dia_f, dia_v, bandeira, cor, conn=None):
         """ Função que inseri os cartões de crédito do usuário no BD e retorna o id do mesmo"""
     
         gerenciar_conn = False
@@ -644,8 +651,8 @@ class Rep_Cartao_credito:
 
         cursor = conn.cursor()
         try:
-            sql = "INSERT INTO cartoes_credito (id_usuario, nome, limite, dia_fechamento, dia_vencimento) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(sql, (id_usu, nome, limite, dia_f, dia_v))
+            sql = "INSERT INTO cartoes_credito (id_usuario, nome, limite, dia_fechamento, dia_vencimento, bandeira, cor) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(sql, (id_usu, nome, limite, dia_f, dia_v, bandeira, cor))
             conn.commit()
             return cursor.lastrowid # Retorna o ID do c.c. recém-inserida
     
@@ -664,7 +671,7 @@ class Rep_Cartao_credito:
                 self.db_conn.desconectar(conn)
 
 
-    def atualizar_cartao(self, id_card, nome, limite,  dia_fec, dia_venc, conn=None):
+    def atualizar_cartao(self, id_card, nome, limite,  dia_fec, dia_venc, bandeira, cor, conn=None):
 
         gerenciar_conn = False
         if conn is None:
@@ -674,8 +681,8 @@ class Rep_Cartao_credito:
         cursor = conn.cursor()
     
         try:
-            sql = "UPDATE cartoes_credito SET nome = %s, limite = %s, dia_fechamento = %s, dia_vencimento = %s WHERE id = %s"
-            cursor.execute(sql, (nome, limite, dia_fec, dia_venc, id_card))
+            sql = "UPDATE cartoes_credito SET nome = %s, limite = %s, dia_fechamento = %s, dia_vencimento = %s, bandeira= %s, cor = %s WHERE id = %s"
+            cursor.execute(sql, (nome, limite, dia_fec, dia_venc, bandeira, cor,  id_card))
             conn.commit()
 
             print(f"Cartão - '{nome}' atualizado com sucesso!")
@@ -740,7 +747,7 @@ class Rep_Assinatura:
 
         try:
             query = """
-                SELECT id, nome, valor, descricao, data_aquisicao, data_prim_pag, dia_vencimento, categoria, id_cc
+                SELECT id, nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, id_cartao
                 FROM assinaturas 
                 WHERE id_usuario = %s 
             """
@@ -778,17 +785,17 @@ class Rep_Assinatura:
                     a.nome, 
                     a.valor,
                     a.descricao,
-                    a.data_aquisicao,
-                    a.data_prim_pag,
-                    a.dia_vencimento,
                     a.categoria,
+                    a.data_aquisicao,
+                    a.data_primeiro_pagamento,
+                    a.dia_vencimento,
                     c.nome,
                     c.limite, 
                     c.dia_fechamento, 
                     c.dia_vencimento
                 FROM assinaturas a
-                INNER JOIN cartoes_credito c ON a.id_cc = c.id
-                WHERE a.id_usuario = %s AND a.id_cc = %s
+                INNER JOIN cartoes_credito c ON a.id_cartao = c.id
+                WHERE a.id_usuario = %s AND a.id_cartao = %s
             """
         
             cursor.execute(query, (id_user, id_card))
@@ -821,9 +828,9 @@ class Rep_Assinatura:
 
         try:
             query = """
-                SELECT id, nome, valor, descricao, data_aquisicao, data_prim_pag, dia_vencimento, categoria
+                SELECT id, nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, 
                 FROM assinaturas 
-                WHERE id_usuario = %s and id_cc IS NULL
+                WHERE id_usuario = %s and id_cartao IS NULL
             """
         
             cursor.execute(query, (id_user,))
@@ -841,17 +848,17 @@ class Rep_Assinatura:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_assinatura(self, id_user, nome, valor, descricao, data_aq, data_prim_pag, dia_venc, categoria, id_cc):
+    def inserir_assinatura(self, id_user, nome, valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc):
 
         conn = self.db_conn.conectar_bd_original()
         cursor = conn.cursor()
         try:
             query = """
                 INSERT INTO assinaturas 
-                (id_usuario, nome, valor, descricao, data_aquisicao, data_prim_pag, dia_vencimento, categoria, id_cc) 
+                (id_usuario, nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, , id_cartao) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            valores = (id_user, nome, valor, descricao, data_aq, data_prim_pag, dia_venc, categoria, id_cc)
+            valores = (id_user, nome, valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc)
             cursor.execute(query, valores)
             conn.commit()
             return cursor.lastrowid
@@ -873,8 +880,8 @@ class Rep_Assinatura:
         cursor = conn.cursor()
     
         try:
-            sql = "UPDATE assinaturas SET nome = %s, valor = %s, descricao = %s, data_aquisicao = %s, data_prim_pag = %s, dia_vencimento = %s, categoria= %s, id_cc = %s WHERE id = %s"
-            cursor.execute(sql, (nome, valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc, id_ass))
+            sql = "UPDATE assinaturas SET nome = %s, valor = %s, descricao = %s, categoria= %s, data_aquisicao = %s, data_primeiro_pagamento = %s, dia_vencimento = %s,  id_cartao = %s WHERE id = %s"
+            cursor.execute(sql, (nome, valor, descricao, categoria, data_aq, data_pp, dia_venc, id_cc, id_ass))
             conn.commit()
 
             print(f"Assinatura - '{nome}' atualizada com sucesso!")

@@ -1,12 +1,15 @@
 from datetime import datetime
 
 class Usuario:
-    def __init__(self, id, nome_comp, user, senha, sal_fixo):
+    def __init__(self, id, nome_comp, user, senha, email, sal_fixo, num_telefone, telegram_chat_id):
         self.id_user: int = id
         self.nome_completo: str = nome_comp
         self.nome_user: str = user
         self._senha: str = senha
+        self.email: str = email
         self._sal_fixo: float = sal_fixo
+        self.num_telefone: str = num_telefone
+        self.tci: str = telegram_chat_id
  
     @property
     def senha(self):
@@ -22,14 +25,18 @@ class Usuario:
             'id_user': self.id_user,
             'nome_completo': self.nome_completo,
             'nome_user': self.nome_user,
-            'senha': self.senha,       
-            'sal_fixo': self.sal_fixo  
+            'senha': self.senha,
+            'email': self.email,       
+            'sal_fixo': self.sal_fixo,
+            'num_telefone': self.num_telefone,
+            'tci': self.tci 
         }
     
  
 class Receita:
-    def __init__(self, id, valor, desc, data):
+    def __init__(self, id, fonte, valor, desc, data):
         self.id_receita: int = id
+        self.fonte: str = fonte
         self.valor_recebido: float = valor
         self.descricao: str = desc
         self.data: datetime = data
@@ -78,12 +85,14 @@ class DespesaDetalhadoDTO:
 
 
 class Cartao_credito:
-    def __init__(self, id, nome, limite, fech, venc):
+    def __init__(self, id, nome, limite, fech, venc, bandeira, cor):
         self.id_cartao: int = id
         self.nome_cartao: str = nome
         self.limite_cartao: float = limite
         self.dia_fechamento: int = fech
         self.dia_vencimento: int = venc
+        self.bandeira: str = bandeira
+        self.cor: str = cor
     
     def to_dict(self):
         """Converte o objeto em dicionário para as Frames."""
@@ -109,15 +118,15 @@ class Assinatura:
     
 
 class AssinaturaDetalhadoDTO:
-    def __init__(self, id, nome, valor, desc, data_aq, data_pp, dia_venc, cat, nome_card, limite_card, fech_card, venc_card):
+    def __init__(self, id, nome, valor, desc, cat,  data_aq, data_pp, dia_venc, nome_card, limite_card, fech_card, venc_card):
         self.id_ass: int = id
         self.nome: str = nome
         self.valor: float = valor
         self.descricao: str = desc
+        self.categoria: str = cat
         self.data_aquisicao: datetime = data_aq
         self.data_prim_pag: datetime = data_pp
         self.dia_vencimento: int = dia_venc
-        self.categoria: str = cat
 
         self.nome_cartao: str = nome_card
         self.limite_cartao: float = limite_card

@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS `new_app_financeiro`.`despesas` (
   `valor_total` DECIMAL(10,2) NOT NULL,
   `parcelas` INT NOT NULL,
   `descricao` VARCHAR(150) NULL,
-  `categoria` VARCHAR(60) NULL,
+  `categoria` VARCHAR(60) NOT NULL,
   `data_compra` DATE NOT NULL,
   `data_primeiro_pagamento` DATE NULL,
   `dia_vencimento` INT NULL,
@@ -100,6 +100,36 @@ CREATE TABLE IF NOT EXISTS `new_app_financeiro`.`receitas` (
   CONSTRAINT `fk_receitas_1`
     FOREIGN KEY (`id_usuario`)
     REFERENCES `new_app_financeiro`.`usuarios` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `new_app_financeiro`.`assinaturas`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `new_app_financeiro`.`assinaturas` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(100) NOT NULL,
+  `valor` DECIMAL(10,2) NOT NULL,
+  `descricao` VARCHAR(150) NULL,
+  `categoria` VARCHAR(60) NOT NULL,
+  `data_aquisicao` DATE NOT NULL,
+  `data_primeiro_pagamento` DATE NULL,
+  `dia_vencimento` INT NULL,
+  `id_usuario` INT NOT NULL,
+  `id_cartao` INT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_assinaturas_1_idx` (`id_usuario` ASC) VISIBLE,
+  INDEX `fk_assinaturas_2_idx` (`id_cartao` ASC) VISIBLE,
+  CONSTRAINT `fk_assinaturas_1`
+    FOREIGN KEY (`id_usuario`)
+    REFERENCES `new_app_financeiro`.`usuarios` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_assinaturas_2`
+    FOREIGN KEY (`id_cartao`)
+    REFERENCES `new_app_financeiro`.`cartoes_credito` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
