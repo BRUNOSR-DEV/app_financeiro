@@ -3,6 +3,9 @@
 from utils.helper import(
     gerar_opcoes_meses, data_para_mysql, mysql_para_obj
 )
+
+from models.entidades import Usuario
+
 from utils.segurança import SegurancaService
 
 from utils.typedDict import(Despesa_simulacao, Envia_despesa_form)
@@ -37,51 +40,63 @@ class Cadastrar_usuario(ctk.CTkFrame):
         ctk.CTkLabel(self, text="Crie sua nova conta", font=ctk.CTkFont(size=20, weight="bold")).grid(row=0, column=0, pady=(20, 10))
 
         # --- NOME COMPLETO ---
-        ctk.CTkLabel(self, text="Nome e Sobrenome", font=ctk.CTkFont(size=12, weight="bold")).grid(row=1, column=0, padx=20, sticky="w")
+        ctk.CTkLabel(self, text="Nome e Sobrenome*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=1, column=0, padx=20, sticky="w")
         self.nome_completo = ctk.CTkEntry(self, placeholder_text="Maria Silva")
         self.nome_completo.grid(row=2, column=0, padx=20, pady=(2, 10), sticky="ew")
 
         # --- USUÁRIO ---
-        ctk.CTkLabel(self, text="Nome de Usuário", font=ctk.CTkFont(size=12, weight="bold")).grid(row=3, column=0, padx=20, sticky="w")
+        ctk.CTkLabel(self, text="Nome de Usuário*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=3, column=0, padx=20, sticky="w")
         self.novo_usuario = ctk.CTkEntry(self, placeholder_text="maria_silva123")
         self.novo_usuario.grid(row=4, column=0, padx=20, pady=(2, 10), sticky="ew")
 
         # --- SENHA ---
-        ctk.CTkLabel(self, text="Senha de Acesso", font=ctk.CTkFont(size=12, weight="bold")).grid(row=5, column=0, padx=20, sticky="w")
+        ctk.CTkLabel(self, text="Senha de Acesso*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=5, column=0, padx=20, sticky="w")
         self.nova_senha = ctk.CTkEntry(self, placeholder_text="Mínimo 6 caracteres", show="*")
         self.nova_senha.grid(row=6, column=0, padx=20, pady=(2, 10), sticky="ew")
 
         # --- REPETIR SENHA ---
-        ctk.CTkLabel(self, text="Confirmar Senha", font=ctk.CTkFont(size=12, weight="bold")).grid(row=7, column=0, padx=20, sticky="w")
+        ctk.CTkLabel(self, text="Confirmar Senha*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=7, column=0, padx=20, sticky="w")
         self.rep_nova_senha = ctk.CTkEntry(self, placeholder_text="Repita a Senha", show="*")
         self.rep_nova_senha.grid(row=8, column=0, padx=20, pady=(2, 10), sticky="ew")
 
+        # --- EMAIL ---
+        ctk.CTkLabel(self, text="Melhor E-mail*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=9, column=0, padx=20, sticky="w")
+        self.email = ctk.CTkEntry(self, placeholder_text="maria@silva123")
+        self.email.grid(row=10, column=0, padx=20, pady=(2, 10), sticky="ew")
+
+        # --- TELEFONE ---
+        ctk.CTkLabel(self, text="Telefone/WhatsApp", font=ctk.CTkFont(size=12, weight="bold")).grid(row=11, column=0, padx=20, sticky="w")
+        self.telefone = ctk.CTkEntry(self, placeholder_text="11 93858:2525")
+        self.telefone.grid(row=12, column=0, padx=20, pady=(2, 10), sticky="ew")
+
         # --- SALÁRIO ---
-        ctk.CTkLabel(self, text="Salário Mensal Fixo", font=ctk.CTkFont(size=12, weight="bold")).grid(row=9, column=0, padx=20, sticky="w")
+        ctk.CTkLabel(self, text="Salário Mensal Fixo*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=13, column=0, padx=20, sticky="w")
         self.sal_fixo = ctk.CTkEntry(self, placeholder_text="2500.00", validate='key', validatecommand= self.vcmd_num)
-        self.sal_fixo.grid(row=10, column=0, padx=20, pady=(2, 15), sticky="ew")
+        self.sal_fixo.grid(row=14, column=0, padx=20, pady=(2, 15), sticky="ew")
 
         # --- BOTÃO ---
         self.botao_registrar = ctk.CTkButton(self, text="Confirmar Registro", font=ctk.CTkFont(weight="bold"), command=self.processar_registro)
-        self.botao_registrar.grid(row=11, column=0, padx=20, pady=10, sticky="ew")
+        self.botao_registrar.grid(row=15, column=0, padx=20, pady=10, sticky="ew")
 
         # --- STATUS ---
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
-        self.status_label.grid(row=12, column=0, pady=5)
+        self.status_label.grid(row=16, column=0, pady=5)
 
 
     def processar_registro(self):
         """Processa o registro - pega os dados inseridos, verifica e guarda no BD"""
 
         nome_comp = self.nome_completo.get().strip()
-        usuario = self.novo_usuario.get().strip()
+        nome_user = self.novo_usuario.get().strip()
         senha_um = self.nova_senha.get().strip()
         senha_dois = self.rep_nova_senha.get().strip()
+        email = self.email.get().strip()
+        telefone = self.telefone.get().strip()
         sal_fixo = self.sal_fixo.get().strip()
 
 
-        if not usuario or not senha_um or not senha_dois or not sal_fixo:
-            self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
+        if not nome_user or not senha_um or not senha_dois or not sal_fixo or not email:
+            self.status_label.configure(text='Por favor, preencha todos os campos com (*).', text_color='red')
 
             tocar_notificacao("dv_erro", True)
             self.update_idletasks()
@@ -89,58 +104,53 @@ class Cadastrar_usuario(ctk.CTkFrame):
             return
 
 
-        verifica_user = usuario in self.nome_users
+        if nome_user in self.nome_users:
 
-        if not verifica_user:
-
-            if senha_um == senha_dois:
-                
-                senha_protegida = SegurancaService.criptografar_senha(senha_um)
-
-                dados = {
-                    "nome_comp": nome_comp,
-                    "usuario": usuario,
-                    "senha": senha_protegida,
-                    "sal_fixo": sal_fixo
-                    }
-
-                sucesso = self.cdt_crud(inserir=dados)
-
-                if sucesso:
-                    self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
-                    self.update_idletasks()
-
-                    self.after(3000, lambda: self.status_label.configure(text='')) 
-
-                    self.status_label.configure(text=f'Usuário: {usuario} Já pode fazer login no sistema! ', text_color='blue')
-                    self.update_idletasks()
-
-                    self.after(3000, lambda: self.status_label.configure(text=''))
-
-                    import time
-                    time.sleep(0.5)
-
-                    self.fechar()
-                
-                else:
-                    self.status_label.configure(text='Não foi possível registrar, contate o adm do sistema...', text_color='red')
-                    self.update_idletasks()
-
-                    self.after(3000, lambda: self.status_label.configure(text='')) 
-                
-            else:
-                self.status_label.configure(text='As senhas não correspondem!', text_color='red')
-                self.update_idletasks()
-
-                self.after(3000, lambda: self.status_label.configure(text='')) 
-
-        else:
             self.status_label.configure(text='Nome de usuário já utilizado, tente outro!', text_color='red')
 
             self.update_idletasks()
             self.after(3000, lambda: self.status_label.configure(text=''))
-             
+            return
 
+        if senha_um == senha_dois:
+                
+            senha_protegida = SegurancaService.criptografar_senha(senha_um)
+
+            new_user= Usuario(nome_completo=nome_comp, nome_user=nome_user, senha=senha_protegida, email=email, telefone=telefone, sal_fixo=sal_fixo)
+
+
+            sucesso = self.cdt_crud(inserir=new_user)
+
+            if sucesso:
+                self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
+                self.update_idletasks()
+
+                self.after(3000, lambda: self.status_label.configure(text='')) 
+
+                self.status_label.configure(text=f'Usuário: {nome_user} Já pode fazer login no sistema! ', text_color='blue')
+                self.update_idletasks()
+
+                self.after(3000, lambda: self.status_label.configure(text=''))
+
+                import time
+                time.sleep(0.5)
+
+                self.fechar()
+                
+            else:
+                self.status_label.configure(text='Não foi possível registrar, contate o adm do sistema...', text_color='red')
+                self.update_idletasks()
+
+                self.after(3000, lambda: self.status_label.configure(text='')) 
+                
+        else:
+            self.status_label.configure(text='As senhas não correspondem!', text_color='red')
+            self.update_idletasks()
+
+            self.after(3000, lambda: self.status_label.configure(text='')) 
+
+            
+             
 #Filho de Módulo Receitas (crud_app.py)
 class Cadastrar_receita(ctk.CTkFrame):
 

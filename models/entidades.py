@@ -1,14 +1,15 @@
 from datetime import datetime
 
 class Usuario:
-    def __init__(self, id, nome_comp, user, senha, email, sal_fixo, num_telefone, telegram_chat_id):
-        self.id_user: int = id
-        self.nome_completo: str = nome_comp
-        self.nome_user: str = user
+    def __init__(self, nome_completo, nome_user, senha, email, sal_fixo, telefone=None, telegram_chat_id=None, id_user=None):
+
+        self.id_user: int = id_user
+        self.nome_completo: str = nome_completo
+        self.nome_user: str = nome_user
         self._senha: str = senha
         self.email: str = email
         self._sal_fixo: float = sal_fixo
-        self.num_telefone: str = num_telefone
+        self.telefone: str = telefone
         self.tci: str = telegram_chat_id
  
     @property
@@ -28,7 +29,7 @@ class Usuario:
             'senha': self.senha,
             'email': self.email,       
             'sal_fixo': self.sal_fixo,
-            'num_telefone': self.num_telefone,
+            'telefone': self.telefone,
             'tci': self.tci 
         }
     

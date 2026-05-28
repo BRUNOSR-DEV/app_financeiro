@@ -91,8 +91,8 @@ class Login(ctk.CTk):
     def validar_login(self):
         """ Valida o login que o usuário inseriu na entry"""
 
-        usuario_entry = self.usuario_entry.get()
-        senha_entry = self.senha_entry.get()
+        usuario_entry = self.usuario_entry.get().strip()
+        senha_entry = self.senha_entry.get().strip()
 
         login_sucesso = False
         usuario_logado = usuario_entry

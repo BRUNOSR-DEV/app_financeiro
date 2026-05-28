@@ -1,4 +1,5 @@
 from typing import TypedDict, List
+from decimal import Decimal
 
 from datetime import datetime
 
@@ -8,7 +9,9 @@ class Dados_usuarios_db(TypedDict):
     nome_completo: str
     nome_user: str
     senha: str
-    sal_fixo: float
+    email: str
+    telefone: str
+    sal_fixo: Decimal
 
 
 class Dados_receitas_db(TypedDict):
