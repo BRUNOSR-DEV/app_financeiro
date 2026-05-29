@@ -134,7 +134,7 @@ class Rep_Usuario:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_usuario(self, usuario: Usuario, conn=None):
+    def inserir_usuario(self, nome_comp, nome_usu, senha, email, sal_fixo, num_tel=None, telegram_chat_id=None, conn=None):
         """
         Função para inserir um usuário novo completo
         """  
@@ -149,11 +149,11 @@ class Rep_Usuario:
 
         try:
 
-            cursor.execute("INSERT INTO usuarios (nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id) VALUES (%s, %s, %s, %s, %s, %s, %s)",(usuario.nome_completo, usuario.nome_user, usuario.senha, usuario.email, usuario.sal_fixo,  usuario.telefone, usuario.tci))
+            cursor.execute("INSERT INTO usuarios (nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id) VALUES (%s, %s, %s, %s, %s, %s, %s)",(nome_comp, nome_usu, senha, email, sal_fixo, num_tel, telegram_chat_id))
             conn.commit()
 
             if cursor.rowcount == 1: #retorna o número de linhas afetadas pela última operação executada.
-                print(f'Usuário inserido com sucesso! olá {usuario.nome_completo}')
+                print(f'Usuário inserido com sucesso! olá {nome_comp}')
                 sucesso = True
                 return sucesso 
             else:
@@ -828,9 +828,7 @@ class Rep_Assinatura:
 
         try:
             query = """
-                SELECT id, nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, 
-                FROM assinaturas 
-                WHERE id_usuario = %s and id_cartao IS NULL
+                SELECT id, nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento FROM assinaturas WHERE id_usuario = %s and id_cartao IS NULL
             """
         
             cursor.execute(query, (id_user,))
@@ -855,7 +853,7 @@ class Rep_Assinatura:
         try:
             query = """
                 INSERT INTO assinaturas 
-                (id_usuario, nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, , id_cartao) 
+                (id_usuario, nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, id_cartao) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             valores = (id_user, nome, valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc)

@@ -128,7 +128,7 @@ class Usuarios(ctk.CTkToplevel):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title("Registrar Novo Usuário")
-        centralizar_janela(self, 350, 600)
+        centralizar_janela(self, 350, 500)
         self.transient(parent) 
         self.grab_set() 
         self.focus_set()
@@ -145,12 +145,12 @@ class Usuarios(ctk.CTkToplevel):
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
-    def comandante_crud(self, inserir=None):
+    def comandante_crud(self, inserir:Usuario=None):
         
         sucesso = None
 
         if inserir:
-            sucesso = self.db.inserir_usuario(usuario=inserir)
+            sucesso = self.db.inserir_usuario(inserir.nome_completo, inserir.nome_user, inserir.senha, inserir.email, inserir.sal_fixo, inserir.telefone)
         
         if sucesso:
             tocar_notificacao("dv_sucesso", True)

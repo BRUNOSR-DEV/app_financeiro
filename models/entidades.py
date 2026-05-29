@@ -1,7 +1,7 @@
 from datetime import datetime
 
 class Usuario:
-    def __init__(self, nome_completo, nome_user, senha, email, sal_fixo, telefone=None, telegram_chat_id=None, id_user=None):
+    def __init__(self, id_user, nome_completo, nome_user, senha, email, sal_fixo, telefone=None, telegram_chat_id=None):
 
         self.id_user: int = id_user
         self.nome_completo: str = nome_completo
@@ -101,17 +101,16 @@ class Cartao_credito:
 
 
 class Assinatura:
-    def __init__(self, id, nome, valor, desc, data_aq, data_pp, dia_venc, cat, id_cc=None):
+    def __init__(self, id, nome, valor, desc, cat, data_aq, data_pp, dia_venc, id_cc=None):
         self.id_ass: int = id
         self.nome: str = nome
         self.valor: float = valor
         self.descricao: str = desc
+        self.categoria: str = cat
         self.data_aquisicao: datetime = data_aq
         self.data_pp: datetime = data_pp
         self.dia_vencimento = dia_venc
-        self.categoria: str = cat
         self.id_cc: int = id_cc
-
     
     def to_dict(self):
         """Converte o objeto em dicionário para as Frames."""
