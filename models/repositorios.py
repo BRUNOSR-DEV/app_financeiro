@@ -5,6 +5,8 @@ from models.entidades import *
 
 from utils.segurança import SegurancaService
 
+from decimal import Decimal
+
 
 class Rep_Usuario:
 
@@ -176,7 +178,7 @@ class Rep_Usuario:
                 self.db_conn.desconectar(conn)
 
 
-    def atualizar_renda(self, id_user, nova_renda, conn=None):
+    def atualizar_renda(self, id_user: int, nova_renda: Decimal, conn=None)-> bool: 
 
         gerenciar_conn = False
         if conn is None:
@@ -196,19 +198,19 @@ class Rep_Usuario:
         except MySQLdb.Error as e:
             print(f"Erro MySQL ao fazer atualização: {e}")
             conn.rollback()
-            return None 
+            return False
     
         except Exception as e:
             print(f"Erro inesperado ao atualizar renda fixa: {e}")
             conn.rollback()
-            return None
+            return False
         
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
 
-    def atualizar_senha_usuario(self, user_id, nova_senha, conn=None):
+    def atualizar_senha_usuario(self, user_id: int, nova_senha: str, conn=None):
 
         gerenciar_conn = False
         if conn is None:
@@ -246,7 +248,7 @@ class Rep_Receita:
     def __init__(self, db_conn: Database):
         self.db_conn = db_conn
     
-    def dados_receitas(self, id_user, conn=None):
+    def dados_receitas(self, id_user: int, conn=None):
         """
         Função que retorna os dados do  usuario
         """
@@ -259,7 +261,7 @@ class Rep_Receita:
         cursor = conn.cursor()
 
         try:
-            query = "SELECT id, fonte, valor, descricao, data_recebimento FROM receitas WHERE id_usuario= %s"
+            query = "SELECT fonte, valor, descricao, data_recebimento, id FROM receitas WHERE id_usuario= %s"
             cursor.execute(query, (id_user, ))
             receitas = cursor.fetchall()
 
@@ -281,7 +283,7 @@ class Rep_Receita:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_receita(self, id_usu, fonte, valor, descricao, data, conn=None):
+    def inserir_receita(self, id_user: int, receita: Receita, conn=None):
         """ Função que inseri a receita do usuário no BD e retorna o id da mesma"""
     
         gerenciar_conn = False
@@ -292,8 +294,8 @@ class Rep_Receita:
 
         cursor = conn.cursor()
         try:
-            sql = "INSERT INTO receitas (id_usuario, fonte, valor, descricao, data_recibimento) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(sql, (id_usu, fonte, valor, descricao, data))
+            sql = "INSERT INTO receitas (fonte, valor, descricao, data_recebimento, id_usuario) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(sql, (receita.fonte, receita.valor, receita.descricao, receita.data, id_user))
             conn.commit()
             return cursor.lastrowid # Retorna o ID da receita recém-inserida
     
@@ -312,7 +314,7 @@ class Rep_Receita:
                 self.db_conn.desconectar(conn)
 
 
-    def atualizar_receita(self, id_rec, fonte, valor, descricao, data, conn=None):
+    def atualizar_receita(self, receita: Receita, conn=None):
 
         gerenciar_conn = False
         if conn is None:
@@ -323,10 +325,10 @@ class Rep_Receita:
     
         try:
             sql = "UPDATE receitas SET fonte = %s, valor = %s, descricao = %s, data_recibimento = %s WHERE id = %s"
-            cursor.execute(sql, (fonte, valor, descricao, data, id_rec))
+            cursor.execute(sql, (receita.fonte, receita.valor, receita.descricao, receita.data, receita.id_receita))
             conn.commit()
 
-            print(f"Receita com ID {id_rec} atualizada com sucesso!")
+            print(f"Receita com ID {receita.id_receita} atualizada com sucesso!")
             return True
     
         except MySQLdb.Error as e: # Captura erro específico do MySQL
@@ -344,7 +346,7 @@ class Rep_Receita:
                 self.db_conn.desconectar(conn)
 
 
-    def deletar_receita(self, id_rec, conn=None):
+    def deletar_receita(self, id_rec: int, conn=None):
 
         gerenciar_conn = False
         if conn is None:

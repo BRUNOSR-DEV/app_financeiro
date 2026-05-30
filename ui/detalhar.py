@@ -76,7 +76,7 @@ class Listar_receitas(ctk.CTkFrame):
 
             for i, dado in enumerate(dados_receitas, start=1):
                 #dado é o dict de uma receita
-                valor = dado.get('valor_recebido')
+                valor = dado.get('valor')
                 descricao = dado.get('descricao')
                 data = dado.get('data')
 
@@ -142,9 +142,7 @@ class Listar_receitas(ctk.CTkFrame):
         id_rec = dados.get('id_receita')
         descricao = dados.get('descricao')
 
-        dado = {'id_rec': id_rec}
-
-        sucesso = self.cdt_crud(deletar=dado)
+        sucesso = self.cdt_crud(deletar=id_rec)
 
         if sucesso:
             print(f"ID {id_rec} receita: '{descricao}'. Mandado pro espaço 🌌​")

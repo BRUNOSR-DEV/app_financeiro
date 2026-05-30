@@ -4,7 +4,7 @@ from utils.helper import(
     gerar_opcoes_meses, data_para_mysql, mysql_para_obj
 )
 
-from models.entidades import Usuario
+from models.entidades import Usuario, Receita
 
 from utils.segurança import SegurancaService
 
@@ -171,38 +171,42 @@ class Cadastrar_receita(ctk.CTkFrame):
         # ----- TÍTULO DO FORMULÁRIO -------
         ctk.CTkLabel(self, text="Cadastre Seus Ganhos", font=("Arial", 18, "bold")).grid(row=0, column=0, pady=10)
 
+        # -------- FONTE ----------
+        ctk.CTkLabel(self, text="Origim do Ganho*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=1, column=0, padx=20, sticky="w")
+        self.fonte = ctk.CTkEntry(self, placeholder_text="Tigrinho")
+        self.fonte.grid(row=2, column=0, padx=20, pady=(2,10), sticky="ew")
+
         # -------- VALOR GANHO ----------
-        ctk.CTkLabel(self, text="Valor Ganho", font=ctk.CTkFont(size=12, weight="bold")).grid(row=1, column=0, padx=20, sticky="w")
+        ctk.CTkLabel(self, text="Valor Ganho*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=3, column=0, padx=20, sticky="w")
         self.valor = ctk.CTkEntry(self, placeholder_text="300,00", validate='key', validatecommand= self.vcmd_num)
-        self.valor.grid(row=2, column=0, padx=20, pady=(2,10), sticky="ew")
+        self.valor.grid(row=4, column=0, padx=20, pady=(2,10), sticky="ew")
 
         # -------- DESCRIÇÃO ----------- 
-        ctk.CTkLabel(self, text="Descrição", font=ctk.CTkFont(size=12, weight="bold")).grid(row=3, column=0, padx=20, sticky="w")
-        self.descricao = ctk.CTkEntry(self, placeholder_text="Tigrinho")
-        self.descricao.grid(row=4, column=0, padx=20, pady=(2,10), sticky="ew")
+        ctk.CTkLabel(self, text="Descrição", font=ctk.CTkFont(size=12, weight="bold")).grid(row=5, column=0, padx=20, sticky="w")
+        self.descricao = ctk.CTkEntry(self, placeholder_text="Ganho nas apostas ninja")
+        self.descricao.grid(row=6, column=0, padx=20, pady=(2,10), sticky="ew")
 
         # --------- DATA DO GANHO ----------
-        self.label_data_compra = ctk.CTkLabel(self, text="Data do Ganho", font=ctk.CTkFont(size=12, weight="bold"))
-        self.label_data_compra.grid(row=5, column=0)
-            
+        self.label_data_compra = ctk.CTkLabel(self, text="Data do Ganho*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=7, column=0, padx=20, pady=(2,10)) 
         self.data_recebimento = DateEntry(self, width=12, background='darkblue',
                             foreground='white', borderwidth=2, day=1, month=1, year=2099, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
-        self.data_recebimento.grid(row=6, column=0, padx=10, pady=(2,10))
+        self.data_recebimento.grid(row=8, column=0, padx=10, pady=(2,10))
 
         # --------- BOTÃO ------------
         self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
-        self.botao_salvar.grid(row=7, column=0, padx=20, pady=10, sticky="ew")
+        self.botao_salvar.grid(row=9, column=0, padx=20, pady=10, sticky="ew")
 
         # ---------- STATUS ------------
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
-        self.status_label.grid(row=8, column=0, pady=5)
+        self.status_label.grid(row=10, column=0, pady=5)
 
 
 
     def salvar_dados(self, id_rec=None, atualizar=False):
         """ Verifica e salva os dados no db """
 
+        fonte = self.fonte.get().strip()
         valor = self.valor.get().strip()
         descricao = self.descricao.get().strip()
         data_obj = self.data_recebimento.get_date()
@@ -219,8 +223,8 @@ class Cadastrar_receita(ctk.CTkFrame):
             self.after(2000, lambda: self.status_label.configure(text=''))
 
 
-        if not valor or not descricao or not data_obj:
-            self.status_label.configure(text='Por favor, preencha todos os campos!', text_color='red')
+        if not fonte or not valor or not descricao or not data_obj:
+            self.status_label.configure(text='Por favor, preencha todos os campos com (*)', text_color='red')
 
             tocar_notificacao("erro")
             self.update_idletasks()
@@ -228,25 +232,21 @@ class Cadastrar_receita(ctk.CTkFrame):
             return
         
         sucesso = False
+        obj_receita = Receita(fonte=fonte, valor=valor, descricao=descricao, data=data_mysql)
+        
 
-        dados = {
-                'valor': valor, 
-                'descricao': descricao,
-                'data_mysql': data_mysql
-            }
         
         if not atualizar: #inserir os dados novos
 
-            dados['user_id'] =  self.user_id
-            sucesso = self.cdt_crud(inserir=dados)
+            sucesso = self.cdt_crud(inserir=obj_receita)
 
             msg_ok = "INSERIDOS"
             msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
 
         else: #Fazer atualização
             
-            dados['id_rec'] = id_rec
-            sucesso = self.cdt_crud(atualizar=dados)
+            obj_receita.id_receita = id_rec
+            sucesso = self.cdt_crud(atualizar=obj_receita)
 
             msg_ok = "ATUALIZADOS"
             msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema..."

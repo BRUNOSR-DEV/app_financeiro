@@ -327,7 +327,7 @@ class Main_app(ctk.CTk):
 
         for dado in receitas:
             data_obj = mysql_para_obj(dado.get('data'))
-            valor = Decimal(str(dado.get('valor_recebido')))
+            valor = Decimal(str(dado.get('valor')))
 
             if controle_mes == mes_vigente: #mes_atual
                 if self.data_atual.month == data_obj.month and self.data_atual.year == data_obj.year:
@@ -368,7 +368,7 @@ class Main_app(ctk.CTk):
         try:
             nova_renda = float(nova_renda.replace(',', '.'))
 
-            sucesso = atualizar_renda(self.user_id, nova_renda)
+            sucesso = self.rep_user.atualizar_renda(self.user_id, nova_renda)
 
             if sucesso:
                 print('Renda atualizada com sucesso!')

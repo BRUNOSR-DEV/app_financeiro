@@ -210,17 +210,17 @@ class Receitas(ctk.CTkToplevel):
         
 
 
-    def comandante_crud(self, inserir:dict=None, atualizar:dict=None, deletar:dict=None):
+    def comandante_crud(self, inserir: Receita= None, atualizar: Receita=None, deletar: int =None):
 
         sucesso = None
 
         if inserir:
-            sucesso = self.db.inserir_receita(inserir['user_id'], inserir['valor'], inserir['descricao'], inserir['data_mysql'])
+            sucesso = self.db.inserir_receita(id_user=self.user_id, receita=inserir)
         elif atualizar:
-            sucesso = self.db.atualizar_receita(atualizar['id_rec'], atualizar['valor'], atualizar['descricao'], atualizar['data_mysql'])
+            sucesso = self.db.atualizar_receita(receita=atualizar)
         elif deletar:
             self.notifica_delete = True
-            sucesso = self.db.deletar_receita(deletar['id_rec'])
+            sucesso = self.db.deletar_receita(id_rec=deletar)
         
             
         if sucesso:

@@ -35,12 +35,12 @@ class Usuario:
     
  
 class Receita:
-    def __init__(self, id, fonte, valor, desc, data):
-        self.id_receita: int = id
+    def __init__(self, fonte, valor, descricao, data, id=None):
         self.fonte: str = fonte
-        self.valor_recebido: float = valor
-        self.descricao: str = desc
+        self.valor: float = valor
+        self.descricao: str = descricao
         self.data: datetime = data
+        self.id_receita: int = id
 
     def to_dict(self):
         """Converte o objeto em dicionário para as Frames."""
