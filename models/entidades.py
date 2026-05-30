@@ -1,9 +1,8 @@
 from datetime import datetime
 
 class Usuario:
-    def __init__(self, id_user, nome_completo, nome_user, senha, email, sal_fixo, telefone=None, telegram_chat_id=None):
+    def __init__(self, nome_completo, nome_user, senha, email, sal_fixo, telefone=None, telegram_chat_id=None, id_user=None):
 
-        self.id_user: int = id_user
         self.nome_completo: str = nome_completo
         self.nome_user: str = nome_user
         self._senha: str = senha
@@ -11,6 +10,7 @@ class Usuario:
         self._sal_fixo: float = sal_fixo
         self.telefone: str = telefone
         self.tci: str = telegram_chat_id
+        self.id_user: int = id_user
  
     @property
     def senha(self):

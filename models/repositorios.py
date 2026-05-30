@@ -50,7 +50,7 @@ class Rep_Usuario:
         cursor = conn.cursor()
 
         try:
-            cursor.execute('SELECT id, nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id FROM usuarios')
+            cursor.execute('SELECT nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id, id FROM usuarios')
             usuarios = cursor.fetchall()
 
             if usuarios:
@@ -71,7 +71,7 @@ class Rep_Usuario:
                 self.db_conn.desconectar(conn)
 
 
-    def pega_usuario(self, id_user, conn=None):
+    def pega_usuario(self, id_user:int, conn=None):
         """
         Função que retorna os dados do  usuario
         """
@@ -84,7 +84,7 @@ class Rep_Usuario:
         cursor = conn.cursor()
 
         try:
-            sql = "SELECT id, nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id FROM usuarios WHERE id= %s"
+            sql = "SELECT nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id, id FROM usuarios WHERE id= %s"
             cursor.execute(sql, (id_user, ))
             usuario = cursor.fetchall()
 
@@ -105,7 +105,7 @@ class Rep_Usuario:
                 self.db_conn.desconectar(conn)
 
 
-    def pega_id(self, usuario, conn=None): 
+    def pega_id(self, usuario: int, conn=None): 
         '''função que busca id do usuário no bd, passando o nome do usuário ''' 
 
         gerenciar_conn = False
@@ -136,7 +136,7 @@ class Rep_Usuario:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_usuario(self, nome_comp, nome_usu, senha, email, sal_fixo, num_tel=None, telegram_chat_id=None, conn=None):
+    def inserir_usuario(self, usuario: Usuario, conn=None):
         """
         Função para inserir um usuário novo completo
         """  
@@ -151,11 +151,11 @@ class Rep_Usuario:
 
         try:
 
-            cursor.execute("INSERT INTO usuarios (nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id) VALUES (%s, %s, %s, %s, %s, %s, %s)",(nome_comp, nome_usu, senha, email, sal_fixo, num_tel, telegram_chat_id))
+            cursor.execute("INSERT INTO usuarios (nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id) VALUES (%s, %s, %s, %s, %s, %s, %s)",(usuario.nome_completo, usuario.nome_user, usuario.senha, usuario.email, usuario.sal_fixo, usuario.telefone, usuario.tci))
             conn.commit()
 
             if cursor.rowcount == 1: #retorna o número de linhas afetadas pela última operação executada.
-                print(f'Usuário inserido com sucesso! olá {nome_comp}')
+                print(f'Usuário inserido com sucesso! olá {usuario.nome_completo}')
                 sucesso = True
                 return sucesso 
             else:
