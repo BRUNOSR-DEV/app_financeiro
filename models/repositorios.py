@@ -608,7 +608,7 @@ class Rep_Cartao_credito:
         self.db_conn = db_conn
 
     
-    def dados_cartoes(self, id_user, conn=None):
+    def dados_cartoes(self, id_user: int, conn=None):
         """
         Função que retorna uma lista com o id do cartão e o nome da tabela cartoes_credito
         """
@@ -621,7 +621,7 @@ class Rep_Cartao_credito:
         cursor = conn.cursor()
 
         try:
-            query = "SELECT id, nome, limite, dia_fechamento, dia_vencimento, bandeira, cor  FROM cartoes_credito WHERE id_usuario= %s"
+            query = "SELECT nome, limite, dia_fechamento, dia_vencimento, bandeira, cor, id  FROM cartoes_credito WHERE id_usuario= %s"
             cursor.execute(query, (id_user, ))
             cartoes = cursor.fetchall()
 
@@ -643,7 +643,7 @@ class Rep_Cartao_credito:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_cc(self, id_usu, nome, limite, dia_f, dia_v, bandeira, cor, conn=None):
+    def inserir_cc(self, id_user, cartao: Cartao_credito, conn=None):
         """ Função que inseri os cartões de crédito do usuário no BD e retorna o id do mesmo"""
     
         gerenciar_conn = False
@@ -653,8 +653,8 @@ class Rep_Cartao_credito:
 
         cursor = conn.cursor()
         try:
-            sql = "INSERT INTO cartoes_credito (id_usuario, nome, limite, dia_fechamento, dia_vencimento, bandeira, cor) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-            cursor.execute(sql, (id_usu, nome, limite, dia_f, dia_v, bandeira, cor))
+            sql = "INSERT INTO cartoes_credito (nome, limite, dia_fechamento, dia_vencimento, bandeira, cor, id_usuario) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(sql, (cartao.nome_cartao, cartao.limite_cartao, cartao.dia_fechamento, cartao.dia_vencimento, cartao.bandeira, cartao.cor, id_user))
             conn.commit()
             return cursor.lastrowid # Retorna o ID do c.c. recém-inserida
     
@@ -673,7 +673,7 @@ class Rep_Cartao_credito:
                 self.db_conn.desconectar(conn)
 
 
-    def atualizar_cartao(self, id_card, nome, limite,  dia_fec, dia_venc, bandeira, cor, conn=None):
+    def atualizar_cartao(self, cartao: Cartao_credito, conn=None):
 
         gerenciar_conn = False
         if conn is None:
@@ -684,10 +684,10 @@ class Rep_Cartao_credito:
     
         try:
             sql = "UPDATE cartoes_credito SET nome = %s, limite = %s, dia_fechamento = %s, dia_vencimento = %s, bandeira= %s, cor = %s WHERE id = %s"
-            cursor.execute(sql, (nome, limite, dia_fec, dia_venc, bandeira, cor,  id_card))
+            cursor.execute(sql, (cartao.nome_cartao, cartao.limite_cartao, cartao.dia_fechamento, cartao.dia_vencimento, cartao.bandeira, cartao.cor,  cartao.id_cartao))
             conn.commit()
 
-            print(f"Cartão - '{nome}' atualizado com sucesso!")
+            print(f"Cartão - '{cartao.nome_cartao}' atualizado com sucesso!")
             return True
     
         except MySQLdb.Error as e: 
@@ -705,7 +705,7 @@ class Rep_Cartao_credito:
                 self.db_conn.desconectar(conn)
 
 
-    def deletar_cartao(self, id_card, conn=None):
+    def deletar_cartao(self, id_card: int, conn=None):
 
         gerenciar_conn = False
         if conn is None:

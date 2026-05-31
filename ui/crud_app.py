@@ -150,7 +150,7 @@ class Usuarios(ctk.CTkToplevel):
         sucesso = None
 
         if inserir:
-            sucesso = self.db.inserir_usuario(inserir.nome_completo, inserir.nome_user, inserir.senha, inserir.email, inserir.sal_fixo, inserir.telefone)
+            sucesso = self.db.inserir_usuario(usuario=inserir)
         
         if sucesso:
             tocar_notificacao("dv_sucesso", True)
@@ -406,15 +406,15 @@ class Car_cred(ctk.CTkToplevel):
         self.frame_lista.grid_columnconfigure(0, weight=1)
 
 
-    def comandante_crud(self, inserir=None, atualizar=None, deletar=None):
+    def comandante_crud(self, inserir:Cartao_credito=None, atualizar:Cartao_credito=None, deletar: int=None):
     
         if inserir:
-            sucesso = self.db.inserir_cc(inserir['user_id'], inserir['nome'], inserir['limite'], inserir['dia_fech'], inserir['dia_venc'])
+            sucesso = self.db.inserir_cc(id_user=self.user_id, cartao=inserir)
         elif atualizar:
-            sucesso = self.db.atualizar_cartao(atualizar['id_card'], atualizar['nome'], atualizar['limite'], atualizar['dia_fech'], atualizar['dia_venc'])
+            sucesso = self.db.atualizar_cartao(cartao=atualizar)
         elif deletar:
             self.notifica_delete = True
-            sucesso =  self.db.deletar_cartao(deletar['id_card'])
+            sucesso =  self.db.deletar_cartao(id_card=deletar)
 
         if sucesso:
             self.definicao_sucesso()

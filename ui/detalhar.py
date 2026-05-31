@@ -408,10 +408,7 @@ class Listar_car_cred(ctk.CTkFrame):
         id_card = dados.get('id_cartao')
         nome = dados.get('nome_cartao')
 
-        dados_delete = {
-            'id_card': id_card
-        }
-        sucesso = self.cdt_crud(deletar=dados_delete)
+        sucesso = self.cdt_crud(deletar=id_card)
 
         if sucesso:
 

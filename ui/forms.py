@@ -4,7 +4,7 @@ from utils.helper import(
     gerar_opcoes_meses, data_para_mysql, mysql_para_obj
 )
 
-from models.entidades import Usuario, Receita
+from models.entidades import Usuario, Receita, Cartao_credito
 
 from utils.segurança import SegurancaService
 
@@ -662,13 +662,24 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         self.dia_vencimento = ctk.CTkEntry(self, placeholder_text="12", validate='key', validatecommand= self.vcmd_num)
         self.dia_vencimento.grid(row=8, column=0, padx=20, pady=(2,10), sticky="ew")
 
+        # ------ BANDEIRA ---------
+        ctk.CTkLabel(self, text="Bandeira do Cartão", font=ctk.CTkFont(size=12, weight="bold")).grid(row=9, column=0, padx=20, sticky="w")
+        self.bandeira = ctk.CTkEntry(self, placeholder_text="MasterCard")
+        self.bandeira.grid(row=10, column=0, padx=20, pady=(2,10), sticky="ew")
+
+        # ------ COR ---------
+        cores = ['Roxo', 'Laranja', 'Preto', 'Vermelho', 'Cinza', 'Verde']
+        ctk.CTkLabel(self, text="Cor do Cartão*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=11, column=0, padx=20, sticky="w")
+        self.categoria = ctk.CTkOptionMenu(self, values=cores)
+        self.categoria.grid(row=12, column=0, padx=20, pady=(2, 10), sticky="ew")
+
         # -------- BOTÃO SALVAR ---------
         self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
-        self.botao_salvar.grid(row=9, column=0, padx=20, pady=(2,10), sticky="ew")
+        self.botao_salvar.grid(row=13, column=0, padx=20, pady=(2,10), sticky="ew")
 
         # -------- STATUS -----------
         self.status_label = ctk.CTkLabel(self, text="", text_color="red")
-        self.status_label.grid(row=10, column=0, pady=5)
+        self.status_label.grid(row=14, column=0, pady=5)
 
 
     def salvar_dados(self, id_card=None, atualizar=None):
@@ -678,6 +689,8 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         limite = self.limite.get().strip()
         dia_f = self.dia_fechamento.get().strip()
         dia_v = self.dia_vencimento.get().strip()
+        bandeira = self.bandeira.get().strip()
+        cor_card = self.cor.get().strip()
         
         #verifiva se já tem o nome informado na entry no bd
         for nome in self.nomes_cards:
@@ -700,6 +713,8 @@ class Cadastrar_car_cred(ctk.CTkFrame):
             
             return
         
+
+        obj_card_credito = Cartao_credito(nome=nome_cc, limite=limite, fech=dia_f, venc=dia_v)
         dados_form = {
             "nome": nome_cc,
             "limite": limite,
@@ -708,15 +723,14 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         }
 
         if not atualizar: #inserir
-            dados_form['user_id'] = self.user_id
-            sucesso = self.cdt_crud(inserir=dados_form)
+            sucesso = self.cdt_crud(inserir=obj_card_credito)
 
             msg_ok = "INSERIDOS"
             msg_erro = "SALVAR"
 
         else:# Atualizar
-            dados_form['id_card'] = id_card
-            sucesso = self.cdt_crud(atualizar=dados_form)
+            obj_card_credito.id_cartao = id_card
+            sucesso = self.cdt_crud(atualizar=obj_card_credito)
 
             msg_ok = "ATUALIZADOS"
             msg_erro = "ATUALIZAR"

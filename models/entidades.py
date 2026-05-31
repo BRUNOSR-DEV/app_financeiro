@@ -86,14 +86,14 @@ class DespesaDetalhadoDTO:
 
 
 class Cartao_credito:
-    def __init__(self, id, nome, limite, fech, venc, bandeira, cor):
-        self.id_cartao: int = id
+    def __init__(self, nome, limite, fech, venc, bandeira, cor, id=None):
         self.nome_cartao: str = nome
         self.limite_cartao: float = limite
         self.dia_fechamento: int = fech
         self.dia_vencimento: int = venc
         self.bandeira: str = bandeira
         self.cor: str = cor
+        self.id_cartao: int = id
     
     def to_dict(self):
         """Converte o objeto em dicionário para as Frames."""
