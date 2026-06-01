@@ -324,7 +324,7 @@ class Rep_Receita:
         cursor = conn.cursor()
     
         try:
-            sql = "UPDATE receitas SET fonte = %s, valor = %s, descricao = %s, data_recibimento = %s WHERE id = %s"
+            sql = "UPDATE receitas SET fonte = %s, valor = %s, descricao = %s, data_recebimento = %s WHERE id = %s"
             cursor.execute(sql, (receita.fonte, receita.valor, receita.descricao, receita.data, receita.id_receita))
             conn.commit()
 

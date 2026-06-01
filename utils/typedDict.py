@@ -18,7 +18,8 @@ class Dados_receitas_db(TypedDict):
     """Dict de receitas"""
 
     id_receita: int
-    valor_recebido: float
+    fonte: str
+    valor: float
     descricao: str
     data: datetime
 

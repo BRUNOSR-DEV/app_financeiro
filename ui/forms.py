@@ -277,7 +277,8 @@ class Cadastrar_receita(ctk.CTkFrame):
 
             data_obj = mysql_para_obj(dados.get('data'))
 
-            self.valor.insert(0, str(dados.get('valor_recebido')))
+            self.fonte.insert(0, dados['fonte'])
+            self.valor.insert(0, dados.get('valor'))
             self.descricao.insert(0, dados.get('descricao'))
             self.data_recebimento.set_date(data_obj)
 

@@ -52,13 +52,12 @@ class Listar_receitas(ctk.CTkFrame):
         self.lista_frame.grid_columnconfigure((0, 1, 3), weight=0) # Index, Valor e Data fixos
         self.lista_frame.grid_columnconfigure(2, weight=1) #Descriçao estica
 
-        #ctk.CTkLabel(self.lista_frame, text="Receitas Cadastradas", font=("Arial", 18, "bold")).grid(row=0, column=0, padx=10, pady=10)
-
         #cabeçalho
         ctk.CTkLabel(self.lista_frame, text='#', font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
-        ctk.CTkLabel(self.lista_frame, text="Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
-        ctk.CTkLabel(self.lista_frame, text="Descrição", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
-        ctk.CTkLabel(self.lista_frame, text="Data Recebimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text='Fonte', font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Descrição", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Data Recebimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=4, padx=5, pady=5, sticky="w")
 
         self.listar()
 
@@ -66,33 +65,35 @@ class Listar_receitas(ctk.CTkFrame):
     def listar(self, dados_receitas=None):
 
         for widget in self.lista_frame.winfo_children():
-            widget.destroy()
+            if int(widget.grid_info().get("row", 0)) > 0:
+                widget.destroy()
         
         if dados_receitas is None:
             dados_receitas = self.dados_receitas
-
 
         if dados_receitas:
 
             for i, dado in enumerate(dados_receitas, start=1):
                 #dado é o dict de uma receita
+                fonte = dado["fonte"]
                 valor = dado.get('valor')
                 descricao = dado.get('descricao')
                 data = dado.get('data')
 
                 ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=formatar_moeda(valor), text_color="#27ae60", font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=descricao, font=('Ariel', 14)).grid(row=i, column=2, padx=3, pady=1, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data), font=('Ariel', 14)).grid(row=i, column=3, padx=5, pady=2, sticky="e")
+                ctk.CTkLabel(self.lista_frame, text=fonte, font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=formatar_moeda(valor), text_color="#27ae60", font=('Ariel', 14)).grid(row=i, column=2, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=descricao, font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data), font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="e")
 
                 btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
-                                     command=lambda d=dado: self.confirmar_update(d))
-                btn_edit.grid(row=i, column=4, padx=2)
+                                     command=lambda d=dado: self.confirmar_update(d, valor))
+                btn_edit.grid(row=i, column=5, padx=2)
                 CTkToolTip(btn_edit, message="Editar Registro")
 
                 btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
                                     command=lambda dados=dado: self.confirmar_delete(dados))
-                btn_del.grid(row=i, column=5, padx=5)
+                btn_del.grid(row=i, column=6, padx=5)
                 CTkToolTip(btn_del, 
                             message="Excluir Registro", 
                             delay=0.5,      # Tempo em segundos para aparecer
@@ -100,19 +101,18 @@ class Listar_receitas(ctk.CTkFrame):
                             bg_color="red" 
                             )
 
-
         self.lista_frame.grid_columnconfigure((4, 5), weight=0)
 
 
-    def confirmar_update(self, dict_dados):
+    def confirmar_update(self, dict_dados, valor):
 
         print("Estou no'confirmar_update' mandando dados dict para crud_app")
 
         if dict_dados:
+            dict_dados['valor'] = valor
             self.controle_dados(dict_dados)
         else:
             self.controle_dados(None)
-
 
 
     def confirmar_delete(self, dados):

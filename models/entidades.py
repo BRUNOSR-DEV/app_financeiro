@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 class Usuario:
     def __init__(self, nome_completo, nome_user, senha, email, sal_fixo, telefone=None, telegram_chat_id=None, id_user=None):
@@ -37,7 +38,7 @@ class Usuario:
 class Receita:
     def __init__(self, fonte, valor, descricao, data, id=None):
         self.fonte: str = fonte
-        self.valor: float = valor
+        self.valor: Decimal = valor
         self.descricao: str = descricao
         self.data: datetime = data
         self.id_receita: int = id
