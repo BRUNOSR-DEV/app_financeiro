@@ -669,10 +669,11 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         self.bandeira.grid(row=10, column=0, padx=20, pady=(2,10), sticky="ew")
 
         # ------ COR ---------
-        cores = ['Roxo', 'Laranja', 'Preto', 'Vermelho', 'Cinza', 'Verde']
+        cores = ['Sem Cor','Roxo', 'Laranja', 'Preto', 'Vermelho', 'Cinza', 'Verde']
         ctk.CTkLabel(self, text="Cor do Cartão*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=11, column=0, padx=20, sticky="w")
-        self.categoria = ctk.CTkOptionMenu(self, values=cores)
-        self.categoria.grid(row=12, column=0, padx=20, pady=(2, 10), sticky="ew")
+        self.cor = ctk.CTkOptionMenu(self, values=cores)
+        self.cor.grid(row=12, column=0, padx=20, pady=(2, 10), sticky="ew")
+        self.cor.set('Sem cor')
 
         # -------- BOTÃO SALVAR ---------
         self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
@@ -699,14 +700,14 @@ class Cadastrar_car_cred(ctk.CTkFrame):
                 tocar_notificacao("dv_erro", True)
 
                 if not atualizar:
-                    self.status_label.configure(text=f'Por favor, Não repitir nome de cartões, tente - ex: *{nome_cc}700', text_color='red')
+                    self.status_label.configure(text=f'Por favor, Não repitir nome de cartões já cadastrados, tente - *{nome_cc}10', text_color='red')
                     self.update_idletasks()
 
                     self.after(3000, lambda: self.status_label.configure(text=''))
                     return
 
         if not nome_cc or not limite or not dia_f or not dia_v:
-            self.status_label.configure(text='Por favor, preencha todos os campos obrigarórios', text_color='red')
+            self.status_label.configure(text='Por favor, preencha todos os campos obrigarórios (*)', text_color='red')
             tocar_notificacao("dv_erro", True)
 
             self.update_idletasks()
@@ -714,24 +715,17 @@ class Cadastrar_car_cred(ctk.CTkFrame):
             
             return
         
-
-        obj_card_credito = Cartao_credito(nome=nome_cc, limite=limite, fech=dia_f, venc=dia_v)
-        dados_form = {
-            "nome": nome_cc,
-            "limite": limite,
-            "dia_fech": dia_f,
-            "dia_venc":dia_v,
-        }
+        obj_cartao = Cartao_credito(nome=nome_cc, limite=limite, fech=dia_f, venc=dia_v, bandeira=bandeira, cor=cor_card)
 
         if not atualizar: #inserir
-            sucesso = self.cdt_crud(inserir=obj_card_credito)
+            sucesso = self.cdt_crud(inserir=obj_cartao)
 
             msg_ok = "INSERIDOS"
             msg_erro = "SALVAR"
 
         else:# Atualizar
-            obj_card_credito.id_cartao = id_card
-            sucesso = self.cdt_crud(atualizar=obj_card_credito)
+            obj_cartao.id_cartao = id_card
+            sucesso = self.cdt_crud(atualizar=obj_cartao)
 
             msg_ok = "ATUALIZADOS"
             msg_erro = "ATUALIZAR"
@@ -763,6 +757,8 @@ class Cadastrar_car_cred(ctk.CTkFrame):
             self.limite.insert(0, str(dados.get('limite_cartao')))
             self.dia_fechamento.insert(0, dados.get('dia_fechamento'))
             self.dia_vencimento.insert(0, dados.get('dia_vencimento'))
+            self.bandeira.insert(0, dados.get('bandeira'))
+            self.cor.set(dados.get('cor'))
 
             self.botao_salvar.configure(text='Atualizar Cartão', fg_color="orange", command=lambda: self.salvar_dados(id_card, atualizar=True))
         
@@ -783,6 +779,8 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         self.limite.delete(0, ctk.END)
         self.dia_fechamento.delete(0, ctk.END)
         self.dia_vencimento.delete(0, ctk.END)
+        self.bandeira.delete(0, ctk.END)
+        self.cor.set('Sem Cor')
 
 
 #Filho de Assinaturas (crud_app.py)
@@ -980,7 +978,6 @@ class Cadastrar_assinatura(ctk.CTkFrame):
 
     def controla_campos(self, dados=None):
 
-        #id_ass, nome, valor, descricao, data_aquisicao, data_prim_pag, categoria, id_cc
 
         self.limpa_campos()
 
@@ -996,7 +993,7 @@ class Cadastrar_assinatura(ctk.CTkFrame):
             id_ass = dados.get('id_ass')
 
             data_aq_obj = mysql_para_obj(dados.get('data_aquisicao'))
-            data_pp_obj = mysql_para_obj(dados.get('data_prim_pag'))
+            data_pp_obj = mysql_para_obj(dados.get('data_pp'))
 
             self.entry_nome.insert(0, (dados.get('nome')))
             self.entry_valor.insert(0, str(dados.get('valor')))

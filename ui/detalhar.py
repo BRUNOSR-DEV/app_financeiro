@@ -319,13 +319,14 @@ class Listar_car_cred(ctk.CTkFrame):
 
         self.lista_frame.grid_columnconfigure((0, 1, 2, 4), weight=0) 
 
-
         #cabeçalho
         ctk.CTkLabel(self.lista_frame, text='#', font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text='Nome', font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text="Limite", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
-        ctk.CTkLabel(self.lista_frame, text="Fechamento Fatura", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
-        ctk.CTkLabel(self.lista_frame, text="Vencimento Fatura", font=ctk.CTkFont(weight="bold")).grid(row=0, column=4, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Dia Fechamento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Dia Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=4, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text='Bandeira', font=ctk.CTkFont(weight="bold")).grid(row=0, column=5, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text='Cor', font=ctk.CTkFont(weight="bold")).grid(row=0, column=6, padx=6, pady=5, sticky="w")
 
 
         self.listar()
@@ -347,29 +348,31 @@ class Listar_car_cred(ctk.CTkFrame):
                 limite = dado.get('limite_cartao')
                 dia_fec = dado.get('dia_fechamento')
                 dia_venc = dado.get('dia_vencimento')
+                bandeira = dado.get('bandeira')
+                cor = dado.get('cor')
 
-                #cabeçalho
                 ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=nome, font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=formatar_moeda(limite), text_color="#27ae60", font=('Ariel', 14)).grid(row=i, column=2, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=dia_fec, font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=dia_venc, font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=bandeira, font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=cor, font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
 
                 btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
                                      command=lambda dados=dado: self.confirmar_update(dados))
-                btn_edit.grid(row=i, column=8, padx=2)
+                btn_edit.grid(row=i, column=7, padx=2)
                 CTkToolTip(btn_edit, message="Editar Registro")
 
                 btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
                                     command=lambda dados=dado: self.confirmar_delete(dados))
-                btn_del.grid(row=i, column=9, padx=5)
+                btn_del.grid(row=i, column=8, padx=5)
                 CTkToolTip(btn_del, 
                             message="Excluir Registro", 
                             delay=0.5,      # Tempo em segundos para aparecer
                             alpha=0.9,      # Transparência
                             bg_color="red" 
                             )
-
 
 
     def confirmar_update(self, dados):
@@ -474,7 +477,7 @@ class Listar_assinaturas(ctk.CTkFrame):
                 valor = dado.get('valor')
                 desc = dado.get('descricao')
                 data_aq = dado.get('data_aquisicao')
-                data_pp = dado.get('data_prim_pag')
+                data_pp = dado.get('data_pp')
                 cat = dado.get('categoria')
 
                 if self.dados_cartoes:
@@ -561,7 +564,6 @@ class Listar_assinaturas(ctk.CTkFrame):
 
         else:
             print("Erro ao deletar")
-
 
 
 # ------------------- Detalhamento Tabela e Gráfico - DASHBOARD -------------------------------

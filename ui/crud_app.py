@@ -381,7 +381,7 @@ class Car_cred(ctk.CTkToplevel):
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Cartões de Crédito")
-        centralizar_janela(self, 1200, 800)
+        centralizar_janela(self, 1300, 800)
         self.transient(parent)
         self.focus_set()
 

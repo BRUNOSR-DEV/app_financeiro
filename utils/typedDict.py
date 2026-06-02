@@ -74,6 +74,8 @@ class Dados_cartoes_db(TypedDict):
     limite_cartao: float
     fechamento_fatura: int
     vencimento_fatura: int
+    bandeira: str
+    cor: str
 
 
 class Dados_assinaturas_db(TypedDict):
@@ -83,7 +85,7 @@ class Dados_assinaturas_db(TypedDict):
     valor: float
     descricao: str
     data_aquisicao: datetime
-    data_prim_pag: datetime
+    data_pp: datetime
     categoria: str
     dia_vencimento: int
     id_cc: int
