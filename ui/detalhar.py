@@ -278,16 +278,12 @@ class Listar_despesas(ctk.CTkFrame):
         btn_confirmar.grid(row=1, column=1, padx=10, pady=10)
 
 
-    def executar_delete(self, dados, popup):
+    def executar_delete(self, dados: dict, popup):
         
         id_desp = dados.get('id_desp')
         local = dados.get('local')
 
-        dados_detalhar = {
-            'id_desp': id_desp
-        }
-
-        sucesso = self.cdt_crud(deletar= dados_detalhar)
+        sucesso = self.cdt_crud(deletar= id_desp)
 
         if sucesso:
             print(f"ID: {id_desp} Local: '{local}'. Mandado pro espaço 🌌​")
@@ -773,7 +769,9 @@ class Listar_desp_tabela(ctk.CTkFrame):
 
                 for _, dados in enumerate(despesas):
                     primeira_parc = mysql_para_obj(dados['data_pp'])
-                    dia_venc = primeira_parc.day
+                    print(f'DEBUG: {primeira_parc}')
+                    
+                    dia_venc = dados['dia_vencimento']
                 
                     resultado_avulso = controle_data_parc(primeira_parc, dia_venc, dados.get('parcelas'), controle_mes= controle_mes)
 

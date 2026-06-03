@@ -306,23 +306,19 @@ class Despesas(ctk.CTkToplevel):
 
 
 
-    def comandante_crud(self, inserir:dict=None, atualizar:dict=None, deletar:dict=None):
-
-        inserir: Envia_despesa_form = inserir
-        atualizar: Envia_despesa_form = atualizar
+    def comandante_crud(self, inserir: Despesa=None, atualizar:Despesa=None, deletar:Despesa=None):
 
         sucesso = None
 
         if inserir:
-            sucesso = self.db.inserir_despesa(inserir['user_id'], inserir['local'], inserir['valor_total'], inserir['parcelas'], inserir['descricao'], inserir['categoria'], inserir['dc_select_mysql'], inserir['prim_dc_select_mysql'], inserir['dia_venc'], inserir['id_card'])
+            sucesso = self.db.inserir_despesa(id_user=self.user_id, despesa=inserir)
 
         elif atualizar:
-            sucesso = self.db.atualizar_despesa(atualizar['id_desp'], atualizar['local'], atualizar['valor_total'], atualizar['parcelas'], atualizar['descricao'], atualizar['categoria'], atualizar['dc_select_mysql'], atualizar['prim_dc_select_mysql'], atualizar['dia_venc'], atualizar['id_card'])
+            sucesso = self.db.atualizar_despesa(despesa=atualizar)
 
         elif deletar:
             self.notifica_delete = True
-            sucesso = self.db.deletar_despesa(deletar['id_desp'])
-        
+            sucesso = self.db.deletar_despesa(id_desp=deletar)
             
         if sucesso:
             self.definicao_sucesso()

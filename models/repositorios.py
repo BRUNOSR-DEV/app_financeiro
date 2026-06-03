@@ -390,7 +390,6 @@ class Rep_Despesa:
 
             query = """
                 SELECT 
-                    id, 
                     local, 
                     valor_total, 
                     parcelas,
@@ -399,7 +398,8 @@ class Rep_Despesa:
                     data_compra,
                     data_primeiro_pagamento,
                     dia_vencimento,
-                    id_cartao
+                    id_cartao,
+                    id
                 FROM despesas 
                 WHERE id_usuario = %s
             """
@@ -422,7 +422,7 @@ class Rep_Despesa:
 
     
     # método de busca join - (despesas-cartoes_credito)
-    def pega_despesas_cartao(self, id_user, id_card, conn=None):
+    def pega_despesas_cartao(self, id_user: int, id_card: int, conn=None):
         """
         Busca todas as despesas de um cartão específico, trazendo junto 
         os dados do cartão em um único dicionário usando INNER JOIN.
@@ -448,7 +448,9 @@ class Rep_Despesa:
                     c.nome,
                     c.limite, 
                     c.dia_fechamento, 
-                    c.dia_vencimento
+                    c.dia_vencimento,
+                    c.bandeira,
+                    c.cor
                 FROM despesas d
                 INNER JOIN cartoes_credito c ON d.id_cartao = c.id
                 WHERE d.id_usuario = %s AND d.id_cartao = %s
@@ -471,7 +473,7 @@ class Rep_Despesa:
                 self.db_conn.desconectar(conn)
 
     #Método que busca só despesas avulsas
-    def pega_despesas_avulsas(self, id_user, conn= None):
+    def pega_despesas_avulsas(self, id_user: int, conn= None):
         """
         Busca todas as despesas de um usuário que o retono do id_cc é None/Null
         """
@@ -486,7 +488,6 @@ class Rep_Despesa:
 
             query = """
                 SELECT 
-                    id, 
                     local, 
                     valor_total, 
                     parcelas,
@@ -494,7 +495,9 @@ class Rep_Despesa:
                     categoria,
                     data_compra,
                     data_primeiro_pagamento,
-                    dia_vencimento
+                    dia_vencimento,
+                    id_cartao,
+                    id
                 FROM despesas 
                 WHERE id_usuario = %s AND id_cartao IS NULL
             """
@@ -515,7 +518,7 @@ class Rep_Despesa:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_despesa(self, id_usu, local, valor_total, parcelas, descricao, categoria, data, data_pp=None, dia_vencimento = None, id_cc= None, conn= None):
+    def inserir_despesa(self, id_user: int, despesa: Despesa, conn= None):
         """ Função que inseri as despesas do usuário no BD e retorna o id da mesma"""
     
         gerenciar_conn = False
@@ -525,8 +528,9 @@ class Rep_Despesa:
 
         cursor = conn.cursor()
         try:
-            sql = "INSERT INTO despesas (id_usuario, local, valor_total, parcelas, descricao, categoria, data_compra, data_primeiro_pagamento, dia_vencimento, id_cartao) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s)"
-            cursor.execute(sql, (id_usu, local,valor_total, parcelas, descricao, categoria, data, data_pp, dia_vencimento, id_cc))
+            sql = "INSERT INTO despesas (local, valor_total, parcelas, descricao, categoria, data_compra, data_primeiro_pagamento, dia_vencimento, id_usuario, id_cartao) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s,%s)"
+
+            cursor.execute(sql, (despesa.local, despesa.valor_total, despesa.parcelas, despesa.descricao, despesa.categoria, despesa.data_compra, despesa.data_pp, despesa.dia_vencimento, id_user, despesa.id_cc))
             conn.commit()
             return cursor.lastrowid # Retorna o ID da despesa recém-inserida
     
@@ -545,7 +549,7 @@ class Rep_Despesa:
                 self.db_conn.desconectar(conn)
 
 
-    def atualizar_despesa(self, id_desp, local, valor_total, parcelas, descricao, categoria, data, data_pp, dia_venc, id_cc, conn= None):
+    def atualizar_despesa(self, despesa: Despesa, conn= None):
 
         gerenciar_conn = False
         if conn is None:
@@ -556,10 +560,10 @@ class Rep_Despesa:
     
         try:
             sql = "UPDATE despesas SET local = %s, valor_total= %s, parcelas= %s, descricao= %s, categoria= %s, data_compra= %s, data_primeiro_pagamento= %s, dia_vencimento= %s, id_cartao= %s WHERE id = %s"
-            cursor.execute(sql, (local, valor_total, parcelas, descricao, categoria, data, data_pp, dia_venc, id_cc, id_desp))
+            cursor.execute(sql, (despesa.local, despesa.valor_total, despesa.parcelas, despesa.descricao, despesa.categoria, despesa.data_compra, despesa.data_pp, despesa.dia_vencimento, despesa.id_cc, despesa.id_desp))
             conn.commit()
 
-            print(f"Despesa - '{local}' Atualizado com Sucesso!")
+            print(f"Despesa - '{despesa.local}' Atualizado com Sucesso!")
             return True
     
         except MySQLdb.Error as e: 
@@ -577,7 +581,7 @@ class Rep_Despesa:
                 self.db_conn.desconectar(conn)
 
 
-    def deletar_despesa(self, id_desp, conn=None):
+    def deletar_despesa(self, id_desp: int, conn=None):
 
         gerenciar_conn = False
         if conn is None:

@@ -48,25 +48,25 @@ class Receita:
         return self.__dict__
 
 class Despesa:
-    def __init__(self, id, local, valor_total, parcelas, desc, cat, data_compra, data_pp, dia_venc, id_cc=None):
-        self.id_desp: int = id
+    def __init__(self, local, valor_total, parcelas, descricao, categoria, data_compra, data_pp, dia_venc, id_cc=None, id_desp=None):
         self.local: str = local
         self.valor_total: float = valor_total
         self.parcelas: int = parcelas
-        self.descricao: str = desc
-        self.categoria: str = cat
+        self.descricao: str = descricao
+        self.categoria: str = categoria
         self.data_compra: datetime = data_compra
         self.data_pp: datetime = data_pp
         self.dia_vencimento: int = dia_venc
         self.id_cc: int = id_cc
-    
+        self.id_desp: int = id_desp
+        
     def to_dict(self):
         """Converte o objeto em dicionário para as Frames."""
         return self.__dict__
     
 
 class DespesaDetalhadoDTO:
-    def __init__(self, id, local, valor_total, parcelas, desc, cat, data_compra, nome_card, limite_card, fech_card, venc_card ):
+    def __init__(self, id, local, valor_total, parcelas, desc, cat, data_compra, nome_card, limite_card, fech_card, venc_card, bandeira, cor):
         self.id_desp: int = id
         self.local: str = local
         self.valor_total: float = valor_total
@@ -80,6 +80,8 @@ class DespesaDetalhadoDTO:
         self.limite_cartao: float = limite_card
         self.dia_fechamento: int = fech_card
         self.dia_vencimento: int = venc_card
+        self.bandeira: str = bandeira
+        self.cor: str = cor
     
     def to_dict(self):
         """Converte o objeto em dicionário para as Frames."""

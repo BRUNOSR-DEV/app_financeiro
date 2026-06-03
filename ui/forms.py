@@ -4,7 +4,7 @@ from utils.helper import(
     gerar_opcoes_meses, data_para_mysql, mysql_para_obj
 )
 
-from models.entidades import Usuario, Receita, Cartao_credito
+from models.entidades import Usuario, Receita, Cartao_credito, Despesa
 
 from utils.segurança import SegurancaService
 
@@ -380,7 +380,7 @@ class Cadastrar_despesa(ctk.CTkFrame):
 
             self.car_cred = ctk.CTkOptionMenu(self, values=campo_cartoes)
             self.car_cred.grid(row=15, column=0, padx=20, pady=(2, 10), sticky="ew")
-            self.car_cred.set("Cartão de Cobrança")
+            self.car_cred.set("Cartão de Cobrança - Sem Cartão")
         else:
             self.car_cred = ctk.CTkOptionMenu(self, values=[' ', ' ',])
             self.car_cred.grid(row=15, column=0, padx=20, pady=(2, 10), sticky="ew")
@@ -405,7 +405,6 @@ class Cadastrar_despesa(ctk.CTkFrame):
         dia_venc = None
         verifica_pri_dc = False
         id_card = None
-        controle_mes = None
 
         local = self.local.get().strip()
         valor_total = self.valor_total.get().strip()
@@ -429,7 +428,6 @@ class Cadastrar_despesa(ctk.CTkFrame):
         # Formata o objeto datetime para a string 'AAAA-MM-DD' para mandar para o db
         dc_select_mysql = data_para_mysql(self.dc_select)
         
-
         if not local or not valor_total or categoria == "Categoria" or menu_parcelas_str == "N° Parcelas":
 
             self.status_label.configure(text='Preencha Local, Valor Total, Categoria,\n N° Parcelas e Data da compra', text_color='red')
@@ -450,34 +448,17 @@ class Cadastrar_despesa(ctk.CTkFrame):
         
         tem_cartao = car_cred != "Cartão de Cobrança - Sem Cartão" or car_cred != "Cadastre Seus Cartões Na Área Destinada"
 
+        if self.dados_cartoes:
+            for card in self.dados_cartoes:
+                if card['nome_cartao'] == car_cred:
+                    id_card = card['id_cartao']
+
         if not tem_cartao and not verifica_pri_dc:
             # Se não tem cartão E não tem dia de vencimento, falha!
             self.status_label.configure(text='Informe um Cartão OU Data do \nprimeiro pagamento', text_color='red')
             tocar_notificacao('erro')
             self.after(3000, lambda: self.status_label.configure(text=''))
             return 
-
-        if tem_cartao:
-            for dado in self.dados_cartoes:
-                if dado.get('nome_cartao') == car_cred:
-                    id_card = dado.get('id_cartao')
-                    dia_fechamento = dado.get('dia_fechamento')
-                    dia_vencimento = dado['dia_vencimento']
-
-                    if dia_vencimento < 12: #se o fech é num mês e vencimento no outro
-                        mes_fech = self.dc_select.month - 1
-                        data_fechamento = self.dc_select.replace(day=dia_fechamento, month=mes_fech)
-                    else:
-                        data_fechamento = self.dc_select.replace(day=dia_fechamento)
- 
-
-                    if self.dc_select >= data_fechamento:
-                        controle_mes = (self.dc_select + relativedelta(months=1)).month
-                    else:
-                        controle_mes = self.dc_select.month
-        else:
-            controle_mes = self.prim_dc_select.month
-
 
         verifica = tem_cartao is True and verifica_pri_dc is True
 
@@ -491,7 +472,7 @@ class Cadastrar_despesa(ctk.CTkFrame):
 
             self.status_label.configure(text='Como foi informado um Cartão, a Data \nprimeiro pagamento será desconsiderada', text_color='blue')
             self.update_idletasks()
-            self.after(3000, lambda: self.status_label.configure(text=''))
+            self.after(4000, lambda: self.status_label.configure(text=''))
 
         #----------------- SIMULAÇÃO ---------------------------
         if simulacao:
@@ -515,30 +496,19 @@ class Cadastrar_despesa(ctk.CTkFrame):
                 return
         # -------------- SIMULAÇÃO END ---------------
 
-        dados_form: Envia_despesa_form = {
-            "local": local,
-            "valor_total": valor_total,
-            "parcelas": parcelas,
-            "descricao": descricao,
-            "categoria": categoria,
-            "dc_select_mysql": dc_select_mysql,
-            "prim_dc_select_mysql": prim_dc_select_mysql,
-            "dia_venc": dia_venc,
-            "id_card": id_card
-        }
+        obj_despesa = Despesa(local=local, valor_total=valor_total, parcelas=parcelas, descricao=descricao, categoria=categoria, data_compra=dc_select_mysql, data_pp=prim_dc_select_mysql, dia_venc=dia_venc, id_cc=id_card)
 
         if not atualizar: # Inserir no bd
 
-            dados_form['user_id'] = self.user_id
-            sucesso = self.cdt_crud(inserir=dados_form)
+            sucesso = self.cdt_crud(inserir=obj_despesa)
 
             msg_ok = 'INSERIDOS'
             msg_erro = "SALVAR"
 
         else: # Atualiza no BD
 
-            dados_form['id_desp'] =  id_desp
-            sucesso = self.cdt_crud(atualizar=dados_form)
+            obj_despesa.id_desp = id_desp
+            sucesso = self.cdt_crud(atualizar=obj_despesa)
 
             msg_ok = 'ATUALIZADOS'
             msg_erro = "ATUALIZAR"
