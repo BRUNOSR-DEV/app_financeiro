@@ -4,7 +4,7 @@ from utils.helper import(
     gerar_opcoes_meses, data_para_mysql, mysql_para_obj
 )
 
-from models.entidades import Usuario, Receita, Cartao_credito, Despesa
+from models.entidades import Usuario, Receita, Cartao_credito, Despesa, Assinatura
 
 from utils.segurança import SegurancaService
 
@@ -149,8 +149,7 @@ class Cadastrar_usuario(ctk.CTkFrame):
 
             self.after(3000, lambda: self.status_label.configure(text='')) 
 
-            
-             
+                        
 #Filho de Módulo Receitas (crud_app.py)
 class Cadastrar_receita(ctk.CTkFrame):
 
@@ -231,10 +230,7 @@ class Cadastrar_receita(ctk.CTkFrame):
             self.after(2000, lambda: self.status_label.configure(text=''))
             return
         
-        sucesso = False
         obj_receita = Receita(fonte=fonte, valor=valor, descricao=descricao, data=data_mysql)
-        
-
         
         if not atualizar: #inserir os dados novos
 
@@ -903,33 +899,21 @@ class Cadastrar_assinatura(ctk.CTkFrame):
             self.after(3000, lambda: self.status_label.configure(text='')) 
             return
         
-        dados_form = {
-            "nome": nome,
-            "valor": valor,
-            "descricao": descricao,
-            "data_aq_mysql": data_aq_mysql,
-            "data_pp_mysql": data_pp_mysql,
-            "dia_venc": dia_venc,
-            "categoria": categoria,
-            "id_card": id_card,
-        }
+
+        obj_assinatura = Assinatura(nome=nome, valor=valor, descricao=descricao, categoria=categoria, data_aq=data_aq_mysql, data_pp=data_pp_mysql, dia_venc=dia_venc, id_cc=id_card)
 
         if not atualizar: # inserir no banco
-
-            dados_form['user_id'] = self.user_id  #add user_id ao dict
-            sucesso = self.cdt_crud(inserir=dados_form)
+            sucesso = self.cdt_crud(inserir=obj_assinatura)
 
             msg_ok = "INSERIDOS"
             msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
             
         else: # atualizar no banco
-
-            dados_form['id_ass'] =  id_ass
-            sucesso = self.cdt_crud(atualizar=dados_form)
+            obj_assinatura.id_ass = id_ass
+            sucesso = self.cdt_crud(atualizar=obj_assinatura)
 
             msg_ok = "ATUALIZADOS"
             msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema...'"
-
 
         if sucesso:
             self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')

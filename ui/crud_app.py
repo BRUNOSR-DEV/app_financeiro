@@ -496,7 +496,7 @@ class Assinaturas(ctk.CTkToplevel):
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
 
-    def comandante_crud(self, inserir:dict=None, atualizar:dict=None, deletar:dict=None):
+    def comandante_crud(self, inserir:Assinatura=None, atualizar:Assinatura=None, deletar:int=None):
 
         inserir: Envia_ass_form = inserir
         atualizar: Envia_ass_form = atualizar
@@ -504,14 +504,13 @@ class Assinaturas(ctk.CTkToplevel):
         sucesso = None
 
         if inserir:
-            sucesso = self.db.inserir_assinatura(inserir['user_id'], inserir['nome'], inserir['valor'], inserir['descricao'], inserir['data_aq_mysql'], inserir['data_pp_mysql'], inserir['dia_venc'], inserir['categoria'], inserir['id_card'])
+            sucesso = self.db.inserir_assinatura(id_user=self.user_id, assinatura=inserir)
 
         elif atualizar:
-            sucesso = self.db.atualizar_assinatura(atualizar['id_ass'], atualizar['nome'], atualizar['valor'], atualizar['descricao'], atualizar['data_aq_mysql'], atualizar['data_pp_mysql'], atualizar['dia_venc'], atualizar['categoria'], atualizar['id_card'])
+            sucesso = self.db.atualizar_assinatura(assinatura=atualizar)
         elif deletar:
             self.notifica_delete = True
-            sucesso = self.db.deletar_assinatura(deletar['id_ass'])
-        
+            sucesso = self.db.deletar_assinatura(id_ass=deletar)
             
         if sucesso:
             self.definicao_sucesso()

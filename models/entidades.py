@@ -104,16 +104,17 @@ class Cartao_credito:
 
 
 class Assinatura:
-    def __init__(self, id, nome, valor, desc, cat, data_aq, data_pp, dia_venc, id_cc=None):
-        self.id_ass: int = id
+    def __init__(self, nome, valor, descricao, categoria, data_aq, data_pp, dia_venc, id_cc=None, id=None):
+        
         self.nome: str = nome
         self.valor: float = valor
-        self.descricao: str = desc
-        self.categoria: str = cat
+        self.descricao: str = descricao
+        self.categoria: str = categoria
         self.data_aquisicao: datetime = data_aq
         self.data_pp: datetime = data_pp
         self.dia_vencimento = dia_venc
         self.id_cc: int = id_cc
+        self.id_ass: int = id
     
     def to_dict(self):
         """Converte o objeto em dicionário para as Frames."""
@@ -121,7 +122,7 @@ class Assinatura:
     
 
 class AssinaturaDetalhadoDTO:
-    def __init__(self, id, nome, valor, desc, cat,  data_aq, data_pp, dia_venc, nome_card, limite_card, fech_card, venc_card):
+    def __init__(self, id, nome, valor, desc, cat,  data_aq, data_pp, dia_venc, nome_card, limite_card, fech_card, venc_card, bandeira, cor):
         self.id_ass: int = id
         self.nome: str = nome
         self.valor: float = valor
@@ -135,8 +136,9 @@ class AssinaturaDetalhadoDTO:
         self.limite_cartao: float = limite_card
         self.dia_fechamento_cc: int = fech_card
         self.dia_vencimento_cc: int = venc_card
+        self.bandeira: str = bandeira
+        self.cor: str = cor
         
-    
     def to_dict(self):
         """Converte o objeto em dicionário para as Frames."""
         return self.__dict__

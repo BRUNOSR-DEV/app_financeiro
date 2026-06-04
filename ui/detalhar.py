@@ -546,11 +546,7 @@ class Listar_assinaturas(ctk.CTkFrame):
         id_ass = dados.get('id_ass')
         nome = dados.get('nome')
 
-        dados_delete = {
-            'id_ass': id_ass
-        }
-
-        sucesso = self.cdt_crud(deletar=dados_delete)
+        sucesso = self.cdt_crud(deletar=id_ass)
 
         if sucesso:
             print(f"ID: {id_ass} Assinatura: '{nome}'. Mandado pro espaço 🌌​")
@@ -769,7 +765,6 @@ class Listar_desp_tabela(ctk.CTkFrame):
 
                 for _, dados in enumerate(despesas):
                     primeira_parc = mysql_para_obj(dados['data_pp'])
-                    print(f'DEBUG: {primeira_parc}')
                     
                     dia_venc = dados['dia_vencimento']
                 

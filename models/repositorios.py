@@ -740,7 +740,7 @@ class Rep_Assinatura:
         self.db_conn = db_conn
 
     
-    def dados_assinaturas(self, id_user, conn=None):
+    def dados_assinaturas(self, id_user:int, conn=None):
         """
         Busca todas as assinaturas de um usuário específico.
         """
@@ -753,7 +753,7 @@ class Rep_Assinatura:
 
         try:
             query = """
-                SELECT id, nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, id_cartao
+                SELECT nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, id_cartao, id
                 FROM assinaturas 
                 WHERE id_usuario = %s 
             """
@@ -773,7 +773,7 @@ class Rep_Assinatura:
                 self.db_conn.desconectar(conn)
 
 
-    def pega_assinaturas_cartao(self, id_user, id_card, conn=None):
+    def pega_assinaturas_cartao(self, id_user:int, id_card:int, conn=None):
         """
         Busca todas as assinaturas de um cartão específico
         """
@@ -798,7 +798,9 @@ class Rep_Assinatura:
                     c.nome,
                     c.limite, 
                     c.dia_fechamento, 
-                    c.dia_vencimento
+                    c.dia_vencimento,
+                    c.bandeira,
+                    c.cor
                 FROM assinaturas a
                 INNER JOIN cartoes_credito c ON a.id_cartao = c.id
                 WHERE a.id_usuario = %s AND a.id_cartao = %s
@@ -821,7 +823,7 @@ class Rep_Assinatura:
                 self.db_conn.desconectar(conn)
 
 
-    def pega_assinaturas_avulsas(self, id_user, conn=None):
+    def pega_assinaturas_avulsas(self, id_user:int, conn=None):
         """
         Busca todas as assinaturas sem cartão de um usuário específico.
         """
@@ -834,7 +836,7 @@ class Rep_Assinatura:
 
         try:
             query = """
-                SELECT id, nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento FROM assinaturas WHERE id_usuario = %s and id_cartao IS NULL
+                SELECT nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, id_cartao, id FROM assinaturas WHERE id_usuario = %s and id_cartao IS NULL
             """
         
             cursor.execute(query, (id_user,))
@@ -852,17 +854,18 @@ class Rep_Assinatura:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_assinatura(self, id_user, nome, valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc):
+    def inserir_assinatura(self, id_user:int, assinatura:Assinatura, conn=None):
 
         conn = self.db_conn.conectar_bd_original()
         cursor = conn.cursor()
         try:
             query = """
                 INSERT INTO assinaturas 
-                (id_usuario, nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, id_cartao) 
+                (nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, id_usuario, id_cartao) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            valores = (id_user, nome, valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc)
+            valores = (assinatura.nome, assinatura.valor, assinatura.descricao, assinatura.categoria, assinatura.data_aquisicao, assinatura.data_pp, assinatura.dia_vencimento, id_user, assinatura.id_cc)
+
             cursor.execute(query, valores)
             conn.commit()
             return cursor.lastrowid
@@ -874,7 +877,7 @@ class Rep_Assinatura:
             self.db_conn.desconectar(conn)       
 
 
-    def atualizar_assinatura(self, id_ass, nome,  valor, descricao, data_aq, data_pp, dia_venc, categoria, id_cc, conn=None):
+    def atualizar_assinatura(self, assinatura:Assinatura, conn=None):
 
         gerenciar_conn = False
         if conn is None:
@@ -885,10 +888,12 @@ class Rep_Assinatura:
     
         try:
             sql = "UPDATE assinaturas SET nome = %s, valor = %s, descricao = %s, categoria= %s, data_aquisicao = %s, data_primeiro_pagamento = %s, dia_vencimento = %s,  id_cartao = %s WHERE id = %s"
-            cursor.execute(sql, (nome, valor, descricao, categoria, data_aq, data_pp, dia_venc, id_cc, id_ass))
+
+            cursor.execute(sql, (assinatura.nome, assinatura.valor, assinatura.descricao, assinatura.categoria, assinatura.data_aquisicao, assinatura.data_pp, assinatura.dia_vencimento, assinatura.id_cc, assinatura.id_ass))
+
             conn.commit()
 
-            print(f"Assinatura - '{nome}' atualizada com sucesso!")
+            print(f"Assinatura - '{assinatura.nome}' atualizada com sucesso!")
             return True
     
         except MySQLdb.Error as e: # Captura erro específico do MySQL
@@ -906,7 +911,7 @@ class Rep_Assinatura:
                 self.db_conn.desconectar(conn)
 
     
-    def deletar_assinatura(self, id_ass, conn =None):
+    def deletar_assinatura(self, id_ass:int, conn =None):
 
         gerenciar_conn = False
         if conn is None:
