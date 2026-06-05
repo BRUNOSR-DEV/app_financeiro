@@ -12,7 +12,7 @@ from ui.detalhar import *
 from utils.typedDict import *
 
 # ----- FUNÇÕES DE AJUDA - (helper.py/audio_helper.py) -------
-from utils.helper import(centralizar_janela, gerar_opcoes_meses, formatar_moeda, mysql_para_obj, data_para_exibicao)
+from utils.helper import(centralizar_janela_responsiva, gerar_opcoes_meses, formatar_moeda, mysql_para_obj, data_para_exibicao)
 from utils.audio_helper import(tocar_notificacao)
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
@@ -128,7 +128,7 @@ class Usuarios(ctk.CTkToplevel):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title("Registrar Novo Usuário")
-        centralizar_janela(self, 350, 500)
+        centralizar_janela_responsiva(janela=self, tipo_janela='medio')
         self.transient(parent) 
         self.grab_set() 
         self.focus_set()
@@ -183,7 +183,7 @@ class Receitas(ctk.CTkToplevel):
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Receitas")
-        centralizar_janela(self, 1000, 800)
+        centralizar_janela_responsiva(janela=self, tipo_janela='medio')
         self.transient(self.parent) # Faz a popup aparecer sobre a janela principal e fechar com ela
         self.focus_set() # Define o foco para esta janela
 
@@ -278,7 +278,7 @@ class Despesas(ctk.CTkToplevel):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title("Gerenciar Despesas")
-        centralizar_janela(self, 1700, 800)
+        centralizar_janela_responsiva(janela=self, tipo_janela='despass')
         self.transient(parent)
         self.focus_set() 
 
@@ -377,7 +377,7 @@ class Car_cred(ctk.CTkToplevel):
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Cartões de Crédito")
-        centralizar_janela(self, 1300, 800)
+        centralizar_janela_responsiva(janela=self, tipo_janela='outro')
         self.transient(parent)
         self.focus_set()
 
@@ -467,7 +467,7 @@ class Assinaturas(ctk.CTkToplevel):
 
         # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Assinaturas")
-        centralizar_janela(self, 1800, 800)
+        centralizar_janela_responsiva(janela=self, tipo_janela='despass')
         self.transient(parent) 
         self.focus_set() 
        
@@ -564,7 +564,7 @@ class Faturas(ctk.CTkToplevel):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Detalhes: {self.nome_card}")
-        centralizar_janela(self, 1200, 800)
+        centralizar_janela_responsiva(janela=self)
         self.transient(parent)
         self.focus_set() 
 
@@ -734,7 +734,7 @@ class Simulacao(ctk.CTkToplevel):
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Simulação de Despesas")
-        centralizar_janela(self, 1400, 800)
+        centralizar_janela_responsiva(janela=self)
         self.transient(parent)
         self.grab_set()
         self.focus_set() 

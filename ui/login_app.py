@@ -12,7 +12,7 @@ from utils.typedDict import(Dados_usuarios_db)
 
 # ----- FUNÇÕES DE AJUDA - (helper.py/audio_helper.py) -------
 from utils.audio_helper import tocar_notificacao 
-from utils.helper import(centralizar_janela, check_entry_num)
+from utils.helper import(centralizar_janela_responsiva, check_entry_num)
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
 #BILIO PADRÕES
@@ -41,7 +41,7 @@ class Login(ctk.CTk):
         
         # --------------- Configuração da janela/'labels' -----------------------
         self.title('Sistema de Login')
-        centralizar_janela(self, 350, 400)
+        centralizar_janela_responsiva(janela=self, tipo_janela='login')
         self.grid_columnconfigure(0, weight=1)
 
         # ---- LABEL DE LOCALIZAÇÃO ----

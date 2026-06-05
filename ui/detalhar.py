@@ -4,7 +4,7 @@ from models.conecte_bd import (
      )
 
 from utils.helper import(
-    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, centralizar_janela, controle_data_parc,
+    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, controle_data_parc,
 )
 
 from utils.typedDict import(

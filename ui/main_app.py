@@ -48,7 +48,7 @@ class Main_app(ctk.CTk):
 
         self.usuario_logado = logged_in_username
         self.title("Controle Financeiro")
-        centralizar_janela(self, 1300, 800)
+        centralizar_janela_responsiva(janela=self)
 
         self.container_principal = ctk.CTkFrame(self, fg_color="transparent")
         self.container_principal.pack(fill="both", expand=True)
