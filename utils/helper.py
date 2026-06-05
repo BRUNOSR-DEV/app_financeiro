@@ -131,28 +131,25 @@ def centralizar_janela_responsiva(janela, tipo_janela="main"):
     """
     janela.update_idletasks()
     
-    # 1. Pega a resolução real do monitor atual
+    #Pega a resolução real do monitor atual
     largura_tela = janela.winfo_screenwidth()
     altura_tela = janela.winfo_screenheight()
 
-    # 2. Define as proporções com base no tipo de janela e tamanho do monitor
     if tipo_janela == "main":
         if largura_tela <= 1920:
-            # Perfil Notebook / Telas padrão: Ocupa quase tudo
+            # Perfil Notebook / Telas padrão
             pct_largura = 0.90
             pct_altura = 0.82
         else:
-            # Perfil Monitor Gigante / UltraWide: Fica centralizado e elegante
+            # Perfil Monitor Gigante / UltraWide
             pct_largura = 0.60
             pct_altura = 0.60
             
     elif tipo_janela == "login":
-        # Janelas menores como login mantêm um padrão fixo proporcional
         pct_largura = 0.15 if largura_tela > 1920 else 0.25
         pct_altura = 0.30 if altura_tela > 1080 else 0.45
         
     elif tipo_janela == 'despass':
-        # Padrão genérico caso queira usar para outras telas (como o CRUD)
         pct_largura = 0.70 if largura_tela > 1920 else 0.99
         pct_altura = 0.60 if altura_tela > 1080 else 0.80
 
@@ -166,18 +163,17 @@ def centralizar_janela_responsiva(janela, tipo_janela="main"):
         pct_altura = 0.50 if altura_tela > 1080 else 0.70
 
 
-    # 3. Calcula o tamanho final em pixels
+    #Calcula o tamanho final em pixels
     largura_final = int(largura_tela * pct_largura)
     altura_final = int(altura_tela * pct_altura)
 
-    # 4. Garante que fique exatamente no centro do monitor ativo
+    # Garante que fique exatamente no centro do monitor ativo
     pos_x = (largura_tela // 2) - (largura_final // 2)
     pos_y = (altura_tela // 2) - (altura_final // 2)
 
-    # 5. Aplica a geometria dinâmica
+    # Aplica a geometria dinâmica
     janela.geometry(f"{largura_final}x{altura_final}+{pos_x}+{pos_y}")
     
-    # Limites mínimos para segurança visual
     #janela.minsize(850, 600)
     
 # ---------- Engine Controle de data e parcelas -----------------
