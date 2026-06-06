@@ -1,6 +1,6 @@
 
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
-# ----- BANCO DE DADOS ------
+# ----- BANCO DE DADOS (models) ------
 from models.database import Database
 from models.repositorios import Rep_Usuario
 

@@ -1,13 +1,19 @@
+
+# ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
+
+# ----- BANCO DE DADOS (models) ------
 import MySQLdb
 from models.database import Database
-
 from models.entidades import *
 
+# ----- FUNÇÕES DE AJUDA - (UTILS) -------
 from utils.segurança import SegurancaService
 
+# ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
+#BILIO PADRÕES
 from decimal import Decimal
 
-
+# --- REPOSITÓRIO USUARIO ---
 class Rep_Usuario:
 
     def __init__(self, db_conn: Database):
@@ -241,8 +247,7 @@ class Rep_Usuario:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
                                          
-
-
+# --- REPOSITÓRIO RECEITA ---
 class Rep_Receita:
 
     def __init__(self, db_conn: Database):
@@ -369,8 +374,7 @@ class Rep_Receita:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
-
-
+# --- REPOSITÓRIO DESPESA ---
 class Rep_Despesa:
 
     def __init__(self, db_conn: Database):
@@ -604,8 +608,7 @@ class Rep_Despesa:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn) 
 
-
-
+# --- REPOSITÓRIO CARTÃO DE CRÉDITO ---
 class Rep_Cartao_credito:
 
     def __init__(self, db_conn: Database):
@@ -732,8 +735,7 @@ class Rep_Cartao_credito:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
-
-
+# --- REPOSITÓRIO ASSINATURA ---
 class Rep_Assinatura:
 
     def __init__(self, db_conn: Database):

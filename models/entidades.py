@@ -1,6 +1,10 @@
+
+# ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
+#BILIO PADRÕES
 from datetime import datetime
 from decimal import Decimal
 
+# --- ENTIDADE USUARIO ---
 class Usuario:
     def __init__(self, nome_completo, nome_user, senha, email, sal_fixo, telefone=None, telegram_chat_id=None, id_user=None):
 
@@ -33,8 +37,9 @@ class Usuario:
             'telefone': self.telefone,
             'tci': self.tci 
         }
-    
- 
+
+
+# --- ENTIDADE RECEITA ---
 class Receita:
     def __init__(self, fonte, valor, descricao, data, id=None):
         self.fonte: str = fonte
@@ -47,6 +52,8 @@ class Receita:
         """Converte o objeto em dicionário para as Frames."""
         return self.__dict__
 
+
+# --- ENTIDADE DESPESA ---
 class Despesa:
     def __init__(self, local, valor_total, parcelas, descricao, categoria, data_compra, data_pp, dia_venc, id_cc=None, id_desp=None):
         self.local: str = local
@@ -65,6 +72,7 @@ class Despesa:
         return self.__dict__
     
 
+# --- ENTIDADE DESPESA E CARTÃO (JOIN) ---
 class DespesaDetalhadoDTO:
     def __init__(self, id, local, valor_total, parcelas, desc, cat, data_compra, nome_card, limite_card, fech_card, venc_card, bandeira, cor):
         self.id_desp: int = id
@@ -88,6 +96,7 @@ class DespesaDetalhadoDTO:
         return self.__dict__
 
 
+# --- ENTIDADE CARTAO  DE CRÉDITO ---
 class Cartao_credito:
     def __init__(self, nome, limite, fech, venc, bandeira, cor, id=None):
         self.nome_cartao: str = nome
@@ -103,6 +112,7 @@ class Cartao_credito:
         return self.__dict__
 
 
+# --- ENTIDADE ASSINATURA ---
 class Assinatura:
     def __init__(self, nome, valor, descricao, categoria, data_aq, data_pp, dia_venc, id_cc=None, id=None):
         
@@ -121,6 +131,7 @@ class Assinatura:
         return self.__dict__
     
 
+# --- ENTIDADE ASSINATURA E CARTÃO (JOIN) ---
 class AssinaturaDetalhadoDTO:
     def __init__(self, id, nome, valor, desc, cat,  data_aq, data_pp, dia_venc, nome_card, limite_card, fech_card, venc_card, bandeira, cor):
         self.id_ass: int = id

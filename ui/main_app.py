@@ -1,15 +1,16 @@
 
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
-# ----- BANCO DE DADOS ------
+# ----- BANCO DE DADOS  (models) ------
 from models.database import Database
 from models.repositorios import *
+
 #------ IMPORTAÇÃO DE CLASSE GERENCIADORA DE JANELAS - (crud_app.py) --------
 from ui.crud_app import (CrudManage)
 
 #------ IMPORTAÇÃO DE CLASSES TYPEDDICT - (typedDict.py) --------
 from utils.typedDict import(Dados_usuarios_db, Dados_receitas_db, Dados_cartoes_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db)
 
-# ----- FUNÇÕES DE AJUDA - (helper.py/audio_helper.py) -------
+# ----- FUNÇÕES DE AJUDA - (utils) -------
 from utils.helper import *
 from utils.audio_helper import tocar_notificacao
 
@@ -27,7 +28,7 @@ from decimal import Decimal
 import customtkinter as ctk
 from dateutil.relativedelta import relativedelta
 
-# ------------- CONFIGURAÇÃO INICIAL ---------------
+# ------------------------------------ CONFIGURAÇÃO INICIAL -------------------------------------------
 locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 ctk.set_appearance_mode('dark')
 

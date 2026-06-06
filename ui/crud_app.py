@@ -1,13 +1,15 @@
 
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
-# ----- BANCO DE DADOS ------
+# ----- BANCO DE DADOS (models) ------
 from models.database import Database
 from models.repositorios import *
 
 #------ IMPORTAÇÃO DE CLASSES PARA CADASTRO - (forms.py) --------
 from ui.forms import *
+
 #------ IMPORTAÇÃO DE CLASSES PARA LISTAGEM - (detalhar.py) --------
 from ui.detalhar import *
+
 #------ IMPORTAÇÃO DE CLASSES TYPEDDICT - (typedDict.py) --------
 from utils.typedDict import *
 

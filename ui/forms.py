@@ -1,22 +1,26 @@
 
+# ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
 
-from utils.helper import(
-    gerar_opcoes_meses, data_para_mysql, mysql_para_obj
-)
-
+# ----- BANCO DE DADOS (models) ------
 from models.entidades import Usuario, Receita, Cartao_credito, Despesa, Assinatura
 
+# ----- FUNÇÕES DE AJUDA - (UTILS) -------
+from utils.helper import(data_para_mysql, mysql_para_obj)
 from utils.segurança import SegurancaService
-
-from utils.typedDict import(Despesa_simulacao, Envia_despesa_form)
-
-from tkcalendar import DateEntry
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-from decimal import Decimal
-
 from utils.audio_helper import tocar_notificacao 
 
+#------ IMPORTAÇÃO DE CLASSES TYPEDDICT - (typedDict.py) --------
+from utils.typedDict import(Despesa_simulacao)
+
+# ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
+#BILIO PADRÕES
+from datetime import datetime
+from decimal import Decimal
+
+#BIBLIO VIA PIP
+from tkcalendar import DateEntry
+
+# --------------------------------- CONFIGURAÇÃO INICIAL ---------------------------------------
 import customtkinter as ctk
 ctk.set_appearance_mode('dark')
 

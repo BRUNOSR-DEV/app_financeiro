@@ -1,35 +1,33 @@
 
-from models.conecte_bd import (
-    deletar_receita, deletar_assinatura, deletar_cartao, deletar_despesa
-     )
+# ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
 
+# ----- FUNÇÕES DE AJUDA - (utils) -------
 from utils.helper import(
     gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, controle_data_parc,
 )
-
-from utils.typedDict import(
-    Dados_usuarios_db, Dados_receitas_db, Dados_despesas_db, Dados_cartoes_db, Dados_assinaturas_db, Pega_despesas_avulsas_bd, Pega_assinaturas_avulças_db, Pega_div_cartao_db, Pega_assinatuas_cartao_db, Pega_despesas_cartao_db, Despesa_simulacao
-    )
-
-from typing import List
-
 from utils.audio_helper import tocar_notificacao 
 
-from dateutil.relativedelta import relativedelta
+#------ IMPORTAÇÃO DE CLASSES TYPEDDICT - (typedDict.py) --------
+from utils.typedDict import *
+
+
+# ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
+#BILIO PADRÕES
+from typing import List
 from datetime import datetime
-
-import customtkinter as ctk
-ctk.set_appearance_mode('dark')
-
-from CTkToolTip import *
-
-#gráficos
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
 from decimal import Decimal
 from collections import defaultdict 
 
+#BIBLIO VIA PIP
+from dateutil.relativedelta import relativedelta
+import customtkinter as ctk
+from CTkToolTip import *
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+
+# ------------------------------------ CONFIGURAÇÃO INICIAL -------------------------------------------
+ctk.set_appearance_mode('dark')
 
 #Filho de Módulo Receitas (crud_app.py)
 class Listar_receitas(ctk.CTkFrame):

@@ -1,15 +1,24 @@
 
+# ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
+
+# ----- BANCO DE DADOS ------
 from models.database import Database
 from models.repositorios import *
 
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-import calendar
+# ----- FUNÇÕES DE AJUDA - (UTILS) -------
+from utils.audio_helper import tocar_notificacao
 
+# ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
+#BILIO PADRÕES
+from datetime import datetime
+
+import calendar
 import re
 from typing import List
 
-from utils.audio_helper import tocar_notificacao
+#BIBLIO VIA PIP
+from dateutil.relativedelta import relativedelta
+
 
 #-------- opções meses ----------
 def gerar_opcoes_meses(id=None, str_mes =None):
