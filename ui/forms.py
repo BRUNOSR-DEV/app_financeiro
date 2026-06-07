@@ -5,7 +5,7 @@
 from models.entidades import Usuario, Receita, Cartao_credito, Despesa, Assinatura
 
 # ----- FUNÇÕES DE AJUDA - (UTILS) -------
-from utils.helper import(data_para_mysql, mysql_para_obj)
+from utils.helper import(data_para_mysql, mysql_para_obj, formata_cor)
 from utils.segurança import SegurancaService
 from utils.audio_helper import tocar_notificacao 
 
@@ -728,7 +728,7 @@ class Cadastrar_car_cred(ctk.CTkFrame):
             self.dia_fechamento.insert(0, dados.get('dia_fechamento'))
             self.dia_vencimento.insert(0, dados.get('dia_vencimento'))
             self.bandeira.insert(0, dados.get('bandeira'))
-            self.cor.set(dados.get('cor'))
+            self.cor.set(formata_cor(cor=dados.get('cor')))
 
             self.botao_salvar.configure(text='Atualizar Cartão', fg_color="orange", command=lambda: self.salvar_dados(id_card, atualizar=True))
         

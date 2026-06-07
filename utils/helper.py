@@ -88,6 +88,51 @@ def check_entry_num(P):
         return False
 
 
+#   FORMATAÇÃO DE CORES
+def formata_cor(nome_cor: str =None, cor: str =None) -> str:
+    #'Sem Cor','Roxo', 'Laranja', 'Preto', 'Vermelho', 'Cinza', 'Verde'
+
+    if nome_cor:
+        if nome_cor == 'Laranja':
+            return "#ff9500"
+    
+        elif nome_cor == 'Roxo':
+            return "#b20398"
+    
+        elif nome_cor == 'Preto':
+            return "#000000"
+    
+        elif nome_cor == 'Vermelho':
+            return "#dd0404"
+    
+        elif nome_cor == 'Cinza':
+            return "#616161"
+    
+        elif nome_cor == 'Verde':
+            return "#2CBA00"
+        
+    elif cor:
+        if cor == "#ff9500":
+            return 'Laranja'
+        
+        elif cor == "#b20398":
+            return 'Roxo'
+        
+        elif cor == "#000000":
+            return "Preto"
+        
+        elif cor == "#dd0404":
+            return 'Vermelho'
+        
+        elif cor == "#616161":
+            return 'Cinza'
+        
+        elif cor == "#2CBA00":
+            return 'Verde'
+        
+    else:
+        return None
+    
 # ---- formatação de datas --------
 def str_para_data(data_str):
     """Converte 'DD/MM/AAAA' para objeto datetime."""
@@ -167,6 +212,11 @@ def centralizar_janela_responsiva(janela, tipo_janela="main"):
         pct_largura = 0.40 if largura_tela > 1920 else 0.67
         pct_altura = 0.50 if altura_tela > 1080 else 0.73
     
+    elif tipo_janela == 'pequeno':
+
+        pct_largura = 0.20 if largura_tela > 1920 else 0.30
+        pct_altura = 0.10 if altura_tela > 1080 else 0.20
+    
     else:
         pct_largura = 0.50 if largura_tela > 1920 else 0.75
         pct_altura = 0.50 if altura_tela > 1080 else 0.70
@@ -183,7 +233,7 @@ def centralizar_janela_responsiva(janela, tipo_janela="main"):
     # Aplica a geometria dinâmica
     janela.geometry(f"{largura_final}x{altura_final}+{pos_x}+{pos_y}")
     
-    #janela.minsize(850, 600)
+    #janela.minsize(400, 500)
     
 # ---------- Engine Controle de data e parcelas -----------------
 def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_mes=None, data_atual=None):

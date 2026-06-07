@@ -14,7 +14,7 @@ from ui.detalhar import *
 from utils.typedDict import *
 
 # ----- FUNÇÕES DE AJUDA - (helper.py/audio_helper.py) -------
-from utils.helper import(centralizar_janela_responsiva, gerar_opcoes_meses, formatar_moeda, mysql_para_obj, data_para_exibicao)
+from utils.helper import(centralizar_janela_responsiva, gerar_opcoes_meses, formatar_moeda, mysql_para_obj, data_para_exibicao, formata_cor)
 from utils.audio_helper import(tocar_notificacao)
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
@@ -405,10 +405,15 @@ class Car_cred(ctk.CTkToplevel):
 
 
     def comandante_crud(self, inserir:Cartao_credito=None, atualizar:Cartao_credito=None, deletar: int=None):
-    
+        #'Sem Cor','Roxo', 'Laranja', 'Preto', 'Vermelho', 'Cinza', 'Verde'
         if inserir:
+            inserir.cor = formata_cor(nome_cor=inserir.cor)
+
             sucesso = self.db.inserir_cc(id_user=self.user_id, cartao=inserir)
+
         elif atualizar:
+            atualizar.cor = formata_cor(nome_cor=atualizar.cor)
+            
             sucesso = self.db.atualizar_cartao(cartao=atualizar)
         elif deletar:
             self.notifica_delete = True

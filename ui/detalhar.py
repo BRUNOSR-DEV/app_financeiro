@@ -3,7 +3,7 @@
 
 # ----- FUNÇÕES DE AJUDA - (utils) -------
 from utils.helper import(
-    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, controle_data_parc,
+    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, controle_data_parc, centralizar_janela_responsiva, formata_cor
 )
 from utils.audio_helper import tocar_notificacao 
 
@@ -343,7 +343,7 @@ class Listar_car_cred(ctk.CTkFrame):
                 dia_fec = dado.get('dia_fechamento')
                 dia_venc = dado.get('dia_vencimento')
                 bandeira = dado.get('bandeira')
-                cor = dado.get('cor')
+                cor = formata_cor(cor=dado.get('cor'))
 
                 ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=nome, font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
@@ -382,7 +382,7 @@ class Listar_car_cred(ctk.CTkFrame):
 
         popup = ctk.CTkToplevel(self)
         popup.title("Confirmação")
-        centralizar_janela(popup, 300, 150)
+        centralizar_janela_responsiva(janela=popup, tipo_janela='pequeno')
 
         popup.grab_set()
 
