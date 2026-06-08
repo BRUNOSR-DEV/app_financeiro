@@ -110,6 +110,8 @@ def formata_cor(nome_cor: str =None, cor: str =None) -> str:
     
         elif nome_cor == 'Verde':
             return "#2CBA00"
+        else:
+            print('Cor selecionada não está registrada!')
         
     elif cor:
         if cor == "#ff9500":
@@ -130,8 +132,12 @@ def formata_cor(nome_cor: str =None, cor: str =None) -> str:
         elif cor == "#2CBA00":
             return 'Verde'
         
+        else:
+            print("Campo 'Cor' do db veio nula, retornando 'Sem Cor'")
+            return 'Sem Cor'
+        
     else:
-        return None
+        return 'Sem Cor'
     
 # ---- formatação de datas --------
 def str_para_data(data_str):
@@ -218,7 +224,7 @@ def centralizar_janela_responsiva(janela, tipo_janela="main"):
         pct_altura = 0.10 if altura_tela > 1080 else 0.20
     
     else:
-        pct_largura = 0.50 if largura_tela > 1920 else 0.75
+        pct_largura = 0.55 if largura_tela > 1920 else 0.75
         pct_altura = 0.50 if altura_tela > 1080 else 0.70
 
 

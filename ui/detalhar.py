@@ -117,7 +117,7 @@ class Listar_receitas(ctk.CTkFrame):
         
         popup = ctk.CTkToplevel(self)
         popup.title("Confirmação")
-        centralizar_janela(popup, 300, 150)
+        centralizar_janela_responsiva(popup, tipo_janela='pequeno')
 
         popup.grab_set()
 
@@ -258,7 +258,7 @@ class Listar_despesas(ctk.CTkFrame):
 
         popup = ctk.CTkToplevel(self)
         popup.title("Confirmação")
-        centralizar_janela(popup, 300, 150)
+        centralizar_janela_responsiva(popup, tipo_janela='pequeno')
 
         popup.grab_set()
 
@@ -520,7 +520,7 @@ class Listar_assinaturas(ctk.CTkFrame):
 
         popup = ctk.CTkToplevel(self)
         popup.title("Confirmação")
-        centralizar_janela(popup, 300, 150)
+        centralizar_janela_responsiva(popup, tipo_janela='pequeno')
 
         popup.grab_set()
 

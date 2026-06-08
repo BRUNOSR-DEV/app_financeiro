@@ -727,8 +727,12 @@ class Cadastrar_car_cred(ctk.CTkFrame):
             self.limite.insert(0, str(dados.get('limite_cartao')))
             self.dia_fechamento.insert(0, dados.get('dia_fechamento'))
             self.dia_vencimento.insert(0, dados.get('dia_vencimento'))
-            self.bandeira.insert(0, dados.get('bandeira'))
-            self.cor.set(formata_cor(cor=dados.get('cor')))
+
+            ret_bandeira = dados.get('bandeira') or ""
+            self.bandeira.insert(0, ret_bandeira)
+
+            ret_cor = dados.get('cor') or 'Sem Cor'
+            self.cor.set(formata_cor(cor=ret_cor))
 
             self.botao_salvar.configure(text='Atualizar Cartão', fg_color="orange", command=lambda: self.salvar_dados(id_card, atualizar=True))
         

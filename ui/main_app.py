@@ -411,7 +411,7 @@ class Main_app(ctk.CTk):
 
         self.modal_renda = ctk.CTkToplevel(self)
         self.modal_renda.title("Editar Renda Fixa")    
-        centralizar_janela(self.modal_renda, 300, 200) 
+        centralizar_janela_responsiva(self.modal_renda, tipo_janela='pequeno') 
         self.modal_renda.grab_set() 
         
         tocar_notificacao('open_w', True)
