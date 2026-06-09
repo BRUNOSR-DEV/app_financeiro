@@ -1011,7 +1011,7 @@ class Listar_cat_grafico(ctk.CTkFrame):
             
         #Verifica se tem algo para mostrar
         if total_previsto == Decimal('0.0'):
-            ctk.CTkLabel(self.grafico_frame, text="Nenhum gasto para este mês.").grid(row=0, column=0, padx=20, pady=20)
+            ctk.CTkLabel(self.grafico_frame, text="Nenhum gasto para este mês.").grid(row=0, column=0, padx=20, pady=(20,0))
             return
 
         # Prepara os dados para o Matplotlib
@@ -1026,16 +1026,19 @@ class Listar_cat_grafico(ctk.CTkFrame):
             autopct='%1.1f%%', 
             startangle=90,
             textprops={'fontsize': 8, 'color': 'white'}
+
         )
         ax.axis('equal')
     
         # Título (Ajuste o gerar_opcoes_meses conforme sua estrutura)
-        ax.set_title(f"Distribuição de Gastos\nTotal: {formatar_moeda(total_previsto)}", color='white', fontsize=12)
+        ax.set_title(f"Distribuição de Gastos\nTotal: {formatar_moeda(total_previsto)}", color='white', fontsize=12, pad=25)
+
+        fig.tight_layout()
 
         # 6. Renderização no CustomTkinter
         canvas = FigureCanvasTkAgg(fig, master=self.grafico_frame)
         canvas_widget = canvas.get_tk_widget()
-        canvas_widget.grid(row=0, column=0, sticky="nsew")
+        canvas_widget.grid(row=0, column=0, sticky="nsew", pady=(15, 5), padx=10)
         canvas.draw()
 
 

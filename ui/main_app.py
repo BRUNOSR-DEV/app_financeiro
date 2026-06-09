@@ -131,7 +131,7 @@ class Main_app(ctk.CTk):
         # TOP SECTION 
         # ---------------
         self.top_section_frame = ctk.CTkFrame(self.container_principal, fg_color="transparent")
-        self.top_section_frame.grid(row=0, column=0, padx=(0, 10), pady=10, sticky="ew")
+        self.top_section_frame.grid(row=0, column=0, padx=(5, 10), pady=0, sticky="ew")
         
         self.top_section_frame.grid_columnconfigure(0, weight=0) # Bem-vindo
         self.top_section_frame.grid_columnconfigure(1, weight=1) # Renda Fixa (EXPANDE e empurra o resto pra direita)
@@ -139,7 +139,7 @@ class Main_app(ctk.CTk):
 
         texto_boas_vindas = f"Bem-vindo, {self.dados_usuario[0].get('nome_completo')}!" if self.usuario_logado else "Bem-vindo!"
         self.nomeusuario_label = ctk.CTkLabel(self.top_section_frame, text=texto_boas_vindas, font=ctk.CTkFont(size=18, weight="bold"))
-        self.nomeusuario_label.grid(row=0, column=0, padx=5, pady=(0, 10), sticky="w")
+        self.nomeusuario_label.grid(row=0, column=0, padx=(10, 5), pady=(5, 5), sticky="w")
 
         # --- DISPLAY DE RENDA FIXA ---
         self.frame_renda = ctk.CTkFrame(self.top_section_frame, fg_color="transparent", width=150, height=100, corner_radius=15, border_width=3)
@@ -166,7 +166,7 @@ class Main_app(ctk.CTk):
         self.btn_att_app.grid(row=0, column=5, padx=10, sticky="ew")
            
         self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, fg_color="#840000", hover_color="#350100")
-        self.botao_sair.grid(row=0, column=6, padx=(30, 0), sticky="ew") 
+        self.botao_sair.grid(row=0, column=6, padx=(10, 10), sticky="ew") 
         # ----END Secton botões func ---------
 
         
@@ -202,7 +202,7 @@ class Main_app(ctk.CTk):
         # MAIN CONTENT 
         # ---------------
         self.main_content_frame = ctk.CTkFrame(self.container_principal, fg_color="transparent")
-        self.main_content_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.main_content_frame.grid(row=1, column=0, padx=5, pady=0, sticky="nsew")
 
         self.main_content_frame.grid_columnconfigure(0, weight=2) #tabela
         self.main_content_frame.grid_columnconfigure(1, weight=1) #gráfico
