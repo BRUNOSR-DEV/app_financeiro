@@ -168,7 +168,6 @@ class Main_app(ctk.CTk):
         self.botao_sair = ctk.CTkButton(self.top_section_frame, text="Sair", command=self.voltar_Plogin, fg_color="#840000", hover_color="#350100")
         self.botao_sair.grid(row=0, column=6, padx=(10, 10), sticky="ew") 
         # ----END Secton botões func ---------
-
         
         # ---- FRAME DE BOTÕES DE CADASTRO ----
         self.cadastro_frame = ctk.CTkFrame(self.top_section_frame, fg_color="transparent")
