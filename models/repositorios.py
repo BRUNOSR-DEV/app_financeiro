@@ -608,6 +608,7 @@ class Rep_Despesa:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn) 
 
+
 # --- REPOSITÓRIO CARTÃO DE CRÉDITO ---
 class Rep_Cartao_credito:
 
@@ -734,6 +735,7 @@ class Rep_Cartao_credito:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
+
 
 # --- REPOSITÓRIO ASSINATURA ---
 class Rep_Assinatura:
