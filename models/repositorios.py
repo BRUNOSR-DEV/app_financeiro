@@ -1,3 +1,11 @@
+"""
+Módulo de Repositórios (Camada de Persistência)
+
+Este módulo é responsável por abstrair todas as operações de banco de dados (CRUD) 
+do sistema financeiro. Cada classe gerencia uma entidade específica, garantindo 
+segurança nas transações, tratamento de exceções (Rollbacks) e injeção de dependência 
+da conexão com o banco.
+"""
 
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
 
@@ -10,16 +18,39 @@ from models.entidades import *
 from utils.segurança import SegurancaService
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
-#BILIO PADRÕES
+# BIBLIO PADRÕES
 from decimal import Decimal
+from typing import Optional, List, Dict, Any, Union
 
-# --- REPOSITÓRIO USUARIO ---
+
+# =================================================================================
+# --- REPOSITÓRIO USUÁRIO ---
+# =================================================================================
+
 class Rep_Usuario:
-
-    def __init__(self, db_conn: Database):
-        self.db_conn = db_conn
+    """
+    Gerencia as operações de persistência e validação da entidade Usuario.
     
-    def validar_credenciais(self, username, senha_digitada):
+    Attributes:
+        db_conn (Database): Instância da classe de gerenciamento do banco de dados.
+    """
+    
+    def __init__(self, db_conn: Database) -> None:
+        self.db_conn: Database = db_conn
+    
+    def validar_credenciais(self, username: str, senha_digitada: str) -> Optional[List[Dict[str, Any]]]:
+        """
+        Valida o login do usuário, realizando a migração automática de senhas antigas 
+        (texto puro) para hashes Bcrypt, se necessário.
+
+        Args:
+            username (str): O nome de usuário (login).
+            senha_digitada (str): A senha em texto puro informada na UI.
+
+        Returns:
+            Optional[List[Dict[str, Any]]]: Uma lista contendo o dicionário do usuário se 
+            autorizado, ou None se as credenciais forem inválidas.
+        """
         user_id = self.pega_id(username)
         usuario = self.pega_usuario(user_id) 
         
@@ -34,6 +65,7 @@ class Rep_Usuario:
             return None
         
         else:
+            # Fluxo de migração de senha legado para Bcrypt
             if senha_digitada == senha_salva:
                 nova_senha_cripto = SegurancaService.criptografar_senha(senha_digitada)
                 self.atualizar_senha_usuario(user_id, nova_senha_cripto)
@@ -42,10 +74,18 @@ class Rep_Usuario:
                 return usuario
             return None
 
-
-    def dados_usuarios(self, conn=None):
+    def dados_usuarios(self, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
-        Função que retorna lista de usuarios
+        Retorna uma lista com os dados de todos os usuários do sistema.
+
+        Args:
+            conn (Optional[Any]): Conexão injetada (opcional). Se None, cria uma própria.
+
+        Returns:
+            List[Dict[str, Any]]: Lista de dicionários mapeados pela Entidade Usuario.
+
+        Raises:
+            MySQLdb.Error: Se houver falha na query SQL.
         """
         gerenciar_conn = False
 
@@ -65,9 +105,9 @@ class Rep_Usuario:
             else:
                 return []
         
-        except MySQLdb.Error as e: # Captura erro específico do MySQL
+        except MySQLdb.Error as e: 
             print(f'Erro no MySQL ao pegar dados: {e}')
-            raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
+            raise 
 
         except Exception as e:
             print(f'Erro inesperado ao pegar usuários: {e}')
@@ -76,10 +116,16 @@ class Rep_Usuario:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
-
-    def pega_usuario(self, id_user:int, conn=None):
+    def pega_usuario(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
-        Função que retorna os dados do  usuario
+        Busca os dados de um usuário específico pelo ID.
+
+        Args:
+            id_user (int): ID da chave primária do usuário.
+            conn (Optional[Any]): Conexão de banco de dados opcional.
+
+        Returns:
+            List[Dict[str, Any]]: Dicionário do usuário mapeado, ou lista vazia.
         """
         gerenciar_conn = False
 
@@ -97,11 +143,10 @@ class Rep_Usuario:
             if usuario:
                 objeto = [Usuario(*user) for user in usuario]
                 return [obj.to_dict() for obj in objeto]
-
         
-        except MySQLdb.Error as e: # Captura erro específico do MySQL
+        except MySQLdb.Error as e: 
             print(f'Erro no MySQL ao buscar dados do usuário: {e}')
-            raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
+            raise 
 
         except Exception as e:
             print(f'Erro inesperado ao buscar dados do usuário: {e}')
@@ -110,10 +155,17 @@ class Rep_Usuario:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def pega_id(self, usuario: str, conn: Optional[Any] = None) -> Optional[int]: 
+        """
+        Busca o ID interno (PK) do usuário utilizando o seu nome de usuário (login).
 
-    def pega_id(self, usuario: int, conn=None): 
-        '''função que busca id do usuário no bd, passando o nome do usuário ''' 
+        Args:
+            usuario (str): Nome do usuário no sistema.
+            conn (Optional[Any]): Conexão com o banco de dados.
 
+        Returns:
+            Optional[int]: O ID do usuário, ou None se não for encontrado.
+        """
         gerenciar_conn = False
 
         if conn is None:
@@ -124,16 +176,15 @@ class Rep_Usuario:
 
         try:
             sql = "SELECT id FROM usuarios WHERE nome_usuario = %s" 
-            cursor.execute(sql, (usuario,)) #obs. obrigatório passar uma tupla como parâmetro para cursor
+            cursor.execute(sql, (usuario,)) 
             result = cursor.fetchone()
         
-
             if result:
                 return result[0]
         
         except MySQLdb.Error as e:
             print(f"Erro MySQL ao pegar ID: {e}")
-            return None # Retorna None em caso de erro no DB  
+            return None 
         except Exception as e:
             print(f"Erro inesperado ao pegar ID: {e}")
 
@@ -141,10 +192,16 @@ class Rep_Usuario:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
-
-    def inserir_usuario(self, usuario: Usuario, conn=None):
+    def inserir_usuario(self, usuario: Usuario, conn: Optional[Any] = None) -> bool:
         """
-        Função para inserir um usuário novo completo
+        Insere um novo registro de usuário no banco de dados.
+
+        Args:
+            usuario (Usuario): Objeto Entidade contendo os dados a serem salvos.
+            conn (Optional[Any]): Conexão com o banco de dados.
+
+        Returns:
+            bool: True se o INSERT foi bem-sucedido, False caso contrário.
         """  
         gerenciar_conn = False
 
@@ -156,11 +213,10 @@ class Rep_Usuario:
         sucesso = False
 
         try:
-
             cursor.execute("INSERT INTO usuarios (nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id) VALUES (%s, %s, %s, %s, %s, %s, %s)",(usuario.nome_completo, usuario.nome_user, usuario.senha, usuario.email, usuario.sal_fixo, usuario.telefone, usuario.tci))
             conn.commit()
 
-            if cursor.rowcount == 1: #retorna o número de linhas afetadas pela última operação executada.
+            if cursor.rowcount == 1: 
                 print(f'Usuário inserido com sucesso! olá {usuario.nome_completo}')
                 sucesso = True
                 return sucesso 
@@ -183,9 +239,18 @@ class Rep_Usuario:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def atualizar_renda(self, id_user: int, nova_renda: Decimal, conn: Optional[Any] = None) -> bool: 
+        """
+        Atualiza o salário fixo base de um usuário específico.
 
-    def atualizar_renda(self, id_user: int, nova_renda: Decimal, conn=None)-> bool: 
+        Args:
+            id_user (int): ID do usuário a ser atualizado.
+            nova_renda (Decimal): Novo valor de salário fixo.
+            conn (Optional[Any]): Conexão opcional.
 
+        Returns:
+            bool: True em caso de sucesso, False em caso de falha.
+        """
         gerenciar_conn = False
         if conn is None:
             conn= self.db_conn.conectar_bd_original()
@@ -215,9 +280,18 @@ class Rep_Usuario:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def atualizar_senha_usuario(self, user_id: int, nova_senha: str, conn: Optional[Any] = None) -> Optional[bool]:
+        """
+        Atualiza o hash de senha do usuário no banco de dados.
 
-    def atualizar_senha_usuario(self, user_id: int, nova_senha: str, conn=None):
+        Args:
+            user_id (int): ID do usuário alvo.
+            nova_senha (str): Hash gerado via Bcrypt.
+            conn (Optional[Any]): Conexão opcional.
 
+        Returns:
+            Optional[bool]: True se sucesso, None em caso de falha de DB.
+        """
         gerenciar_conn = False
         if conn is None:
             conn= self.db_conn.conectar_bd_original()
@@ -247,15 +321,29 @@ class Rep_Usuario:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
                                          
-# --- REPOSITÓRIO RECEITA ---
-class Rep_Receita:
 
-    def __init__(self, db_conn: Database):
-        self.db_conn = db_conn
+# =================================================================================
+# --- REPOSITÓRIO RECEITA ---
+# =================================================================================
+
+class Rep_Receita:
+    """
+    Gerencia as operações de persistência relacionadas às Entidades de Receita.
+    """
+
+    def __init__(self, db_conn: Database) -> None:
+        self.db_conn: Database = db_conn
     
-    def dados_receitas(self, id_user: int, conn=None):
+    def dados_receitas(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
-        Função que retorna os dados do  usuario
+        Busca e retorna todas as receitas atreladas a um usuário específico.
+
+        Args:
+            id_user (int): ID do usuário dono das receitas.
+            conn (Optional[Any]): Conexão com o banco.
+
+        Returns:
+            List[Dict[str, Any]]: Lista de dicionários populados pela entidade Receita.
         """
         gerenciar_conn = False
 
@@ -276,21 +364,30 @@ class Rep_Receita:
             else:
                 return []
         
-        except MySQLdb.Error as e: # Captura erro específico do MySQL
+        except MySQLdb.Error as e: 
             print(f'Erro no MySQL ao buscar dados de receitas: {e}')
-            raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
+            raise 
 
         except Exception as e:
             print(f'Erro inesperado ao buscar dados de receitas: {e}')
+            return []
 
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def inserir_receita(self, id_user: int, receita: Receita, conn: Optional[Any] = None) -> Optional[int]:
+        """
+        Insere uma nova receita no banco de dados e retorna seu identificador único.
 
-    def inserir_receita(self, id_user: int, receita: Receita, conn=None):
-        """ Função que inseri a receita do usuário no BD e retorna o id da mesma"""
-    
+        Args:
+            id_user (int): ID do usuário associado à receita.
+            receita (Receita): Objeto do domínio contendo os dados a serem salvos.
+            conn (Optional[Any]): Conexão com o banco.
+
+        Returns:
+            Optional[int]: O ID gerado para a nova receita, ou None em caso de falha.
+        """
         gerenciar_conn = False
 
         if conn is None:
@@ -302,12 +399,12 @@ class Rep_Receita:
             sql = "INSERT INTO receitas (fonte, valor, descricao, data_recebimento, id_usuario) VALUES (%s, %s, %s, %s, %s)"
             cursor.execute(sql, (receita.fonte, receita.valor, receita.descricao, receita.data, id_user))
             conn.commit()
-            return cursor.lastrowid # Retorna o ID da receita recém-inserida
+            return cursor.lastrowid 
     
-        except MySQLdb.Error as e: # Captura erro específico do MySQL
+        except MySQLdb.Error as e: 
             print(f"Erro MySQL ao inserir receita: {e}")
             conn.rollback()
-            return None # Retorna None para indicar falha
+            return None 
     
         except Exception as e:
             print(f"Erro inesperado ao inserir receita: {e}")
@@ -318,9 +415,17 @@ class Rep_Receita:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def atualizar_receita(self, receita: Receita, conn: Optional[Any] = None) -> Optional[bool]:
+        """
+        Atualiza uma receita existente utilizando o ID embutido no objeto.
 
-    def atualizar_receita(self, receita: Receita, conn=None):
+        Args:
+            receita (Receita): Objeto Entidade com as alterações e o id_receita preenchido.
+            conn (Optional[Any]): Conexão opcional.
 
+        Returns:
+            Optional[bool]: True se sucesso, None em caso de erro no SQL.
+        """
         gerenciar_conn = False
         if conn is None:
             conn = self.db_conn.conectar_bd_original()
@@ -336,10 +441,10 @@ class Rep_Receita:
             print(f"Receita com ID {receita.id_receita} atualizada com sucesso!")
             return True
     
-        except MySQLdb.Error as e: # Captura erro específico do MySQL
+        except MySQLdb.Error as e: 
             print(f"Erro MySQL ao fazer atualização: {e}")
             conn.rollback()
-            return None # Retorna None para indicar falha
+            return None 
     
         except Exception as e:
             print(f"Erro inesperado ao atualizar receita: {e}")
@@ -350,9 +455,17 @@ class Rep_Receita:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def deletar_receita(self, id_rec: int, conn: Optional[Any] = None) -> bool:
+        """
+        Remove permanentemente uma receita da base de dados.
 
-    def deletar_receita(self, id_rec: int, conn=None):
+        Args:
+            id_rec (int): ID da receita a ser deletada.
+            conn (Optional[Any]): Conexão opcional.
 
+        Returns:
+            bool: True se a deleção for concluída, False em caso de falha.
+        """
         gerenciar_conn = False
         if conn is None:
             conn = self.db_conn.conectar_bd_original()
@@ -374,15 +487,31 @@ class Rep_Receita:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+
+# =================================================================================
 # --- REPOSITÓRIO DESPESA ---
+# =================================================================================
+
 class Rep_Despesa:
+    """
+    Controla as operações de persistência e extração de Despesas, incluindo JOINs 
+    complexos com tabelas de cartões de crédito.
+    """
 
-    def __init__(self, db_conn: Database):
-        self.db_conn = db_conn
+    def __init__(self, db_conn: Database) -> None:
+        self.db_conn: Database = db_conn
 
+    def dados_despesas(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
+        """
+        Retorna a relação completa de todas as despesas (avulsas e parceladas) do usuário.
 
-    def dados_despesas(self, id_user, conn=None):
+        Args:
+            id_user (int): PK do usuário logado.
+            conn (Optional[Any]): Conexão injetada (opcional).
 
+        Returns:
+            List[Dict[str, Any]]: Dicionários no formato base da Entidade Despesa.
+        """
         gerenciar_conn = False
         if conn is None:
             conn = self.db_conn.conectar_bd_original()
@@ -391,7 +520,6 @@ class Rep_Despesa:
         cursor = conn.cursor()
 
         try:
-
             query = """
                 SELECT 
                     local, 
@@ -424,12 +552,18 @@ class Rep_Despesa:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
-    
-    # método de busca join - (despesas-cartoes_credito)
-    def pega_despesas_cartao(self, id_user: int, id_card: int, conn=None):
+    def pega_despesas_cartao(self, id_user: int, id_card: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
-        Busca todas as despesas de um cartão específico, trazendo junto 
-        os dados do cartão em um único dicionário usando INNER JOIN.
+        Consulta de DTO: Executa um INNER JOIN para mesclar Despesas com os dados 
+        do seu Cartão de Crédito associado.
+
+        Args:
+            id_user (int): Identificador do usuário.
+            id_card (int): Identificador do cartão de crédito.
+            conn (Optional[Any]): Conexão injetada.
+
+        Returns:
+            List[Dict[str, Any]]: Lista de dicionários complexos (DespesaDetalhadoDTO).
         """
         gerenciar_conn = False
         if conn is None:
@@ -439,7 +573,6 @@ class Rep_Despesa:
         cursor = conn.cursor()
 
         try:
-            # A mágica acontece aqui: Juntamos as duas tabelas onde as chaves se encontram
             query = """
                 SELECT 
                     d.id, 
@@ -476,10 +609,17 @@ class Rep_Despesa:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
-    #Método que busca só despesas avulsas
-    def pega_despesas_avulsas(self, id_user: int, conn= None):
+    def pega_despesas_avulsas(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
-        Busca todas as despesas de um usuário que o retono do id_cc é None/Null
+        Isola e retorna apenas despesas vinculadas diretamente à renda fixa 
+        (onde a Foreign Key do cartão é Nula).
+
+        Args:
+            id_user (int): PK do usuário logado.
+            conn (Optional[Any]): Conexão de banco de dados.
+
+        Returns:
+            List[Dict[str, Any]]: Dicionários no formato base da Entidade Despesa.
         """
         gerenciar_conn = False
         if conn is None:
@@ -489,7 +629,6 @@ class Rep_Despesa:
         cursor = conn.cursor()
 
         try:
-
             query = """
                 SELECT 
                     local, 
@@ -510,9 +649,9 @@ class Rep_Despesa:
             desp_avulsas = cursor.fetchall()
 
             if desp_avulsas:
-
                 objetos = [Despesa(*desp) for desp in desp_avulsas]
                 return [obj.to_dict() for obj in objetos]
+            return []
 
         except Exception as e:
             print(f"Erro ao buscar despesas: {e}")
@@ -521,10 +660,18 @@ class Rep_Despesa:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def inserir_despesa(self, id_user: int, despesa: Despesa, conn: Optional[Any] = None) -> Optional[int]:
+        """
+        Persiste uma nova despesa informada pelo usuário.
 
-    def inserir_despesa(self, id_user: int, despesa: Despesa, conn= None):
-        """ Função que inseri as despesas do usuário no BD e retorna o id da mesma"""
-    
+        Args:
+            id_user (int): FK do usuário dono da despesa.
+            despesa (Despesa): Entidade Despesa contendo os valores do formulário.
+            conn (Optional[Any]): Conexão opcional.
+
+        Returns:
+            Optional[int]: O ID (lastrowid) gerado, ou None em caso de falha.
+        """
         gerenciar_conn = False
         if conn is None:
             conn = self.db_conn.conectar_bd_original()
@@ -536,12 +683,12 @@ class Rep_Despesa:
 
             cursor.execute(sql, (despesa.local, despesa.valor_total, despesa.parcelas, despesa.descricao, despesa.categoria, despesa.data_compra, despesa.data_pp, despesa.dia_vencimento, id_user, despesa.id_cc))
             conn.commit()
-            return cursor.lastrowid # Retorna o ID da despesa recém-inserida
+            return cursor.lastrowid 
     
-        except MySQLdb.Error as e: # Captura erro específico do MySQL
+        except MySQLdb.Error as e: 
             print(f"Erro MySQL ao inserir despesa: {e}")
             conn.rollback()
-            return None # Retorna None para indicar falha
+            return None 
     
         except Exception as e:
             print(f"Erro inesperado ao inserir despesa: {e}")
@@ -552,9 +699,17 @@ class Rep_Despesa:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def atualizar_despesa(self, despesa: Despesa, conn: Optional[Any] = None) -> bool:
+        """
+        Atualiza as informações de uma despesa baseada em seu ID.
 
-    def atualizar_despesa(self, despesa: Despesa, conn= None):
+        Args:
+            despesa (Despesa): Entidade atualizada pela interface.
+            conn (Optional[Any]): Gerenciamento de conexão flexível.
 
+        Returns:
+            bool: Indicador de transação (True = Commit, False = Rollback).
+        """
         gerenciar_conn = False
         if conn is None:
             conn = self.db_conn.conectar_bd_original()
@@ -584,9 +739,17 @@ class Rep_Despesa:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def deletar_despesa(self, id_desp: int, conn: Optional[Any] = None) -> bool:
+        """
+        Exclui o registro de uma despesa pelo ID.
 
-    def deletar_despesa(self, id_desp: int, conn=None):
+        Args:
+            id_desp (int): Identificador da despesa na tabela.
+            conn (Optional[Any]): Conexão ativa no momento da exclusão.
 
+        Returns:
+            bool: Validador de sucesso (True) ou Falha (False).
+        """
         gerenciar_conn = False
         if conn is None:
             conn = self.db_conn.conectar_bd_original()
@@ -609,16 +772,31 @@ class Rep_Despesa:
                 self.db_conn.desconectar(conn) 
 
 
+# =================================================================================
 # --- REPOSITÓRIO CARTÃO DE CRÉDITO ---
+# =================================================================================
+
 class Rep_Cartao_credito:
+    """
+    Abstração de acesso aos dados para manipulação das faturas e propriedades de cartões.
+    """
 
-    def __init__(self, db_conn: Database):
-        self.db_conn = db_conn
-
+    def __init__(self, db_conn: Database) -> None:
+        self.db_conn: Database = db_conn
     
-    def dados_cartoes(self, id_user: int, conn=None):
+    def dados_cartoes(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
-        Função que retorna uma lista com o id do cartão e o nome da tabela cartoes_credito
+        Recupera as características de todos os cartões vinculados a um usuário.
+
+        Args:
+            id_user (int): PK do usuário.
+            conn (Optional[Any]): Controle opcional de sessão do banco.
+
+        Returns:
+            List[Dict[str, Any]]: Mapeamento plano das Entidades Cartao_credito.
+            
+        Raises:
+            MySQLdb.Error: Quando ocorre erro fatal na formatação do SQL.
         """
         gerenciar_conn = False
 
@@ -639,21 +817,30 @@ class Rep_Cartao_credito:
             else:
                 return []
         
-        except MySQLdb.Error as e: # Captura erro específico do MySQL
+        except MySQLdb.Error as e: 
             print(f'Erro no MySQL ao buscar cartões de crédito: {e}')
-            raise # Re-levanta a exceção para que o chamador saiba que algo deu errado
+            raise 
 
         except Exception as e:
             print(f'Erro inesperado ao buscar cartões de crédito: {e}')
+            return []
 
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def inserir_cc(self, id_user: int, cartao: Cartao_credito, conn: Optional[Any] = None) -> Optional[int]:
+        """
+        Registra um novo meio de pagamento (Cartão de Crédito) para o usuário.
 
-    def inserir_cc(self, id_user, cartao: Cartao_credito, conn=None):
-        """ Função que inseri os cartões de crédito do usuário no BD e retorna o id do mesmo"""
-    
+        Args:
+            id_user (int): FK do usuário responsável.
+            cartao (Cartao_credito): Objeto contendo os campos formatados.
+            conn (Optional[Any]): Parâmetro de transação.
+
+        Returns:
+            Optional[int]: O código ID registrado no BD, ou None.
+        """
         gerenciar_conn = False
         if conn is None:
             conn = self.db_conn.conectar_bd_original()
@@ -664,12 +851,12 @@ class Rep_Cartao_credito:
             sql = "INSERT INTO cartoes_credito (nome, limite, dia_fechamento, dia_vencimento, bandeira, cor, id_usuario) VALUES (%s, %s, %s, %s, %s, %s, %s)"
             cursor.execute(sql, (cartao.nome_cartao, cartao.limite_cartao, cartao.dia_fechamento, cartao.dia_vencimento, cartao.bandeira, cartao.cor, id_user))
             conn.commit()
-            return cursor.lastrowid # Retorna o ID do c.c. recém-inserida
+            return cursor.lastrowid 
     
-        except MySQLdb.Error as e: # Captura erro específico do MySQL
+        except MySQLdb.Error as e: 
             print(f"Erro MySQL ao inserir cartão: {e}")
             conn.rollback()
-            return None # Retorna None para indicar falha
+            return None 
     
         except Exception as e:
             print(f"Erro inesperado ao inserir cartão: {e}")
@@ -680,9 +867,17 @@ class Rep_Cartao_credito:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def atualizar_cartao(self, cartao: Cartao_credito, conn: Optional[Any] = None) -> bool:
+        """
+        Executa um UPDATE nas regras (fechamento, limite, visual) de um cartão.
 
-    def atualizar_cartao(self, cartao: Cartao_credito, conn=None):
+        Args:
+            cartao (Cartao_credito): Objeto contendo o estado atualizado.
+            conn (Optional[Any]): Transação sob demanda.
 
+        Returns:
+            bool: Sucesso da operação via Commit/Rollback.
+        """
         gerenciar_conn = False
         if conn is None:
             conn = self.db_conn.conectar_bd_original()
@@ -712,9 +907,17 @@ class Rep_Cartao_credito:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def deletar_cartao(self, id_card: int, conn: Optional[Any] = None) -> bool:
+        """
+        Remove o cadastro do cartão do banco de dados (Gera Exclusão em Cascata se configurado).
 
-    def deletar_cartao(self, id_card: int, conn=None):
+        Args:
+            id_card (int): ID de destino.
+            conn (Optional[Any]): Flag gerencial de sessão.
 
+        Returns:
+            bool: Retorno limpo indicando sucesso/falha do `DELETE`.
+        """
         gerenciar_conn = False
         if conn is None:
             conn = self.db_conn.conectar_bd_original()
@@ -737,16 +940,28 @@ class Rep_Cartao_credito:
                 self.db_conn.desconectar(conn)
 
 
+# =================================================================================
 # --- REPOSITÓRIO ASSINATURA ---
+# =================================================================================
+
 class Rep_Assinatura:
+    """
+    Controla o fluxo de dados dos gastos recorrentes (Assinaturas).
+    """
 
-    def __init__(self, db_conn: Database):
-        self.db_conn = db_conn
-
+    def __init__(self, db_conn: Database) -> None:
+        self.db_conn: Database = db_conn
     
-    def dados_assinaturas(self, id_user:int, conn=None):
+    def dados_assinaturas(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
-        Busca todas as assinaturas de um usuário específico.
+        Extrai todo o pool de assinaturas pertencentes a um ID de usuário.
+
+        Args:
+            id_user (int): Parâmetro de busca WHERE.
+            conn (Optional[Any]): Objeto de conexão externa.
+
+        Returns:
+            List[Dict[str, Any]]: Lista plana convertida pela entidade base Assinatura.
         """
         gerenciar_conn = False
         if conn is None:
@@ -768,6 +983,7 @@ class Rep_Assinatura:
             if assinaturas:
                 objetos = [Assinatura(*ass) for ass in assinaturas]
                 return [obj.to_dict() for obj in objetos]
+            return []
 
         except Exception as e:
             print(f"Erro ao buscar todas as Assinaturas: {e}")
@@ -776,10 +992,17 @@ class Rep_Assinatura:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
-
-    def pega_assinaturas_cartao(self, id_user:int, id_card:int, conn=None):
+    def pega_assinaturas_cartao(self, id_user: int, id_card: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
-        Busca todas as assinaturas de um cartão específico
+        Consulta DTO: Assinaturas acopladas ao seu modelo de cobrança (Cartão de Crédito).
+
+        Args:
+            id_user (int): FK Usuário.
+            id_card (int): FK Cartão requerido para o JOIN.
+            conn (Optional[Any]): Estado da conexão.
+
+        Returns:
+            List[Dict[str, Any]]: Dicionários do objeto AssinaturaDetalhadoDTO para leitura densa.
         """
         gerenciar_conn = False
         if conn is None:
@@ -814,10 +1037,9 @@ class Rep_Assinatura:
             resultados = cursor.fetchall()
         
             if resultados:
-
                 objetos = [AssinaturaDetalhadoDTO(*resul)  for resul in resultados]
                 return [obj.to_dict() for obj in objetos]
-     
+            return []
 
         except Exception as e:
             print(f"[repositórios] Erro ao buscar assinaturas do cartão informado, ID:{id_card}: {e}")
@@ -826,10 +1048,16 @@ class Rep_Assinatura:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
-
-    def pega_assinaturas_avulsas(self, id_user:int, conn=None):
+    def pega_assinaturas_avulsas(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
-        Busca todas as assinaturas sem cartão de um usuário específico.
+        Retorna as assinaturas cobradas via PIX/Boleto, descontadas da renda principal.
+
+        Args:
+            id_user (int): Busca por usuário local.
+            conn (Optional[Any]): Parâmetro de conexão.
+
+        Returns:
+            List[Dict[str, Any]]: Objetos base extraídos de linhas onde a FK do cartão é nula.
         """
         gerenciar_conn = False
         if conn is None:
@@ -849,6 +1077,7 @@ class Rep_Assinatura:
             if assinaturas:
                 objetos = [Assinatura(*ass)  for ass in assinaturas]
                 return [obj.to_dict()  for obj in objetos]
+            return []
 
         except Exception as e:
             print(f"Erro ao buscar Assinaturas avulças: {e}")
@@ -857,10 +1086,23 @@ class Rep_Assinatura:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+    def inserir_assinatura(self, id_user: int, assinatura: Assinatura, conn: Optional[Any] = None) -> Union[int, bool]:
+        """
+        Persiste um novo compromisso recorrente (Assinatura) no banco.
 
-    def inserir_assinatura(self, id_user:int, assinatura:Assinatura, conn=None):
+        Args:
+            id_user (int): Identificação do dono.
+            assinatura (Assinatura): Entidade base com os dados requeridos.
+            conn (Optional[Any]): Fluxo opcional, cria conexão própria por padrão.
 
-        conn = self.db_conn.conectar_bd_original()
+        Returns:
+            Union[int, bool]: ID numérico da inserção se sucesso, booleano False em caso de erro.
+        """
+        gerenciar_conn = False
+        if conn is None:
+            conn = self.db_conn.conectar_bd_original()
+            gerenciar_conn = True
+            
         cursor = conn.cursor()
         try:
             query = """
@@ -878,11 +1120,20 @@ class Rep_Assinatura:
             print(f"Erro ao salvar assinatura: {e}")
             return False
         finally:
-            self.db_conn.desconectar(conn)       
+            if gerenciar_conn:
+                self.db_conn.desconectar(conn)       
 
+    def atualizar_assinatura(self, assinatura: Assinatura, conn: Optional[Any] = None) -> bool:
+        """
+        Substitui as configurações atuais de uma assinatura por novos valores.
 
-    def atualizar_assinatura(self, assinatura:Assinatura, conn=None):
+        Args:
+            assinatura (Assinatura): Objeto de transporte das alterações contendo `id_ass`.
+            conn (Optional[Any]): Injeção de dependência de conexão.
 
+        Returns:
+            bool: Indicador do final do fluxo SQL (True se Commit executado).
+        """
         gerenciar_conn = False
         if conn is None:
             conn = self.db_conn.conectar_bd_original()
@@ -900,10 +1151,10 @@ class Rep_Assinatura:
             print(f"Assinatura - '{assinatura.nome}' atualizada com sucesso!")
             return True
     
-        except MySQLdb.Error as e: # Captura erro específico do MySQL
+        except MySQLdb.Error as e: 
             print(f"Erro MySQL ao fazer atualização: {e}")
             conn.rollback()
-            return False # Retorna None para indicar falha
+            return False 
     
         except Exception as e:
             print(f"Erro inesperado ao atualizar assinatura: {e}")
@@ -914,9 +1165,17 @@ class Rep_Assinatura:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
-    
-    def deletar_assinatura(self, id_ass:int, conn =None):
+    def deletar_assinatura(self, id_ass: int, conn: Optional[Any] = None) -> bool:
+        """
+        Executa a exclusão de uma assinatura da listagem do usuário.
 
+        Args:
+            id_ass (int): Target ID de exclusão.
+            conn (Optional[Any]): Estado de sessão.
+
+        Returns:
+            bool: True se os dados foram obliterados corretamente.
+        """
         gerenciar_conn = False
         if conn is None:
             conn = self.db_conn.conectar_bd_original()
@@ -937,5 +1196,3 @@ class Rep_Assinatura:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
-
-

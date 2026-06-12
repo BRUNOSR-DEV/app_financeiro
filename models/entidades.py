@@ -29,9 +29,7 @@ class Usuario:
         tci (str): ID do chat do Telegram usado pelo bot de alertas.
     """
 
-    def __init__(
-        self, 
-        nome_completo: str, nome_user: str, senha: str, email: str, sal_fixo: float, telefone: Optional[str] = None, telegram_chat_id: Optional[str] = None, id_user: Optional[int] = None) -> None:
+    def __init__(self, nome_completo: str, nome_user: str, senha: str, email: str, sal_fixo: float, telefone: Optional[str] = None, telegram_chat_id: Optional[str] = None, id_user: Optional[int] = None) -> None:
 
         """Inicializa a entidade Usuario com validação de tipos básicos."""
         self.nome_completo: str = nome_completo
