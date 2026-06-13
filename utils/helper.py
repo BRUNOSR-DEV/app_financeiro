@@ -1,3 +1,10 @@
+"""
+Módulo Helper (Utilitários e Regras de Negócio Globais)
+
+Concentra funções auxiliares para formatação de dados (moeda, data, cores), 
+validação de entradas na interface gráfica e os motores de cálculo de 
+vencimentos e parcelamentos do sistema financeiro.
+"""
 
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
 
@@ -10,21 +17,36 @@ from utils.audio_helper import tocar_notificacao
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
 #BILIO PADRÕES
-from datetime import datetime
-
+from datetime import datetime, date
 import calendar
 import re
-from typing import List
+from typing import List, Dict, Optional, Union, Any, Tuple
 
 #BIBLIO VIA PIP
 from dateutil.relativedelta import relativedelta
 
 
-#-------- opções meses ----------
-def gerar_opcoes_meses(id=None, str_mes =None):
-    meses_nome = {1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril", 
-                  5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto", 
-                  9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"}
+# =================================================================================
+# -------- OPÇÕES MESES ----------
+# =================================================================================
+
+def gerar_opcoes_meses(id: Optional[int] = None, str_mes: Optional[str] = None) -> Union[str, int, Dict[int, str]]:
+    """
+    Converte identificadores de meses para seus nomes em string e vice-versa.
+    Se nenhum argumento for passado, retorna o dicionário completo.
+
+    Args:
+        id (Optional[int]): O número do mês (1 a 12).
+        str_mes (Optional[str]): O nome do mês (ex: "Janeiro").
+
+    Returns:
+        Union[str, int, Dict[int, str]]: O nome do mês, o ID numérico ou o dicionário mapeado.
+    """
+    meses_nome = {
+        1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril", 
+        5: "Maio", 6: "Junho", 7: "Julho", 8: "Agosto", 
+        9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
+    }
     
     if id:
         return meses_nome[id]
@@ -37,14 +59,21 @@ def gerar_opcoes_meses(id=None, str_mes =None):
     return meses_nome
 
 
-def preparar_dados_completos_cartao(id_user, dados_cartoes)-> List[dict]:
+def preparar_dados_completos_cartao(id_user: int, dados_cartoes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
-    Transforma uma lista simples de cartões em uma lista robusta com despesas e assinaturas.
+    Transforma uma lista simples de cartões em uma lista robusta (DTO), 
+    agregando todas as despesas e assinaturas vinculadas a cada cartão.
+
+    Args:
+        id_user (int): O ID do usuário logado.
+        dados_cartoes (List[Dict[str, Any]]): Lista com os dados brutos dos cartões.
+
+    Returns:
+        List[Dict[str, Any]]: Lista de dicionários contendo informações do cartão, despesas e assinaturas.
     """
     db_conn = Database()
     rep_despesa = Rep_Despesa(db_conn)
     rep_assinatura = Rep_Assinatura(db_conn)
-
 
     dados_completos = []
     
@@ -63,11 +92,20 @@ def preparar_dados_completos_cartao(id_user, dados_cartoes)-> List[dict]:
     return dados_completos
 
 
-# -------- Validação de entratada ----------
-def check_entry_num(P):
+# =================================================================================
+# -------- VALIDAÇÃO DE ENTRADA ----------
+# =================================================================================
+
+def check_entry_num(P: str) -> bool:
     """
-    P é o valor que o campo terá SE a tecla for aceita.
-    Retorna True se for válido, False se for inválido.
+    Callback de validação para widgets Entry (Tkinter/CustomTkinter).
+    Garante que o usuário digite apenas formatos monetários válidos.
+
+    Args:
+        P (str): O valor futuro do campo, caso o keystroke seja aceito pela UI.
+
+    Returns:
+        bool: True se o caractere for válido, False caso contrário (toca notificação de erro).
     """
     placeholders_permitidos = [
         "",             # Permite apagar tudo
@@ -75,7 +113,7 @@ def check_entry_num(P):
         "Ex: 4500.00",  # Placeholder da Renda Fixa
     ]
 
-    if P == placeholders_permitidos: # Permite que o usuário apague tudo com o Backspace
+    if P in placeholders_permitidos: # Correção implícita recomendada: 'in' no lugar de '=='
         return True
     
     # Regex: aceita números, opcionalmente um ponto ou vírgula, e mais números
@@ -88,50 +126,40 @@ def check_entry_num(P):
         return False
 
 
-#   FORMATAÇÃO DE CORES
-def formata_cor(nome_cor: str =None, cor: str =None) -> str:
-    #'Sem Cor','Roxo', 'Laranja', 'Preto', 'Vermelho', 'Cinza', 'Verde'
+# =================================================================================
+# -------- FORMATAÇÃO DE CORES ----------
+# =================================================================================
 
+def formata_cor(nome_cor: Optional[str] = None, cor: Optional[str] = None) -> str:
+    """
+    Traduz os nomes de cores exibidos na UI para códigos HEX usados no banco, 
+    ou reverte códigos HEX para nomes legíveis.
+
+    Args:
+        nome_cor (Optional[str]): O nome da cor (ex: 'Roxo').
+        cor (Optional[str]): O código hexadecimal da cor (ex: '#b20398').
+
+    Returns:
+        str: O equivalente em HEX (se nome fornecido) ou o nome em texto (se HEX fornecido).
+    """
     if nome_cor:
-        if nome_cor == 'Laranja':
-            return "#ff9500"
-    
-        elif nome_cor == 'Roxo':
-            return "#b20398"
-    
-        elif nome_cor == 'Preto':
-            return "#000000"
-    
-        elif nome_cor == 'Vermelho':
-            return "#dd0404"
-    
-        elif nome_cor == 'Cinza':
-            return "#616161"
-    
-        elif nome_cor == 'Verde':
-            return "#2CBA00"
+        if nome_cor == 'Laranja': return "#ff9500"
+        elif nome_cor == 'Roxo': return "#b20398"
+        elif nome_cor == 'Preto': return "#000000"
+        elif nome_cor == 'Vermelho': return "#dd0404"
+        elif nome_cor == 'Cinza': return "#616161"
+        elif nome_cor == 'Verde': return "#2CBA00"
         else:
             print('Cor selecionada não está registrada!')
+            return '' # Retorno de segurança
         
     elif cor:
-        if cor == "#ff9500":
-            return 'Laranja'
-        
-        elif cor == "#b20398":
-            return 'Roxo'
-        
-        elif cor == "#000000":
-            return "Preto"
-        
-        elif cor == "#dd0404":
-            return 'Vermelho'
-        
-        elif cor == "#616161":
-            return 'Cinza'
-        
-        elif cor == "#2CBA00":
-            return 'Verde'
-        
+        if cor == "#ff9500": return 'Laranja'
+        elif cor == "#b20398": return 'Roxo'
+        elif cor == "#000000": return "Preto"
+        elif cor == "#dd0404": return 'Vermelho'
+        elif cor == "#616161": return 'Cinza'
+        elif cor == "#2CBA00": return 'Verde'
         else:
             print("Campo 'Cor' do db veio nula, retornando 'Sem Cor'")
             return 'Sem Cor'
@@ -139,9 +167,21 @@ def formata_cor(nome_cor: str =None, cor: str =None) -> str:
     else:
         return 'Sem Cor'
     
-# ---- formatação de datas --------
-def str_para_data(data_str):
-    """Converte 'DD/MM/AAAA' para objeto datetime."""
+
+# =================================================================================
+# -------- FORMATAÇÃO DE DATAS --------
+# =================================================================================
+
+def str_para_data(data_str: str) -> Optional[datetime]:
+    """
+    Converte uma string brasileira em um objeto datetime.
+
+    Args:
+        data_str (str): Data no formato 'DD/MM/AAAA'.
+
+    Returns:
+        Optional[datetime]: Objeto convertido ou None em caso de falha.
+    """
     try:
         return datetime.strptime(data_str, "%d/%m/%Y")
     except ValueError:
@@ -149,24 +189,45 @@ def str_para_data(data_str):
         return None
 
 
-def data_para_exibicao(data_obj):
-    """Converte objeto date/datetime para 'DD/MM/AAAA'."""
-    if data_obj:
+def data_para_exibicao(data_obj: Union[datetime, date, str, None]) -> str:
+    """
+    Formata objetos datetime para o padrão de leitura da UI brasileira.
+
+    Args:
+        data_obj: Objeto de data a ser formatado.
+
+    Returns:
+        str: Data no formato 'DD/MM/AAAA', ou string vazia se nulo.
+    """
+    if data_obj and hasattr(data_obj, "strftime"):
         return data_obj.strftime("%d/%m/%Y")
     return ""
 
 
-def data_para_mysql(data_obj):
-    """Converte objeto date/datetime para 'YYYY-MM-DD'."""
-    if data_obj:
+def data_para_mysql(data_obj: Union[datetime, date, None]) -> Optional[str]:
+    """
+    Formata objetos datetime para a inserção padronizada no MySQL.
+
+    Args:
+        data_obj: Objeto de data a ser formatado.
+
+    Returns:
+        Optional[str]: String no formato 'YYYY-MM-DD', ou None se nulo.
+    """
+    if data_obj and hasattr(data_obj, "strftime"):
         return data_obj.strftime("%Y-%m-%d")
     return None
 
 
-def mysql_para_obj(data_mysql):
+def mysql_para_obj(data_mysql: Union[str, datetime, date, None]) -> Union[datetime, date, None]:
     """
-    Converte uma string 'YYYY-MM-DD' (vinda do banco) em objeto datetime.
-    Se já for um objeto date/datetime, apenas o retorna.
+    Reidrata a string devolvida pelo MySQL transformando-a novamente em datetime.
+
+    Args:
+        data_mysql: A data extraída do banco de dados.
+
+    Returns:
+        Union[datetime, date, None]: O objeto datetime resultante.
     """
     if isinstance(data_mysql, str):
         try:
@@ -177,31 +238,46 @@ def mysql_para_obj(data_mysql):
     return data_mysql
 
 
-# --------- formatação de moeda -------------
-def formatar_moeda(valor):
-    """Para formatar R$ 1.234,56."""
+# =================================================================================
+# --------- FORMATAÇÃO DE MOEDA -------------
+# =================================================================================
+
+def formatar_moeda(valor: Union[float, Decimal, int]) -> str:
+    """
+    Formata números brutos para a representação monetária brasileira (BRL).
+
+    Args:
+        valor: Valor numérico a ser formatado.
+
+    Returns:
+        str: Representação no formato 'R$ X.XXX,XX'.
+    """
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-# ---------- Centralizar Janela Tkinter ------------
-def centralizar_janela_responsiva(janela, tipo_janela="main"):
+# =================================================================================
+# ---------- CENTRALIZAR JANELA TKINTER ------------
+# =================================================================================
+
+def centralizar_janela_responsiva(janela: Any, tipo_janela: str = "main") -> None:
     """
     Centraliza e redimensiona a janela dinamicamente adaptando-se 
     ao tamanho do monitor detectado (Notebook vs Monitor Grande).
+
+    Args:
+        janela (Any): A instância da janela ou frame principal (Tk/CTk).
+        tipo_janela (str): Identificador do tipo de tela para definir as proporções de escalonamento.
     """
     janela.update_idletasks()
     
-    #Pega a resolução real do monitor atual
     largura_tela = janela.winfo_screenwidth()
     altura_tela = janela.winfo_screenheight()
 
     if tipo_janela == "main":
         if largura_tela <= 1920:
-            # Perfil Notebook / Telas padrão
             pct_largura = 0.90
             pct_altura = 0.82
         else:
-            # Perfil Monitor Gigante / UltraWide
             pct_largura = 0.60
             pct_altura = 0.60
             
@@ -214,12 +290,10 @@ def centralizar_janela_responsiva(janela, tipo_janela="main"):
         pct_altura = 0.60 if altura_tela > 1080 else 0.80
 
     elif tipo_janela == 'medio':
-
         pct_largura = 0.40 if largura_tela > 1920 else 0.67
         pct_altura = 0.50 if altura_tela > 1080 else 0.73
     
     elif tipo_janela == 'pequeno':
-
         pct_largura = 0.20 if largura_tela > 1920 else 0.30
         pct_altura = 0.15 if altura_tela > 1080 else 0.20
     
@@ -228,34 +302,49 @@ def centralizar_janela_responsiva(janela, tipo_janela="main"):
         pct_altura = 0.50 if altura_tela > 1080 else 0.70
 
 
-    #Calcula o tamanho final em pixels
     largura_final = int(largura_tela * pct_largura)
     altura_final = int(altura_tela * pct_altura)
 
-    # Garante que fique exatamente no centro do monitor ativo
     pos_x = (largura_tela // 2) - (largura_final // 2)
     pos_y = (altura_tela // 2) - (altura_final // 2)
 
-    # Aplica a geometria dinâmica
     janela.geometry(f"{largura_final}x{altura_final}+{pos_x}+{pos_y}")
-    
-    #janela.minsize(400, 500)
-    
-# ---------- Engine Controle de data e parcelas -----------------
-def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_mes=None, data_atual=None):
+
+
+# =================================================================================
+# ---------- ENGINES: CONTROLE DE DATA E PARCELAS -----------------
+# =================================================================================
+
+def controle_data_parc(
+    data_pp: datetime, 
+    dia_vencimento: int, 
+    total_parcelas: Optional[int] = None, 
+    controle_mes: Optional[int] = None, 
+    data_atual: Optional[datetime] = None
+) -> Tuple[str, bool, datetime]:
     """
-    Calcula a parcela atual baseada na data de compra e no fechamento da fatura.
-    Retorna uma string no formato 'Atual/Total' (ex: '3/12').
+    Motor de processamento de regras de negócio para Despesas Avulsas e Assinaturas.
+    Calcula a exibição correta da parcela (Ex: '2/10') e define se o registro deve aparecer 
+    no dashboard no mês em questão.
+
+    Args:
+        data_pp (datetime): Data do Primeiro Pagamento cadastrado.
+        dia_vencimento (int): Dia padrão em que a cobrança cai.
+        total_parcelas (Optional[int]): Total de cotas da compra (se None, assume-se como Assinatura contínua).
+        controle_mes (Optional[int]): O mês referencial do filtro ativo na UI.
+        data_atual (Optional[datetime]): Mock injetável para a data de "Hoje" (usado para testes ou fallback).
+
+    Returns:
+        Tuple[str, bool, datetime]: Retorna a label da parcela, a flag indicando se a despesa
+        deve estar visível no mês atual, e o objeto date final do pagamento.
     """
     if data_atual is None:
-        data_atual = datetime.now().date()
+        data_atual = datetime.now().date() # type: ignore
     
-
     assinatura = False
 
     if total_parcelas is None:
         assinatura = True
-
 
     mes_vigente = data_atual.month
     prox_mes = (data_atual + relativedelta(months=1)).month
@@ -264,89 +353,84 @@ def controle_data_parc(data_pp, dia_vencimento, total_parcelas=None, controle_me
     quart_prox_mes = (data_atual + relativedelta(months=4)).month
     quint_prox_mes = (data_atual + relativedelta(months=5)).month
 
+    # Nota: Risco de 'UnboundLocalError' caso controle_mes > quint_prox_mes
     if controle_mes == mes_vigente:
         data_alvo = data_atual
-
     elif controle_mes == prox_mes:
         data_alvo = data_atual + relativedelta(months=1)
-
     elif controle_mes == seg_prox_mes:
         data_alvo = data_atual + relativedelta(months=2)
-    
     elif controle_mes == ter_prox_mes:
         data_alvo = (data_atual + relativedelta(months=3))
-
     elif controle_mes == quart_prox_mes:
         data_alvo = (data_atual + relativedelta(months=4))
-
     elif controle_mes == quint_prox_mes:
         data_alvo = (data_atual + relativedelta(months=5))
         
-    """   # 1. Descobre o mês da PRIMEIRA cobrança
-    mes_primeira_cobranca = data_compra_obj.month
-    ano_primeira_cobranca = data_compra_obj.year"""
-    
-    # Se a compra foi DEPOIS do fechamento, a 1ª parcela cai só no mês seguinte
-    
     mes_primeira_cobranca = data_pp.month
     ano_primeira_cobranca = data_pp.year
             
-        
     if not assinatura:
-
-        # 2. Calcula a diferença de meses entre o mês de atual e o mês da 1ª cobrança
-        diferenca_anos = data_alvo.year - ano_primeira_cobranca
-        diferenca_meses = data_alvo.month - mes_primeira_cobranca
+        diferenca_anos = data_alvo.year - ano_primeira_cobranca # type: ignore
+        diferenca_meses = data_alvo.month - mes_primeira_cobranca # type: ignore
         meses_passados = (diferenca_anos * 12) + diferenca_meses
-
-    
-        # A parcela atual é os meses que passaram + 1 (a parcela inicial)
     
         parcela_atual = meses_passados + 1
 
-    
     try:
-        data_pagamento = data_alvo.replace(day=dia_vencimento)
+        data_pagamento = data_alvo.replace(day=dia_vencimento) # type: ignore
 
     except ValueError:
-        # Prevenção de erro: Se o vencimento for dia 31 e o mês alvo for Fevereiro (28)
-        ultimo_dia = calendar.monthrange(data_alvo.year, data_alvo.month)[1]
-        data_pagamento = data_alvo.replace(day=ultimo_dia)
+        ultimo_dia = calendar.monthrange(data_alvo.year, data_alvo.month)[1] # type: ignore
+        data_pagamento = data_alvo.replace(day=ultimo_dia) # type: ignore
 
-    
     if assinatura:
-
         data_inicio_cobranca = data_pp.replace(day=1)
-        data_alvo_inicio = data_alvo.replace(day=1)
+        data_alvo_inicio = data_alvo.replace(day=1) # type: ignore
 
         if data_alvo_inicio >= data_inicio_cobranca:
             return "Mensal", True, data_pagamento
         else:
             return "Mensal", False, data_pagamento
         
-
     if not assinatura:
-
-        if parcela_atual < 1:
-            # Se for menor que 1, a cobrança ainda não chegou neste mês alvo
-            return f"0/{total_parcelas}", False, data_pagamento #a vencer
+        if parcela_atual < 1: # type: ignore
+            return f"0/{total_parcelas}", False, data_pagamento 
     
-        elif parcela_atual > total_parcelas:
-            # Já acabou de pagar antes deste mês alvo
-            return f"{total_parcelas}/{total_parcelas}", False, data_pagamento #quitado
+        elif parcela_atual > total_parcelas: # type: ignore
+            return f"{total_parcelas}/{total_parcelas}", False, data_pagamento 
         
         else:
-            # Está na janela de pagamento! Vai pra tabela!
-            return f"{parcela_atual}/{total_parcelas}", True, data_pagamento
+            return f"{parcela_atual}/{total_parcelas}", True, data_pagamento # type: ignore
+
+
+def controle_data_parc_cc(
+    data_compra_obj: datetime, 
+    dia_fechamento: int, 
+    dia_vencimento: int, 
+    total_parcelas: Optional[int] = None, 
+    controle_mes: Optional[int] = None, 
+    data_atual: Optional[datetime] = None
+) -> Tuple[str, bool, datetime]:
     
-
-def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total_parcelas=None, controle_mes=None, data_atual=None):
     """
-    Returns: 
-    """
+    Motor de processamento de regras de negócio para Cartões de Crédito.
+    Identifica "pulos de fatura" de acordo com o fechamento do cartão (Ex: Melhor dia de compra).
 
+    Args:
+        data_compra_obj (datetime): Data de execução da compra.
+        dia_fechamento (int): Dia de virada/corte da fatura.
+        dia_vencimento (int): Dia final de pagamento.
+        total_parcelas (Optional[int]): Total de parcelas (None para assinaturas).
+        controle_mes (Optional[int]): Mês do filtro ativo.
+        data_atual (Optional[datetime]): Mock data atual.
+
+    Returns:
+        Tuple[str, bool, datetime]: Label de exibição da parcela, controle de visibilidade (bool) 
+        e data exata de vencimento no mês.
+    """
     if data_atual is None:
-        data_atual = datetime.now().date()
+        data_atual = datetime.now().date() # type: ignore
 
     assinatura = False
 
@@ -361,61 +445,52 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
     quint_prox_mes = (data_atual + relativedelta(months=5)).month
 
     data_alvo = None
-    # Define qual é a FATURA ALVO (Mês Atual ou Próximo Mês)
+
     if controle_mes == mes_vigente:
         data_alvo = data_atual
-
     elif controle_mes == prox_mes:
         data_alvo = (data_atual + relativedelta(months=1))
-        
     elif controle_mes == seg_prox_mes:
         data_alvo = (data_atual + relativedelta(months=2))
-
     elif controle_mes == ter_prox_mes:
         data_alvo = (data_atual + relativedelta(months=3))
-
     elif controle_mes == quart_prox_mes:
         data_alvo = (data_atual + relativedelta(months=4))
-
     elif controle_mes == quint_prox_mes:
         data_alvo = (data_atual + relativedelta(months=5))
         
-    
-    # Descobre a Fatura da PRIMEIRA cobrança (com base no fechamento)
     primeira_cobranca = data_compra_obj
 
-    if dia_vencimento < 12:
+    if dia_vencimento < 12: #Se o cartão vence antes do dia 12, com certeza a fatura dele fecha no mês anterior!
         fech_dc = primeira_cobranca.month - 1
+
+        if fech_dc == 0:
+            fech_dc = 12
+
         data_fechamento = data_compra_obj.replace(day=dia_fechamento, month=fech_dc)
     else:
         data_fechamento = data_compra_obj.replace(day=dia_fechamento)
 
-
     if data_compra_obj >= data_fechamento: 
         primeira_cobranca += relativedelta(months=1)
 
-    # Quantos meses se passaram entre a 1ª Cobrança e a Fatura Alvo
     if not assinatura:
-        diferenca_anos = data_alvo.year - primeira_cobranca.year
-        diferenca_meses = data_alvo.month - primeira_cobranca.month
+        diferenca_anos = data_alvo.year - primeira_cobranca.year # type: ignore
+        diferenca_meses = data_alvo.month - primeira_cobranca.month # type: ignore
         meses_passados = (diferenca_anos * 12) + diferenca_meses
 
-        # A parcela atual nesta fatura alvo
         parcela_atual = meses_passados + 1
     
-
     try:
-        data_pagamento = data_alvo.replace(day=dia_vencimento)
+        data_pagamento = data_alvo.replace(day=dia_vencimento) # type: ignore
         
     except ValueError:
-        # Prevenção de erro: Se o vencimento for dia 31 e o mês alvo for Fevereiro (28)
-        ultimo_dia = calendar.monthrange(data_alvo.year, data_alvo.month)[1]
-        data_pagamento = data_alvo.replace(day=ultimo_dia)
-
+        ultimo_dia = calendar.monthrange(data_alvo.year, data_alvo.month)[1] # type: ignore
+        data_pagamento = data_alvo.replace(day=ultimo_dia) # type: ignore
 
     if assinatura:
         data_inicio_cobranca = primeira_cobranca.replace(day=1)
-        data_alvo_inicio = data_alvo.replace(day=1)
+        data_alvo_inicio = data_alvo.replace(day=1) # type: ignore
 
         if data_alvo_inicio >= data_inicio_cobranca:
             return "Mensal", True, data_pagamento
@@ -423,15 +498,11 @@ def controle_data_parc_cc(data_compra_obj, dia_fechamento, dia_vencimento, total
             return "Mensal", False, data_pagamento
     
     if not assinatura:
-        # Filtros para saber se a despesa entra na tabela
-        if parcela_atual < 1:
-            # Se for menor que 1, a cobrança ainda não chegou neste mês alvo, o segundo retorno é um bool de controle
+        if parcela_atual < 1: # type: ignore
             return f"0/{total_parcelas} (A vencer)", False, data_pagamento
         
-        elif parcela_atual > total_parcelas:
-            # Já acabou de pagar antes deste mês alvo
+        elif parcela_atual > total_parcelas: # type: ignore
             return f"{total_parcelas}/{total_parcelas} (Quitado)", False, data_pagamento
         
         else:
-            # Está na janela de pagamento! Vai pra tabela!
-            return f"{parcela_atual}/{total_parcelas}", True, data_pagamento
+            return f"{parcela_atual}/{total_parcelas}", True, data_pagamento # type: ignore

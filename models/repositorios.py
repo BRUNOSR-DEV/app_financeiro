@@ -74,6 +74,7 @@ class Rep_Usuario:
                 return usuario
             return None
 
+
     def dados_usuarios(self, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
         Retorna uma lista com os dados de todos os usuários do sistema.
@@ -116,6 +117,7 @@ class Rep_Usuario:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+
     def pega_usuario(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
         Busca os dados de um usuário específico pelo ID.
@@ -155,6 +157,7 @@ class Rep_Usuario:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+
     def pega_id(self, usuario: str, conn: Optional[Any] = None) -> Optional[int]: 
         """
         Busca o ID interno (PK) do usuário utilizando o seu nome de usuário (login).
@@ -191,6 +194,7 @@ class Rep_Usuario:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
+
 
     def inserir_usuario(self, usuario: Usuario, conn: Optional[Any] = None) -> bool:
         """
@@ -239,6 +243,7 @@ class Rep_Usuario:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+
     def atualizar_renda(self, id_user: int, nova_renda: Decimal, conn: Optional[Any] = None) -> bool: 
         """
         Atualiza o salário fixo base de um usuário específico.
@@ -279,6 +284,7 @@ class Rep_Usuario:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
+
 
     def atualizar_senha_usuario(self, user_id: int, nova_senha: str, conn: Optional[Any] = None) -> Optional[bool]:
         """
@@ -376,6 +382,7 @@ class Rep_Receita:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+
     def inserir_receita(self, id_user: int, receita: Receita, conn: Optional[Any] = None) -> Optional[int]:
         """
         Insere uma nova receita no banco de dados e retorna seu identificador único.
@@ -414,6 +421,7 @@ class Rep_Receita:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
+
 
     def atualizar_receita(self, receita: Receita, conn: Optional[Any] = None) -> Optional[bool]:
         """
@@ -454,6 +462,7 @@ class Rep_Receita:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
+
 
     def deletar_receita(self, id_rec: int, conn: Optional[Any] = None) -> bool:
         """
@@ -552,6 +561,7 @@ class Rep_Despesa:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+
     def pega_despesas_cartao(self, id_user: int, id_card: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
         Consulta de DTO: Executa um INNER JOIN para mesclar Despesas com os dados 
@@ -609,6 +619,7 @@ class Rep_Despesa:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+
     def pega_despesas_avulsas(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
         Isola e retorna apenas despesas vinculadas diretamente à renda fixa 
@@ -660,6 +671,7 @@ class Rep_Despesa:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+
     def inserir_despesa(self, id_user: int, despesa: Despesa, conn: Optional[Any] = None) -> Optional[int]:
         """
         Persiste uma nova despesa informada pelo usuário.
@@ -698,6 +710,7 @@ class Rep_Despesa:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
+
 
     def atualizar_despesa(self, despesa: Despesa, conn: Optional[Any] = None) -> bool:
         """
@@ -738,6 +751,7 @@ class Rep_Despesa:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
+
 
     def deletar_despesa(self, id_desp: int, conn: Optional[Any] = None) -> bool:
         """
@@ -829,6 +843,7 @@ class Rep_Cartao_credito:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+
     def inserir_cc(self, id_user: int, cartao: Cartao_credito, conn: Optional[Any] = None) -> Optional[int]:
         """
         Registra um novo meio de pagamento (Cartão de Crédito) para o usuário.
@@ -866,6 +881,7 @@ class Rep_Cartao_credito:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
+
 
     def atualizar_cartao(self, cartao: Cartao_credito, conn: Optional[Any] = None) -> bool:
         """
@@ -906,6 +922,7 @@ class Rep_Cartao_credito:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
+
 
     def deletar_cartao(self, id_card: int, conn: Optional[Any] = None) -> bool:
         """
@@ -992,6 +1009,7 @@ class Rep_Assinatura:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+
     def pega_assinaturas_cartao(self, id_user: int, id_card: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
         Consulta DTO: Assinaturas acopladas ao seu modelo de cobrança (Cartão de Crédito).
@@ -1048,6 +1066,7 @@ class Rep_Assinatura:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+
     def pega_assinaturas_avulsas(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
         Retorna as assinaturas cobradas via PIX/Boleto, descontadas da renda principal.
@@ -1086,6 +1105,7 @@ class Rep_Assinatura:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
+
     def inserir_assinatura(self, id_user: int, assinatura: Assinatura, conn: Optional[Any] = None) -> Union[int, bool]:
         """
         Persiste um novo compromisso recorrente (Assinatura) no banco.
@@ -1122,6 +1142,7 @@ class Rep_Assinatura:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)       
+
 
     def atualizar_assinatura(self, assinatura: Assinatura, conn: Optional[Any] = None) -> bool:
         """
@@ -1164,6 +1185,7 @@ class Rep_Assinatura:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
+
 
     def deletar_assinatura(self, id_ass: int, conn: Optional[Any] = None) -> bool:
         """
