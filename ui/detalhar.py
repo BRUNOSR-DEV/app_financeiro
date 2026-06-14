@@ -1,3 +1,11 @@
+"""
+Módulo Detalhar (UI Listagens e Dashboards)
+
+Este módulo é responsável por renderizar as tabelas dinâmicas (Grids) de listagem 
+de dados (Receitas, Despesas, Cartões e Assinaturas). Ele também contém os componentes 
+de Dashboard (Listar_desp_tabela e Listar_cat_grafico) que processam a lógica pesada de 
+vencimentos e simulações para exibir resumos financeiros mensais e gráficos de pizza.
+"""
 
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
 
@@ -13,7 +21,7 @@ from utils.typedDict import *
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
 #BILIO PADRÕES
-from typing import List
+from typing import List, Optional, Callable, Dict, Any
 from datetime import datetime
 from decimal import Decimal
 from collections import defaultdict 
@@ -29,14 +37,18 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # ------------------------------------ CONFIGURAÇÃO INICIAL -------------------------------------------
 ctk.set_appearance_mode('dark')
 
-#Filho de Módulo Receitas (crud_app.py)
-class Listar_receitas(ctk.CTkFrame):
+# =================================================================================
+# --- LISTAGEM DE RECEITAS ---
+# =================================================================================
 
-    def __init__(self,  parent=None, user_id=None, dados_receitas=None, controle_dados= None, callback_comandante_crud=None, *args, **kwargs):
+class Listar_receitas(ctk.CTkFrame):
+    """Componente de tabela (Grid) para exibir as Receitas e fornecer ações de Editar/Deletar."""
+
+    def __init__(self,  parent: Any = None, user_id: Optional[int] = None, dados_receitas: Optional[List[Any]] = None, controle_dados: Optional[Callable] = None, callback_comandante_crud: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.dados_receitas: List[Dados_receitas_db] = dados_receitas
+        self.dados_receitas = dados_receitas
         self.controle_dados = controle_dados
         self.cdt_crud = callback_comandante_crud
 
@@ -50,7 +62,7 @@ class Listar_receitas(ctk.CTkFrame):
         self.lista_frame.grid_columnconfigure((0, 1, 3), weight=0) # Index, Valor e Data fixos
         self.lista_frame.grid_columnconfigure(2, weight=1) #Descriçao estica
 
-        #cabeçalho
+        # Cabeçalho
         ctk.CTkLabel(self.lista_frame, text='#', font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text='Fonte', font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text="Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
@@ -59,9 +71,8 @@ class Listar_receitas(ctk.CTkFrame):
 
         self.listar()
 
-       
-    def listar(self, dados_receitas=None):
-
+    def listar(self, dados_receitas: Optional[List[Dict[str, Any]]] = None) -> None:
+        """Renderiza as linhas da tabela limpando os dados anteriores."""
         for widget in self.lista_frame.winfo_children():
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
@@ -70,18 +81,16 @@ class Listar_receitas(ctk.CTkFrame):
             dados_receitas = self.dados_receitas
 
         if dados_receitas:
-
             for i, dado in enumerate(dados_receitas, start=1):
-                #dado é o dict de uma receita
                 fonte = dado["fonte"]
                 valor = dado.get('valor')
                 descricao = dado.get('descricao')
                 data = dado.get('data')
 
                 ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=fonte, font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(fonte), font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=formatar_moeda(valor), text_color="#27ae60", font=('Ariel', 14)).grid(row=i, column=2, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=descricao, font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(descricao), font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data), font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="e")
 
                 btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
@@ -92,75 +101,66 @@ class Listar_receitas(ctk.CTkFrame):
                 btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
                                     command=lambda dados=dado: self.confirmar_delete(dados))
                 btn_del.grid(row=i, column=6, padx=5)
-                CTkToolTip(btn_del, 
-                            message="Excluir Registro", 
-                            delay=0.5,      # Tempo em segundos para aparecer
-                            alpha=0.9,      # Transparência
-                            bg_color="red" 
-                            )
+                CTkToolTip(btn_del, message="Excluir Registro", delay=0.5, alpha=0.9, bg_color="red")
 
         self.lista_frame.grid_columnconfigure((4, 5), weight=0)
 
-
-    def confirmar_update(self, dict_dados, valor):
-
-        print("Estou no'confirmar_update' mandando dados dict para crud_app")
-
+    def confirmar_update(self, dict_dados: Dict[str, Any], valor: Any) -> None:
+        """Injeta a receita selecionada no formulário lateral (via callback)."""
         if dict_dados:
             dict_dados['valor'] = valor
-            self.controle_dados(dict_dados)
+            if self.controle_dados:
+                self.controle_dados(dict_dados)
         else:
-            self.controle_dados(None)
+            if self.controle_dados:
+                self.controle_dados(None)
 
-
-    def confirmar_delete(self, dados):
-        
+    def confirmar_delete(self, dados: Dict[str, Any]) -> None:
+        """Abre a Toplevel Modal de confirmação antes de apagar do Banco."""
         popup = ctk.CTkToplevel(self)
         popup.title("Confirmação")
         centralizar_janela_responsiva(popup, tipo_janela='pequeno')
-
         popup.grab_set()
-
         popup.grid_columnconfigure((0, 1), weight=1)
 
         label = ctk.CTkLabel(popup, text="Tem certeza que deseja\nexcluir esta receita?", font=("Arial", 14))
         label.grid(row=0, column=0, columnspan=2, pady=20)
 
-        btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555",
-                                 command=popup.destroy)
+        btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=popup.destroy)
         btn_cancelar.grid(row=1, column=0, padx=10, pady=10)
 
         btn_confirmar = ctk.CTkButton(popup, text="Sim, excluir", fg_color="#c0392b", hover_color="#e74c3c",
                                   command=lambda: self.executar_delete(dados, popup))
         btn_confirmar.grid(row=1, column=1, padx=10, pady=10)
 
-
-    def executar_delete(self, dados, popup):
-        
+    def executar_delete(self, dados: Dict[str, Any], popup: ctk.CTkToplevel) -> None:
+        """Realiza o delete através do controlador (crud_app)."""
         id_rec = dados.get('id_receita')
         descricao = dados.get('descricao')
 
-        sucesso = self.cdt_crud(deletar=id_rec)
+        if self.cdt_crud:
+            sucesso = self.cdt_crud(deletar=id_rec)
+            if sucesso:
+                print(f"ID {id_rec} receita: '{descricao}'. Mandado pro espaço 🌌​")
+                popup.destroy()
+            else:
+                print("Erro ao deletar")
 
-        if sucesso:
-            print(f"ID {id_rec} receita: '{descricao}'. Mandado pro espaço 🌌​")
-            popup.destroy()
+# =================================================================================
+# --- LISTAGEM DE DESPESAS ---
+# =================================================================================
 
-        else:
-            print("Erro ao deletar")
-
-            
-#Filho de Módulo Despesas (crud_app.py)
 class Listar_despesas(ctk.CTkFrame):
+    """Componente de tabela (Grid) global contendo todas as despesas avulsas e parceladas."""
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, cb_comandante_crud=None, dados_despesas=None, controle_dados=None, *args, **kwargs):
+    def __init__(self,  parent: Any = None, user_id: Optional[int] = None, dados_cartoes: Optional[List] = None, cb_comandante_crud: Optional[Callable] = None, dados_despesas: Optional[List] = None, controle_dados: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes
         self.cdt_crud = cb_comandante_crud
         self.controle_dados = controle_dados
-        self.dados_despesas: List[Dados_despesas_db] = dados_despesas
+        self.dados_despesas = dados_despesas
 
         # --------------- Configuração da Frames/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -169,8 +169,8 @@ class Listar_despesas(ctk.CTkFrame):
         self.lista_frame = ctk.CTkScrollableFrame(self, label_text="Despesas Cadastradas")
         self.lista_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
-        self.lista_frame.grid_columnconfigure((0, 1, 2, 3, 5, 6, 7, 8), weight=0) # valores/colunas fixas
-        self.lista_frame.grid_columnconfigure(4, weight=1) #Descriçao estica
+        self.lista_frame.grid_columnconfigure((0, 1, 2, 3, 5, 6, 7, 8), weight=0) 
+        self.lista_frame.grid_columnconfigure(4, weight=1) 
 
         #cabeçalho
         ctk.CTkLabel(self.lista_frame, text='#', font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
@@ -185,9 +185,8 @@ class Listar_despesas(ctk.CTkFrame):
 
         self.listar()
 
-
-    def listar(self, dados_despesas=None):
-        
+    def listar(self, dados_despesas: Optional[List[Dict[str, Any]]] = None) -> None:
+        """Monta o grid iterando sobre os dados de despesas (cruzando os nomes dos cartões)."""
         for widget in self.lista_frame.winfo_children():
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
@@ -196,9 +195,7 @@ class Listar_despesas(ctk.CTkFrame):
             dados_despesas = self.dados_despesas
 
         if dados_despesas:
-
             for i, dado in enumerate(dados_despesas, start=1):
-
                 nome_card = None
 
                 local = dado.get('local')
@@ -217,16 +214,15 @@ class Listar_despesas(ctk.CTkFrame):
                 if nome_card is None:
                     nome_card = "Boleto/Avulça"
 
-                #cabeçalho
                 ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=local, font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(local), font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=formatar_moeda(valor_total), text_color="#27ae60", font=('Ariel', 14)).grid(row=i, column=2, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=parcelas, font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=descricao, font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=categoria, font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=data_compra, font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=data_pp, font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=nome_card, font=('Ariel', 14)).grid(row=i, column=8, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(parcelas), font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(descricao), font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(categoria), font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(data_compra), font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(data_pp), font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(nome_card), font=('Ariel', 14)).grid(row=i, column=8, padx=5, pady=2, sticky="w")
 
                 btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
                                      command=lambda dados=dado: self.confirmar_update(dados))
@@ -236,72 +232,57 @@ class Listar_despesas(ctk.CTkFrame):
                 btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
                                     command=lambda dados=dado: self.confirmar_delete(dados))
                 btn_del.grid(row=i, column=10, padx=5)
-                CTkToolTip(btn_del, 
-                            message="Excluir Registro", 
-                            delay=0.5,      # Tempo em segundos para aparecer
-                            alpha=0.9,      # Transparência
-                            bg_color="red" 
-                            )
+                CTkToolTip(btn_del, message="Excluir Registro", delay=0.5, alpha=0.9, bg_color="red")
                 
-
-    def confirmar_update(self, dados):
-        
-        print("Estou no'confirmar_update' mandando dados (dict) para crud_app")
-
+    def confirmar_update(self, dados: Dict[str, Any]) -> None:
         if dados:
-            self.controle_dados(dados)
+            if self.controle_dados: self.controle_dados(dados)
         else:
-            self.controle_dados(None)
+            if self.controle_dados: self.controle_dados(None)
 
-
-    def confirmar_delete(self, dados):
-
+    def confirmar_delete(self, dados: Dict[str, Any]) -> None:
         popup = ctk.CTkToplevel(self)
         popup.title("Confirmação")
         centralizar_janela_responsiva(popup, tipo_janela='pequeno')
-
         popup.grab_set()
-
         popup.grid_columnconfigure((0, 1), weight=1)
 
         label = ctk.CTkLabel(popup, text="Tem certeza que deseja\nexcluir está despesa?", font=("Arial", 14))
         label.grid(row=0, column=0, columnspan=2, pady=20)
 
-        btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555",
-                                 command=popup.destroy)
+        btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=popup.destroy)
         btn_cancelar.grid(row=1, column=0, padx=10, pady=10)
 
         btn_confirmar = ctk.CTkButton(popup, text="Sim, excluir!", fg_color="#c0392b", hover_color="#e74c3c",
                                   command=lambda: self.executar_delete(dados, popup))
         btn_confirmar.grid(row=1, column=1, padx=10, pady=10)
 
-
-    def executar_delete(self, dados: dict, popup):
-        
+    def executar_delete(self, dados: Dict[str, Any], popup: ctk.CTkToplevel) -> None:
         id_desp = dados.get('id_desp')
         local = dados.get('local')
 
-        sucesso = self.cdt_crud(deletar= id_desp)
+        if self.cdt_crud:
+            sucesso = self.cdt_crud(deletar=id_desp)
+            if sucesso:
+                print(f"ID: {id_desp} Local: '{local}'. Mandado pro espaço 🌌​")
+                popup.destroy()
+            else:
+                print("Erro ao deletar")
 
-        if sucesso:
-            print(f"ID: {id_desp} Local: '{local}'. Mandado pro espaço 🌌​")
+# =================================================================================
+# --- LISTAGEM DE CARTÕES DE CRÉDITO ---
+# =================================================================================
 
-            popup.destroy()
-
-        else:
-            print("Erro ao deletar")
-
-
-#Filho de Módulo Cartões de Crédito (crud_app.py)
 class Listar_car_cred(ctk.CTkFrame):
+    """Grid para visualizar e gerenciar os Cartões de Crédito cadastrados."""
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes=None, nomes_cards =None, cb_comandante_crud=None, controle_dados = None, *args, **kwargs):
+    def __init__(self,  parent: Any = None, user_id: Optional[int] = None, dados_cartoes: Optional[List] = None, nomes_cards: Optional[List] = None, cb_comandante_crud: Optional[Callable] = None, controle_dados: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.nomes_cards = nomes_cards
         self.controle_dados = controle_dados
-        self.dados_cartoes: List[Dados_cartoes_db] = dados_cartoes
+        self.dados_cartoes = dados_cartoes
         self.cdt_crud = cb_comandante_crud
 
         # --------------- Configuração da Frames/'labels' -----------------------
@@ -310,7 +291,6 @@ class Listar_car_cred(ctk.CTkFrame):
 
         self.lista_frame = ctk.CTkScrollableFrame(self, label_text="Cartões de Crédito Cadastrados")
         self.lista_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-
         self.lista_frame.grid_columnconfigure((0, 1, 2, 4), weight=0) 
 
         #cabeçalho
@@ -322,12 +302,10 @@ class Listar_car_cred(ctk.CTkFrame):
         ctk.CTkLabel(self.lista_frame, text='Bandeira', font=ctk.CTkFont(weight="bold")).grid(row=0, column=5, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text='Cor', font=ctk.CTkFont(weight="bold")).grid(row=0, column=6, padx=6, pady=5, sticky="w")
 
-
         self.listar()
 
-
-    def listar(self, dados_cartoes=None):
-
+    def listar(self, dados_cartoes: Optional[List[Dict[str, Any]]] = None) -> None:
+        """Renderiza a listagem de propriedades dos cartões (Fechamento/Corte/Bandeira)."""
         for widget in self.lista_frame.winfo_children():
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
@@ -337,21 +315,20 @@ class Listar_car_cred(ctk.CTkFrame):
 
         if dados_cartoes:
             for i, dado in enumerate(dados_cartoes, start=1):
-
                 nome = dado.get('nome_cartao')
                 limite = dado.get('limite_cartao')
                 dia_fec = dado.get('dia_fechamento')
                 dia_venc = dado.get('dia_vencimento')
                 bandeira = dado.get('bandeira')
-                cor = formata_cor(cor=dado.get('cor'))
+                cor = formata_cor(cor=str(dado.get('cor')))
 
                 ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=nome, font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(nome), font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=formatar_moeda(limite), text_color="#27ae60", font=('Ariel', 14)).grid(row=i, column=2, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=dia_fec, font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=dia_venc, font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=bandeira, font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=cor, font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(dia_fec), font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(dia_venc), font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(bandeira), font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(cor), font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
 
                 btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
                                      command=lambda dados=dado: self.confirmar_update(dados))
@@ -361,71 +338,56 @@ class Listar_car_cred(ctk.CTkFrame):
                 btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
                                     command=lambda dados=dado: self.confirmar_delete(dados))
                 btn_del.grid(row=i, column=8, padx=5)
-                CTkToolTip(btn_del, 
-                            message="Excluir Registro", 
-                            delay=0.5,      # Tempo em segundos para aparecer
-                            alpha=0.9,      # Transparência
-                            bg_color="red" 
-                            )
+                CTkToolTip(btn_del, message="Excluir Registro", delay=0.5, alpha=0.9, bg_color="red")
 
-
-    def confirmar_update(self, dados):
-        print("Estou no'confirmar_update' mandando dados (dict) para crud_app")
-
+    def confirmar_update(self, dados: Dict[str, Any]) -> None:
         if dados:
-            self.controle_dados(dados)
+            if self.controle_dados: self.controle_dados(dados)
         else:
-            self.controle_dados(None)
+            if self.controle_dados: self.controle_dados(None)
 
-
-    def confirmar_delete(self, dados):
-
+    def confirmar_delete(self, dados: Dict[str, Any]) -> None:
         popup = ctk.CTkToplevel(self)
         popup.title("Confirmação")
         centralizar_janela_responsiva(janela=popup, tipo_janela='pequeno')
-
         popup.grab_set()
-
         popup.grid_columnconfigure((0, 1), weight=1)
 
         label = ctk.CTkLabel(popup, text="Tem certeza que deseja\nexcluir este Cartão?", font=("Arial", 14))
         label.grid(row=0, column=0, columnspan=2, pady=20)
 
-        btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555",
-                                 command=popup.destroy)
+        btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=popup.destroy)
         btn_cancelar.grid(row=1, column=0, padx=10, pady=10)
 
         btn_confirmar = ctk.CTkButton(popup, text="Sim, excluir!", fg_color="#c0392b", hover_color="#e74c3c",
                                   command=lambda: self.executar_delete(dados, popup))
         btn_confirmar.grid(row=1, column=1, padx=10, pady=10)
 
-
-    def executar_delete(self, dados, popup):
-        
+    def executar_delete(self, dados: Dict[str, Any], popup: ctk.CTkToplevel) -> None:
         id_card = dados.get('id_cartao')
         nome = dados.get('nome_cartao')
 
-        sucesso = self.cdt_crud(deletar=id_card)
+        if self.cdt_crud:
+            sucesso = self.cdt_crud(deletar=id_card)
+            if sucesso:
+                print(f"ID: {id_card} None: '{nome}'. Mandado pro espaço 🌌​")
+                popup.destroy()
+            else:
+                print("Erro ao deletar")
 
-        if sucesso:
+# =================================================================================
+# --- LISTAGEM DE ASSINATURAS ---
+# =================================================================================
 
-            print(f"ID: {id_card} None: '{nome}'. Mandado pro espaço 🌌​")
-
-            popup.destroy()
-
-        else:
-            print("Erro ao deletar")
-
-
-#Filho de Módulo Assinaturas (crud_app.py)      
 class Listar_assinaturas(ctk.CTkFrame):
+    """Grid para gestão de serviços recorrentes ininterruptos."""
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, dados_assinaturas=None, controle_dados=None, cb_comandante_crud=None, *args, **kwargs):
+    def __init__(self, parent: Any = None, user_id: Optional[int] = None, dados_cartoes: Optional[List] = None, dados_assinaturas: Optional[List] = None, controle_dados: Optional[Callable] = None, cb_comandante_crud: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.dados_cartoes: List[Dados_cartoes_db] = dados_cartoes 
-        self.dados_assinaturas: List[Dados_assinaturas_db] = dados_assinaturas  
+        self.dados_cartoes = dados_cartoes 
+        self.dados_assinaturas = dados_assinaturas  
         self.controle_dados = controle_dados
         self.cdt_crud = cb_comandante_crud
 
@@ -436,8 +398,8 @@ class Listar_assinaturas(ctk.CTkFrame):
         self.lista_frame = ctk.CTkScrollableFrame(self, label_text="Assinaturas Cadastradas")
         self.lista_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
-        self.lista_frame.grid_columnconfigure((0, 1, 2, 4, 5, 6, 7), weight=0) # valores/colunas fixas
-        self.lista_frame.grid_columnconfigure(3, weight=1) #Descriçao estica
+        self.lista_frame.grid_columnconfigure((0, 1, 2, 4, 5, 6, 7), weight=0) 
+        self.lista_frame.grid_columnconfigure(3, weight=1) 
 
         #cabeçalho
         ctk.CTkLabel(self.lista_frame, text='#', font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
@@ -451,9 +413,7 @@ class Listar_assinaturas(ctk.CTkFrame):
 
         self.listar()
 
-
-    def listar(self, dados_ass=None):
-
+    def listar(self, dados_ass: Optional[List[Dict[str, Any]]] = None) -> None:
         for widget in self.lista_frame.winfo_children():
             if int(widget.grid_info().get("row", 0)) > 0:
                 widget.destroy()
@@ -462,9 +422,7 @@ class Listar_assinaturas(ctk.CTkFrame):
             dados_ass = self.dados_assinaturas
 
         if dados_ass:
-            
             for i, dado in enumerate(dados_ass, start=1):
-
                 nome_card = None
 
                 nome = dado.get('nome')
@@ -483,13 +441,13 @@ class Listar_assinaturas(ctk.CTkFrame):
                     nome_card = "Boleto/Avulça"
 
                 ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=nome, font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(nome), font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=formatar_moeda(valor), text_color="#27ae60", font=('Ariel', 14)).grid(row=i, column=2, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=desc, font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=data_aq, font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=data_pp, font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=cat, font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=nome_card, font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(desc), font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(data_aq), font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(data_pp), font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(cat), font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=str(nome_card), font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
 
                 btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
                                      command=lambda dados=dado: self.confirmar_update(dados))
@@ -499,80 +457,65 @@ class Listar_assinaturas(ctk.CTkFrame):
                 btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
                                     command=lambda dados=dado: self.confirmar_delete(dados))
                 btn_del.grid(row=i, column=9, padx=5)
-                CTkToolTip(btn_del, 
-                            message="Excluir Registro", 
-                            delay=0.5,      # Tempo em segundos para aparecer
-                            alpha=0.9,      # Transparência
-                            bg_color="red" 
-                            )
+                CTkToolTip(btn_del, message="Excluir Registro", delay=0.5, alpha=0.9, bg_color="red")
 
-
-    def confirmar_update(self, dados):
-        print("Estou no'confirmar_update' mandando dados (dict) para crud_app")
-
+    def confirmar_update(self, dados: Dict[str, Any]) -> None:
         if dados:
-            self.controle_dados(dados)
+            if self.controle_dados: self.controle_dados(dados)
         else:
-            self.controle_dados(None)
+            if self.controle_dados: self.controle_dados(None)
 
-
-    def confirmar_delete(self, dados):
-
+    def confirmar_delete(self, dados: Dict[str, Any]) -> None:
         popup = ctk.CTkToplevel(self)
         popup.title("Confirmação")
         centralizar_janela_responsiva(popup, tipo_janela='pequeno')
-
         popup.grab_set()
-
         popup.grid_columnconfigure((0, 1), weight=1)
 
         label = ctk.CTkLabel(popup, text="Tem certeza que deseja\nexcluir esta assinatura?", font=("Arial", 14))
         label.grid(row=0, column=0, columnspan=2, pady=20)
 
-        btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555",
-                                 command=popup.destroy)
+        btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=popup.destroy)
         btn_cancelar.grid(row=1, column=0, padx=10, pady=10)
 
         btn_confirmar = ctk.CTkButton(popup, text="Sim, excluir!", fg_color="#c0392b", hover_color="#e74c3c",
                                   command=lambda: self.executar_delete(dados, popup))
         btn_confirmar.grid(row=1, column=1, padx=10, pady=10)
 
-
-
-    def executar_delete(self, dados, popup):
-        
+    def executar_delete(self, dados: Dict[str, Any], popup: ctk.CTkToplevel) -> None:
         id_ass = dados.get('id_ass')
         nome = dados.get('nome')
 
-        sucesso = self.cdt_crud(deletar=id_ass)
-
-        if sucesso:
-            print(f"ID: {id_ass} Assinatura: '{nome}'. Mandado pro espaço 🌌​")
-            tocar_notificacao('dv_delete', True)
-
-            popup.destroy()
-
-        else:
-            print("Erro ao deletar")
+        if self.cdt_crud:
+            sucesso = self.cdt_crud(deletar=id_ass)
+            if sucesso:
+                print(f"ID: {id_ass} Assinatura: '{nome}'. Mandado pro espaço 🌌​")
+                tocar_notificacao('dv_delete', True)
+                popup.destroy()
+            else:
+                print("Erro ao deletar")
 
 
-# ------------------- Detalhamento Tabela e Gráfico - DASHBOARD -------------------------------
+# =================================================================================
+# --- DASHBOARD: TABELA DINÂMICA DE DESPESAS DO MÊS ---
+# =================================================================================
 
-#Filho de módulo Main_app e Simulação
 class Listar_desp_tabela(ctk.CTkFrame):
+    """
+    Motor do Dashboard e da Simulação.
+    Este componente avalia todas as despesas avulsas, assinaturas e parcelamentos 
+    de cartão para determinar quais parcelas vão "cair" no mês atual (ou no mês 
+    simulado). Ele renderiza apenas as faturas e boletos ativos para o período.
+    """
 
-    def __init__(self, parent=None, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_prontos=None, *args, **kwargs):
+    def __init__(self, parent: Any = None, id_user: Optional[int] = None, despesas_avulsas: Optional[List] = None, dados_cartoes: Optional[List] = None, assinaturas_avulsas: Optional[List] = None, dados_prontos: Optional[List] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
     
         self.id_user = id_user
-        self.despesas_avulsas = despesas_avulsas #------ return: dict de despesas avulsas=(sem cartão)
-        self.dados_cartoes = dados_cartoes # -------- return: dict de dados cartoes
-        self.assinaturas_avulsas = assinaturas_avulsas # -----------return: dict de assinaturas avulsas
-        self.dados_prontos= dados_prontos
-
-        #???????????/???????
-        #self.desp_cartoes = desp_cartoes # ---------- return: dict de despesas no cartão
-        #self.assin_cartoes = assin_cartoes # ---------- return: dict de assinaturas no cartão 
+        self.despesas_avulsas = despesas_avulsas 
+        self.dados_cartoes = dados_cartoes 
+        self.assinaturas_avulsas = assinaturas_avulsas 
+        self.dados_prontos = dados_prontos
 
         self.data_atual = datetime.now()
         self.mes_atual = self.data_atual.month
@@ -594,75 +537,59 @@ class Listar_desp_tabela(ctk.CTkFrame):
         self.tabela_frame.grid_columnconfigure(0, weight=1)
         self.tabela_frame.grid_rowconfigure(0, weight=1)
 
-        #self.tabela_frame.grid_columnconfigure((0, 1, 2, 3), weight=0) # valores/colunas fixas
-        #self.tabela_frame.grid_columnconfigure(4, weight=1) #Descriçao estica
-
-    
-    
-    def renderizar(self, controle_mes=None, escolha=None, dados_simulacao=None):
-
+    def renderizar(self, controle_mes: Optional[int] = None, escolha: Optional[str] = None, dados_simulacao: Optional[List[Dict[str, Any]]] = None) -> Decimal:
+        """
+        Processa as regras de datas do helper (controle_data_parc_cc) para desenhar 
+        o extrato financeiro. Se dados_simulacao for passado (Modo Mock), os insere na 
+        soma matemática sem afetar a integridade dos dados reais.
+        """
         for widget in self.tabela_frame.winfo_children():
             widget.destroy()
 
         if controle_mes is None:
             controle_mes = int(datetime.now().month)
 
-
-        despesas: List[Pega_despesas_avulsas_bd] = self.despesas_avulsas
-        assin: List[Pega_assinaturas_avulças_db] = self.assinaturas_avulsas
+        despesas = self.despesas_avulsas or []
+        assin = self.assinaturas_avulsas or []
 
         total_avulsas = Decimal('0.0')
         total_cards = Decimal('0.0')
-        #Lógica para montar lista com o total de cada cartão
-
         lista_faturas_resumo = []
 
-
-        if self.dados_prontos: #se tem cartão! entra no bloco
-            
+        if self.dados_prontos: 
             for pacote in self.dados_prontos:
-                pacote: Pega_div_cartao_db = pacote
-
                 info_cartao = pacote.get('info', {})
-
                 nome_cartao = info_cartao.get('nome_cartao')
                 id_cartao = info_cartao.get('id_cartao') 
                 
-                despesas_do_cartao = pacote.get('despesas', {})
-                assin_card = pacote.get('assinaturas', {})
+                despesas_do_cartao = pacote.get('despesas', [])
+                assin_card = pacote.get('assinaturas', [])
             
                 total_deste_cartao = Decimal('0.0')
                 data_vencimento_fatura = None
 
                 if assin_card or despesas_do_cartao or dados_simulacao:
-
                     if assin_card:
-
                         for ass in assin_card:
-
                             dia_f = ass.get('dia_fechamento_cc')
                             dia_v = ass.get('dia_vencimento_cc')
                             data_aquisicao = ass.get('data_aquisicao')
 
-                            resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes= controle_mes)
+                            resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes)
                             _, entra_na_fatura, _ = resultado
 
                             if entra_na_fatura:
                                 valor = Decimal(str(ass.get('valor')))
                                 total_deste_cartao += valor
 
-
                     if despesas_do_cartao:
-
                         for desp in despesas_do_cartao:
-
                             data_compra = mysql_para_obj(desp.get('data_compra'))
                             dia_venc = desp.get('dia_vencimento')
                             fechamento = desp.get('dia_fechamento')
                             parcelas = desp.get('parcelas')
 
-
-                            resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes= controle_mes)
+                            resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes=controle_mes)
                             _, entra_na_fatura, controle_data = resultado
 
                             if entra_na_fatura:
@@ -670,47 +597,33 @@ class Listar_desp_tabela(ctk.CTkFrame):
                                 total_deste_cartao += valor_mensal
                                 data_vencimento_fatura = controle_data 
 
-
-                
-                    #---------- simulação - Inserindo o valor na fatura do cartão informado ----------------------
+                    # ---------- Simulação Mock - Injetando despesa virtual na fatura ----------------------
                     mensalidade_simulacao_card  = Decimal('0.0')
 
                     if not data_vencimento_fatura:
                         dia_venc_base = info_cartao.get('vencimento_fatura')
                         if dia_venc_base:
-                            # Assumindo que a fatura cai no mês de controle_mes
                             ano_atual = datetime.now().year
-                            # Tratamento simples para virada de ano, caso precise
                             data_vencimento_fatura = datetime(ano_atual, controle_mes, int(dia_venc_base)).date()
 
-
                     if dados_simulacao:
-                    
                         for _, dado in enumerate(dados_simulacao):
-                        
                             info_card = dado.get('info_cartao')
-
-                            if info_card and isinstance(info_card, dict):  #if type(met_pag) is dict: 
-
+                            if info_card and isinstance(info_card, dict): 
                                 data_compra_simulacao = dado.get('data_compra')
-                                parcelas_simulacao = int(dado.get('parcelas'))
+                                parcelas_simulacao = int(dado.get('parcelas', 1))
 
                                 id_card = info_card.get('id_cartao')
                                 venc_card_simulacao = info_card.get('vencimento')
                                 fech_card_simulacao = info_card.get('fechamento')
                             
-                                if str(id_card) == str(id_cartao): #id_cartao é o cartao do loop principal
-
-                                    resultado = controle_data_parc_cc(data_compra_simulacao, fech_card_simulacao, venc_card_simulacao, parcelas_simulacao, controle_mes= controle_mes)
-
+                                if str(id_card) == str(id_cartao): 
+                                    resultado = controle_data_parc_cc(data_compra_simulacao, fech_card_simulacao, venc_card_simulacao, parcelas_simulacao, controle_mes=controle_mes)
                                     _, entra_na_fatura, controle_data = resultado
 
                                     if entra_na_fatura:
                                         data_vencimento_fatura = controle_data 
                                         mensalidade_simulacao_card += Decimal(str(dado.get('valor_total'))) / parcelas_simulacao
-
-
-                    # Se o cartão tem fatura para pagar, guardamos na lista
 
                     if (total_deste_cartao > Decimal('0.0')) or (mensalidade_simulacao_card > Decimal('0.0')):
                         lista_faturas_resumo.append({
@@ -720,57 +633,42 @@ class Listar_desp_tabela(ctk.CTkFrame):
                         })
 
     
-        # Se tiver despesas avulsas, faturas de cartão, assinaturas ou simulação, desenha a tabela.
+        # Desenha a tabela
         if despesas or lista_faturas_resumo or assin or dados_simulacao:
-        
-            # Cabeçalho
             ctk.CTkLabel(self.tabela_frame, text="Local/Nome", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.tabela_frame, text="Mensalidade/Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="e")
             ctk.CTkLabel(self.tabela_frame, text="Vencimento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=5, pady=5, sticky="w")
 
             linha = 1
-
             total_ass_avulcas = Decimal('0.0')
 
             if assin: 
-                
                 for ass in assin:
-
                         data_pp = mysql_para_obj(ass['data_pp'])
                         dia_venc = ass['dia_vencimento']
                         nome = ass['nome']
                         valor = ass["valor"]
 
-                        resultado = controle_data_parc(data_pp, dia_venc, total_parcelas=None, controle_mes = controle_mes )
+                        resultado = controle_data_parc(data_pp, dia_venc, total_parcelas=None, controle_mes=controle_mes )
                         str_sit, entra_no_mes, data_vencimento = resultado
 
                         if entra_no_mes:
-
                             total_ass_avulcas += Decimal(str(valor))
-
                             ctk.CTkLabel(self.tabela_frame, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
                             ctk.CTkLabel(self.tabela_frame, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
                             ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
                             ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
-
-
-                        linha += 1
-            else:
-                print('lista assinaturas estava vazia')
+                            linha += 1
 
             if despesas:
-
                 for _, dados in enumerate(despesas):
                     primeira_parc = mysql_para_obj(dados['data_pp'])
-                    
                     dia_venc = dados['dia_vencimento']
                 
-                    resultado_avulso = controle_data_parc(primeira_parc, dia_venc, dados.get('parcelas'), controle_mes= controle_mes)
-
+                    resultado_avulso = controle_data_parc(primeira_parc, dia_venc, dados.get('parcelas'), controle_mes=controle_mes)
                     str_parcela, control_parc, data_vencimento = resultado_avulso
-
-                    dia_venc = int(primeira_parc.day)
+                    dia_venc = int(primeira_parc.day) if primeira_parc else dia_venc
 
                     if data_vencimento:
                         data_fatura = data_vencimento
@@ -786,114 +684,89 @@ class Listar_desp_tabela(ctk.CTkFrame):
                         ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_fatura)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
                         total_avulsas += valor_mensal
-                    
                         linha += 1
-            else:
-                print('lista despesas estava vazia')
           
-            # Desenha o Resumo das Faturas dos Cartões
             if lista_faturas_resumo:
-
                 for fatura in lista_faturas_resumo:
-
                     ctk.CTkLabel(self.tabela_frame, text=fatura['local']).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
                     ctk.CTkLabel(self.tabela_frame, text="-").grid(row=linha, column=1, padx=3, pady=1, sticky="w") 
                     ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(fatura['valor']), justify=ctk.LEFT, text_color="orange").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
             
-                    # Formata a data se ela não vier vazia
                     venc_str = data_para_exibicao(fatura['vencimento']) if fatura['vencimento'] else "N/A"
                     ctk.CTkLabel(self.tabela_frame, text=venc_str).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
                     total_cards += fatura['valor']
-
                     linha += 1
-            else:
-                print('lista faturas estava vazia')
 
-
-
-            # -------------- SIMULAÇÃO - DESENHANDO LINHA AVULSA COM OS DADOS INFORMADOS NO FORMS -----------
+            # -------------- SIMULAÇÃO MOCK - AVULSO -----------
             if dados_simulacao:
-                
                 for dado in dados_simulacao:
-
-                    info_card = dado['info_cartao']
+                    info_card = dado.get('info_cartao')
 
                     if info_card is None:
-
                         local_simulacao = dado.get('local')
                         data_compra_simulacao = dado.get('data_compra')
                         data_pp_simulacao = dado.get('prim_data_pag')
-                        parcelas_simulacao = int(dado.get('parcelas'))
-
-                        dia_venc_simulacao = data_pp_simulacao.day
+                        parcelas_simulacao = int(dado.get('parcelas', 1))
 
                         if data_pp_simulacao:
-
-                            resultado_avulso_sim = controle_data_parc(data_pp_simulacao, dia_venc_simulacao, parcelas_simulacao, controle_mes= controle_mes)
+                            dia_venc_simulacao = data_pp_simulacao.day
+                            resultado_avulso_sim = controle_data_parc(data_pp_simulacao, dia_venc_simulacao, parcelas_simulacao, controle_mes=controle_mes)
                             str_parcela, control_parc, data_vencimento = resultado_avulso_sim
 
-                            if data_vencimento:
-                                data_fatura = data_vencimento
-                            else:
-                                data_fatura = datetime.now().replace(day=dia_venc)
+                            data_fatura = data_vencimento if data_vencimento else datetime.now().replace(day=dia_venc_simulacao)
 
                             if control_parc:
                                 mensalidade_simulacao_avulsa = Decimal(str(dado['valor_total'])) / parcelas_simulacao
 
-                                ctk.CTkLabel(self.tabela_frame, text=local_simulacao).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
-                                ctk.CTkLabel(self.tabela_frame, text=str_parcela).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                                ctk.CTkLabel(self.tabela_frame, text=str(local_simulacao)).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                                ctk.CTkLabel(self.tabela_frame, text=str(str_parcela)).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
                                 ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(mensalidade_simulacao_avulsa), justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
                                 ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_fatura)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
                                 total_avulsas += mensalidade_simulacao_avulsa
-
                                 linha += 1
-                        else:
-                            print('ERRO: Data do primeiro pagamento nula...')
 
-
-
-            ctk.CTkLabel(
-                self.tabela_frame, 
-                text="TOTAL DESPESAS:", 
-                font=ctk.CTkFont(weight="bold", size=14)
+            ctk.CTkLabel(self.tabela_frame, text="TOTAL DESPESAS:", font=ctk.CTkFont(weight="bold", size=14)
             ).grid(row=linha, column=0, columnspan=2, padx=5, pady=(20, 5), sticky="e")
 
-            ctk.CTkLabel(
-                self.tabela_frame, 
-                text=formatar_moeda((total_avulsas + total_cards + total_ass_avulcas)), 
-                font=ctk.CTkFont(weight="bold", size=14), 
-                text_color="red" 
+            ctk.CTkLabel(self.tabela_frame, text=formatar_moeda((total_avulsas + total_cards + total_ass_avulcas)), 
+                font=ctk.CTkFont(weight="bold", size=14), text_color="red" 
             ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
 
             self.tabela_frame.grid_columnconfigure(2, weight=1)
             
             tt_dividas = (total_avulsas + total_cards + total_ass_avulcas)
-
             
             if escolha:
                 self.tabela_frame.configure(label_text=f"Detalhes do Despesas: {escolha}")
-
 
             return tt_dividas
 
         else:
             ctk.CTkLabel(self.tabela_frame, text="Nenhum pagamento previsto.").grid(row=0, column=0, padx=10, pady=10)
             self.tabela_frame.grid_columnconfigure(2, weight=1)
+            return Decimal('0.0')
 
+# =================================================================================
+# --- DASHBOARD: GRÁFICO PIZZA (Matplotlib) ---
+# =================================================================================
 
-#Filho de módulo Main_app
 class Listar_cat_grafico(ctk.CTkFrame):
+    """
+    Motor Gráfico do Dashboard.
+    Usa o Matplotlib para agregar o valor das parcelas do mês filtrado pelas 
+    Categorias ('Saúde', 'Lazer', 'Essencial') e plota o gráfico interativo no Canvas.
+    """
 
-    def __init__(self, parent=None, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_prontos=None, *args, **kwargs):
+    def __init__(self, parent: Any = None, id_user: Optional[int] = None, despesas_avulsas: Optional[List] = None, dados_cartoes: Optional[List] = None, assinaturas_avulsas: Optional[List] = None, dados_prontos: Optional[List] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
         self.despesas_avulsas = despesas_avulsas
         self.dados_cartoes = dados_cartoes
         self.assinaturas_avulsas = assinaturas_avulsas
-        self.dados_prontos: Pega_div_cartao_db = dados_prontos
+        self.dados_prontos = dados_prontos
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -905,11 +778,9 @@ class Listar_cat_grafico(ctk.CTkFrame):
         self.grafico_frame.grid_columnconfigure(0, weight=1)
         self.grafico_frame.grid_rowconfigure(0, weight=1)
 
-        
-    
-    def renderizar(self, controle_mes=None):
-        
 
+    def renderizar(self, controle_mes: Optional[int] = None) -> None:
+        """Executa a engine de agregação de categorias e redesenha o Matplotlib."""
         print(f"Renderizando gráfico")
 
         for widget in self.grafico_frame.winfo_children():
@@ -918,98 +789,78 @@ class Listar_cat_grafico(ctk.CTkFrame):
         if controle_mes is None:
             controle_mes = datetime.now().month
 
-        assin_avulsas: List[Pega_assinaturas_avulças_db] = self.assinaturas_avulsas
-        desp_avulsas: List[Pega_despesas_avulsas_bd]= self.despesas_avulsas
+        assin_avulsas = self.assinaturas_avulsas or []
+        desp_avulsas = self.despesas_avulsas or []
 
         gastos_por_categoria = defaultdict(Decimal)
         total_previsto = Decimal('0.0')
     
-        
-
         if self.dados_prontos:
-
             for pacote in self.dados_prontos:
-                pacote: Pega_div_cartao_db = pacote
-
-                desp_cc = pacote.get('despesas', {})
-                assin_card = pacote.get('assinaturas', {})
-
+                desp_cc = pacote.get('despesas', [])
+                assin_card = pacote.get('assinaturas', [])
             
                 if assin_card:
                     for ass in assin_card:
-
                         dia_f = ass.get('dia_fechamento_cc')
                         dia_v = ass.get('dia_vencimento_cc')
                         data_aquisicao = ass.get('data_aquisicao')
 
-                        # Verifica se entra na fatura atual - Método chamado de utils/helper
-                        resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes= controle_mes)
+                        resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes)
                         _, entra_na_fatura, _ = resultado
 
                         if entra_na_fatura:
-
                             valor = Decimal(str(ass.get('valor')))
-                            categoria = ass.get('categoria', 'Outros') # SOMA NO DICIONÁRIO USANDO A CATEGORIA
+                            categoria = ass.get('categoria', 'Outros') 
                             gastos_por_categoria[categoria] += valor
                             total_previsto += valor
 
                 if desp_cc:
                     for desp in desp_cc:
-
                         data_compra = mysql_para_obj(desp.get('data_compra'))
                         dia_venc = desp.get('dia_vencimento')
                         fechamento = desp.get('dia_fechamento')
                         parcelas = desp.get('parcelas')
 
-                        resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes= controle_mes)
+                        resultado = controle_data_parc_cc(data_compra, fechamento, dia_venc, parcelas, controle_mes=controle_mes)
                         _, entra_na_fatura, _ = resultado
 
                         if entra_na_fatura:
-
                             valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
                             categoria = desp.get('categoria', 'Outros') 
                             gastos_por_categoria[categoria] += valor_mensal
                             total_previsto += valor_mensal
 
-
-
         if desp_avulsas or assin_avulsas:
-
             if desp_avulsas:
                 for desp in desp_avulsas:
-
                     primeira_parc = mysql_para_obj(desp["data_pp"])
                     parcelas = desp['parcelas']
                     dia_venc = desp['dia_vencimento']
         
-                    resultado = controle_data_parc(primeira_parc, dia_venc , parcelas, controle_mes = controle_mes)
+                    resultado = controle_data_parc(primeira_parc, dia_venc , parcelas, controle_mes=controle_mes)
                     _, entra_no_mes, _ = resultado
 
                     if entra_no_mes:
-
                         valor_mensal = Decimal(str(desp.get('valor_total'))) / parcelas
                         categoria = desp.get('categoria', 'Outros')
                         gastos_por_categoria[categoria] += valor_mensal
                         total_previsto += valor_mensal
 
             if assin_avulsas:
-
                 for ass in assin_avulsas:
-
                     data_pp = mysql_para_obj(ass.get('data_pp'))
                     dia_venc = ass.get('dia_vencimento')
-                    valor = ass.get('valor')
+                    valor = Decimal(str(ass.get('valor')))
 
-                    resultado = controle_data_parc(data_pp, dia_venc, controle_mes = controle_mes)
+                    resultado = controle_data_parc(data_pp, dia_venc, controle_mes=controle_mes)
                     _, entra_no_mes, _ = resultado
 
                     if entra_no_mes:
-
                         total_previsto += valor
                         categoria = ass.get('categoria', 'Outros')
                         gastos_por_categoria[categoria] += valor
             
-        #Verifica se tem algo para mostrar
         if total_previsto == Decimal('0.0'):
             ctk.CTkLabel(self.grafico_frame, text="Nenhum gasto para este mês.").grid(row=0, column=0, padx=20, pady=(20,0))
             return
@@ -1018,7 +869,7 @@ class Listar_cat_grafico(ctk.CTkFrame):
         categorias = list(gastos_por_categoria.keys())
         totais = list(gastos_por_categoria.values())
 
-        # 5. Criação do Gráfico
+        # Criação do Gráfico
         fig, ax = plt.subplots(figsize=(5, 5), facecolor='#2b2b2b') # Cor de fundo igual ao CTk
         ax.pie(
             totais, 
@@ -1026,28 +877,32 @@ class Listar_cat_grafico(ctk.CTkFrame):
             autopct='%1.1f%%', 
             startangle=90,
             textprops={'fontsize': 8, 'color': 'white'}
-
         )
         ax.axis('equal')
     
-        # Título (Ajuste o gerar_opcoes_meses conforme sua estrutura)
         ax.set_title(f"Distribuição de Gastos\nTotal: {formatar_moeda(total_previsto)}", color='white', fontsize=12, pad=25)
-
         fig.tight_layout()
 
-        # 6. Renderização no CustomTkinter
+        # Renderização no CustomTkinter
         canvas = FigureCanvasTkAgg(fig, master=self.grafico_frame)
         canvas_widget = canvas.get_tk_widget()
         canvas_widget.grid(row=0, column=0, sticky="nsew", pady=(15, 5), padx=10)
         canvas.draw()
 
 
-#-----------------  Detalhes da fatura dos cartões -----------------------------------------
+# =================================================================================
+# --- FATURA DETALHADA DO CARTÃO DE CRÉDITO ---
+# =================================================================================
 
-#Filho de Módulo Faturas (crud_app.py)
 class Listar_faturas_cartao(ctk.CTkFrame):
-    
-    def __init__(self, parent=None, id_user=None, id_card=None, nome_card=None, dados_prontos=None, *args, **kwargs):
+    """
+    Visão Microscópica de um Cartão.
+    Filtra do Dicionário "dados_prontos" apenas os itens daquele ID específico
+    e calcula as parcelas em aberto, renderizando o detalhamento da fatura.
+    Suporta o Mock Engine para a tela de Simulação.
+    """
+
+    def __init__(self, parent: Any = None, id_user: Optional[int] = None, id_card: Optional[int] = None, nome_card: Optional[str] = None, dados_prontos: Optional[List] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
@@ -1056,7 +911,6 @@ class Listar_faturas_cartao(ctk.CTkFrame):
         self.dados_prontos = dados_prontos
 
         # ---------------- Gerencimento de self ---------------------
-
         self.data_atual = datetime.now().date()
         self.mes_atual = self.data_atual.month
         self.prox_mes =  (self.data_atual + relativedelta(months=1)).month
@@ -1067,31 +921,23 @@ class Listar_faturas_cartao(ctk.CTkFrame):
             opcoes.get(self.mes_atual, 'Mês inválido'),
             opcoes.get(self.prox_mes, 'Mês inválido'),
             opcoes.get(self.seg_prox_mes, 'Mês inválido'),
-            
         ]
         self.mes_atual_str = opcoes.get(self.mes_atual)
         self.prox_mes_str = opcoes.get(self.prox_mes)
         self.seg_prox_mes_str = opcoes.get(self.seg_prox_mes)
-        
 
         # --------------- Configuração da Frames/'labels' -----------------------
-
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        # mês vigente
-        self.tabela_frame = ctk.CTkScrollableFrame(self, label_text=f"Pagamentos Detalhados: [ ] - Mês: {self.mes_atual_str} / {self.data_atual.year}"
-        )
+        self.tabela_frame = ctk.CTkScrollableFrame(self, label_text=f"Pagamentos Detalhados: [ ] - Mês: {self.mes_atual_str} / {self.data_atual.year}")
         self.tabela_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         self.container_dados = ctk.CTkFrame(self.tabela_frame, fg_color="transparent")
         self.container_dados.pack(fill="both", expand=True)
 
-
-
-    
-    def tabela_cartao(self, id_user, id_card, escolha=None, controle_mes=None, dados_simulacao=None): #Dados_prontos TRUE
-
+    def tabela_cartao(self, id_user: int, id_card: int, escolha: Optional[str] = None, controle_mes: Optional[int] = None, dados_simulacao: Optional[List[Dict[str, Any]]] = None) -> None: 
+        """Recalcula e renderiza a listagem de despesas que compõem a fatura do cartão focado."""
         for widget in self.container_dados.winfo_children():
             widget.destroy()
         
@@ -1105,25 +951,15 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
         if self.dados_prontos:
             for pacote in self.dados_prontos:
-                
-                # Auto-complete
-                pacote: Pega_div_cartao_db = pacote
-
-                #opção se não der certo - cala a boca py
-                    #pacote = cast(Pega_div_cartao_db, pacote)
-
                 info_cartao = pacote.get('info', {})
                 
-                # Se achou o cartão exato, pega os dados e QUEBRA o loop!
                 if str(info_cartao.get('id_cartao')) == str(id_card):
                     dados_desp_card = pacote.get('despesas', [])
                     assin = pacote.get('assinaturas', [])
                     break
 
-
         if dados_desp_card or assin or dados_simulacao:
-
-                        # Cabeçalho
+            # Cabeçalho
             ctk.CTkLabel(self.container_dados, text="Local.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.container_dados, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="e")
             ctk.CTkLabel(self.container_dados, text="Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=5, pady=5, sticky="w")
@@ -1133,122 +969,79 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
             if assin:
                 for ass in assin:
-
                     data_aquisicao = ass.get('data_aquisicao')
                     nome = ass.get('nome')
                     valor = ass.get('valor')
                     dia_f = ass.get('dia_fechamento_cc')
                     dia_v = ass.get('dia_vencimento_cc')
 
-                    resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes = controle_mes )
+                    resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes )
                     str_sit, entra_no_mes, data_vencimento = resultado
 
                     if entra_no_mes:
-
                         total_assin += Decimal(str(valor))
-
                         ctk.CTkLabel(self.container_dados, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
                         ctk.CTkLabel(self.container_dados, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
                         ctk.CTkLabel(self.container_dados, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
                         ctk.CTkLabel(self.container_dados, text=data_para_exibicao(data_vencimento)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
-
-
                         linha += 1
 
             if dados_desp_card:
-
                 for _, item_desp  in enumerate(dados_desp_card):
-                
                     data_compra = mysql_para_obj(item_desp.get('data_compra'))
                     fecha_fatura = item_desp.get('dia_fechamento')
                     dia_venc = item_desp.get('dia_vencimento')
                     parcelas = item_desp.get('parcelas')
 
-
                     resultado = controle_data_parc_cc(data_compra, fecha_fatura ,dia_venc, parcelas, controle_mes=controle_mes)
-
                     str_parc, control_parc, controle_data = resultado
 
-
                     if control_parc:
-                    
                         valor_mensal = Decimal(str(item_desp.get('valor_total'))) / item_desp.get('parcelas')
                         total_fatura += valor_mensal
 
                         ctk.CTkLabel(self.container_dados, text=item_desp.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
-
                         ctk.CTkLabel(self.container_dados, text=str_parc).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
-
                         ctk.CTkLabel(self.container_dados, text=formatar_moeda(valor_mensal),justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
-
                         ctk.CTkLabel(self.container_dados, text=data_para_exibicao(controle_data)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
-
                         linha += 1 
 
-
             if dados_simulacao:
-                
                 for dado in dados_simulacao:
-
-                    dado: Despesa_simulacao
-                    
                     info_card = dado.get('info_cartao')
 
                     if info_card and isinstance(info_card, dict):
-
                         if str(info_card['id_cartao']) == str(id_card):
-
                             local_simulacao = dado['local']
                             data_compra_simulacao = dado.get('data_compra')
-                            parcelas_simulacao = int(dado.get('parcelas'))
+                            parcelas_simulacao = int(dado.get('parcelas', 1))
 
                             venc_card_simulacao = info_card['vencimento']
                             fech_card_simulacao = info_card['fechamento']
 
                             if venc_card_simulacao:
-
-                                resultado = controle_data_parc_cc(data_compra_simulacao, fech_card_simulacao, venc_card_simulacao, parcelas_simulacao, controle_mes= controle_mes)
-
+                                resultado = controle_data_parc_cc(data_compra_simulacao, fech_card_simulacao, venc_card_simulacao, parcelas_simulacao, controle_mes=controle_mes)
                                 str_parcela, control_parc, data_vencimento = resultado
 
                                 if control_parc:
                                     mensalidade_simulacao_avulsa = Decimal(str(dado['valor_total'])) / parcelas_simulacao
 
                                     ctk.CTkLabel(self.container_dados, text=local_simulacao, fg_color="#000000").grid(row=linha, column=0, padx=5, pady=2, sticky="w")
-
                                     ctk.CTkLabel(self.container_dados, text=str_parcela, fg_color="#000000").grid(row=linha, column=1, padx=3, pady=1, sticky="w")
-
                                     ctk.CTkLabel(self.container_dados, text=formatar_moeda(mensalidade_simulacao_avulsa), justify=ctk.LEFT, text_color="green", fg_color="#000000").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
-
                                     ctk.CTkLabel(self.container_dados, text=data_para_exibicao(data_vencimento), fg_color="#000000").grid(row=linha, column=3, padx=5, pady=2, sticky="w")
 
                                     total_fatura += mensalidade_simulacao_avulsa
-
                                     linha += 1
-                            else:
-                                print('ERRO: Data do primeiro pagamento nula...')
-
-
             
-            ctk.CTkLabel(
-                self.container_dados, 
-                text="TOTAL DA FATURA:", 
-                font=ctk.CTkFont(weight="bold", size=14)
+            ctk.CTkLabel(self.container_dados, text="TOTAL DA FATURA:", font=ctk.CTkFont(weight="bold", size=14)
             ).grid(row=linha, column=0, columnspan=2, padx=5, pady=(20, 5), sticky="e")
 
-            ctk.CTkLabel(
-                self.container_dados, 
-                text=formatar_moeda(total_fatura + total_assin), 
-                font=ctk.CTkFont(weight="bold", size=14), 
-                text_color="red" 
+            ctk.CTkLabel(self.container_dados, text=formatar_moeda(total_fatura + total_assin), font=ctk.CTkFont(weight="bold", size=14), text_color="red" 
             ).grid(row=linha, column=2, padx=5, pady=(20, 5), sticky="e")
             
         if escolha:
             self.tabela_frame.configure(label_text=f"Detalhes do Cartão: {escolha} / {self.data_atual.year}")
 
-
         self.container_dados.grid_columnconfigure(0, weight=2)
         self.container_dados.grid_columnconfigure((1, 2, 3), weight=1)
-
-
-
