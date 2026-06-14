@@ -1,3 +1,10 @@
+"""
+Módulo de Formulários (UI Cadastros)
+
+Este módulo contém as classes de interface gráfica (Frames) responsáveis pela coleta, 
+validação prévia e empacotamento dos dados inseridos pelo usuário. Ele se comunica 
+com o módulo Controlador (crud_app.py) através de callbacks para efetivar as transações no banco.
+"""
 
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
 
@@ -16,6 +23,7 @@ from utils.typedDict import(Despesa_simulacao)
 #BILIO PADRÕES
 from datetime import datetime
 from decimal import Decimal
+from typing import Any, Callable, Dict, List, Optional
 
 #BIBLIO VIA PIP
 from tkcalendar import DateEntry
@@ -24,17 +32,22 @@ from tkcalendar import DateEntry
 import customtkinter as ctk
 ctk.set_appearance_mode('dark')
 
+# =================================================================================
+# --- CADASTRO DE USUÁRIOS ---
+# =================================================================================
 
-#Filho de Módulo Login (login_app.py)
 class Cadastrar_usuario(ctk.CTkFrame):
-    """Classe para registro: configuração da interface para receber dados e a inserção dos dados no BD. (inserir_usuario)"""
+    """
+    Interface de registro para novos usuários. Coleta credenciais, verifica senhas 
+    e envia os dados para inserção no banco de dados.
+    """
 
-    def __init__(self,  parent=None, cb_comandante_crud=None, nome_users=None, cb_fechar=None, cb_vcmd_num=None, *args, **kwargs):
+    def __init__(self, parent: Any = None, cb_comandante_crud: Optional[Callable] = None, nome_users: Optional[List[str]] = None, cb_fechar: Optional[Callable] = None, cb_vcmd_num: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.cdt_crud = cb_comandante_crud
         self.fechar = cb_fechar
-        self.nome_users = nome_users
+        self.nome_users = nome_users or []
         self.vcmd_num = cb_vcmd_num
 
         # --------------- Configuração da janela/'labels' -----------------------
@@ -87,8 +100,8 @@ class Cadastrar_usuario(ctk.CTkFrame):
         self.status_label.grid(row=16, column=0, pady=5)
 
 
-    def processar_registro(self):
-        """Processa o registro - pega os dados inseridos, verifica e guarda no BD"""
+    def processar_registro(self) -> None:
+        """Coleta, valida os campos e envia a entidade Usuario para o Controlador."""
 
         nome_comp = self.nome_completo.get().strip()
         nome_user = self.novo_usuario.get().strip()
@@ -98,66 +111,54 @@ class Cadastrar_usuario(ctk.CTkFrame):
         telefone = self.telefone.get().strip()
         sal_fixo = self.sal_fixo.get().strip()
 
-
         if not nome_user or not senha_um or not senha_dois or not sal_fixo or not email:
             self.status_label.configure(text='Por favor, preencha todos os campos com (*).', text_color='red')
-
             tocar_notificacao("dv_erro", True)
             self.update_idletasks()
             self.after(3000, lambda: self.status_label.configure(text='')) 
             return
 
-
         if nome_user in self.nome_users:
-
             self.status_label.configure(text='Nome de usuário já utilizado, tente outro!', text_color='red')
-
             self.update_idletasks()
             self.after(3000, lambda: self.status_label.configure(text=''))
             return
 
-        if senha_um == senha_dois:
-                
+        if senha_um == senha_dois:    
             senha_protegida = SegurancaService.criptografar_senha(senha_um)
-
-            new_user= Usuario(nome_completo=nome_comp, nome_user=nome_user, senha=senha_protegida, email=email, telefone=telefone, sal_fixo=sal_fixo)
-
+            new_user= Usuario(nome_completo=nome_comp, nome_user=nome_user, senha=senha_protegida, email=email, telefone=telefone, sal_fixo=float(sal_fixo))
 
             sucesso = self.cdt_crud(inserir=new_user)
 
             if sucesso:
                 self.status_label.configure(text='Os dados foram inseridos com sucesso!', text_color='green')
                 self.update_idletasks()
-
                 self.after(3000, lambda: self.status_label.configure(text='')) 
-
                 self.status_label.configure(text=f'Usuário: {nome_user} Já pode fazer login no sistema! ', text_color='blue')
                 self.update_idletasks()
-
                 self.after(3000, lambda: self.status_label.configure(text=''))
 
                 import time
                 time.sleep(0.5)
-
-                self.fechar()
-                
+                if self.fechar:
+                    self.fechar()
             else:
                 self.status_label.configure(text='Não foi possível registrar, contate o adm do sistema...', text_color='red')
                 self.update_idletasks()
-
                 self.after(3000, lambda: self.status_label.configure(text='')) 
-                
         else:
             self.status_label.configure(text='As senhas não correspondem!', text_color='red')
             self.update_idletasks()
-
             self.after(3000, lambda: self.status_label.configure(text='')) 
 
-                        
-#Filho de Módulo Receitas (crud_app.py)
-class Cadastrar_receita(ctk.CTkFrame):
+# =================================================================================
+# --- CADASTRO DE RECEITAS ---
+# =================================================================================
 
-    def __init__(self,  parent=None, user_id=None, callback_comandante_crud=None, cb_vcmd_num=None, *args, **kwargs):
+class Cadastrar_receita(ctk.CTkFrame):
+    """Formulário para lançamento de Receitas (rendas variáveis ou extras)."""
+
+    def __init__(self, parent: Any = None, user_id: Optional[int] = None, callback_comandante_crud: Optional[Callable] = None, cb_vcmd_num: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
@@ -205,52 +206,42 @@ class Cadastrar_receita(ctk.CTkFrame):
         self.status_label.grid(row=10, column=0, pady=5)
 
 
-
-    def salvar_dados(self, id_rec=None, atualizar=False):
-        """ Verifica e salva os dados no db """
+    def salvar_dados(self, id_rec: Optional[int] = None, atualizar: bool = False) -> None:
+        """Valida e envia a nova receita (ou a atualização) para o controlador CRUD."""
 
         fonte = self.fonte.get().strip()
         valor = self.valor.get().strip()
         descricao = self.descricao.get().strip()
         data_obj = self.data_recebimento.get_date()
 
-        # Formata o objeto datetime para a string 'AAAA-MM-DD'
         data_mysql = data_para_mysql(data_obj)
         
         try:
-            valor = Decimal(str(valor.replace(',', '.')))
-
+            valor_dec = Decimal(str(valor.replace(',', '.')))
         except ValueError:
             print('Valor precisa ser um número valido, decimal!')
             tocar_notificacao("erro")
             self.after(2000, lambda: self.status_label.configure(text=''))
-
+            return
 
         if not fonte or not valor or not descricao or not data_obj:
             self.status_label.configure(text='Por favor, preencha todos os campos com (*)', text_color='red')
-
             tocar_notificacao("erro")
             self.update_idletasks()
             self.after(2000, lambda: self.status_label.configure(text=''))
             return
         
-        obj_receita = Receita(fonte=fonte, valor=valor, descricao=descricao, data=data_mysql)
+        obj_receita = Receita(fonte=fonte, valor=valor_dec, descricao=descricao, data=data_mysql) # type: ignore
         
-        if not atualizar: #inserir os dados novos
-
+        if not atualizar:
             sucesso = self.cdt_crud(inserir=obj_receita)
-
             msg_ok = "INSERIDOS"
             msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
-
-        else: #Fazer atualização
-            
+        else: 
             obj_receita.id_receita = id_rec
             sucesso = self.cdt_crud(atualizar=obj_receita)
-
             msg_ok = "ATUALIZADOS"
             msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema..."
-
 
         if sucesso:
             self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')
@@ -259,66 +250,70 @@ class Cadastrar_receita(ctk.CTkFrame):
 
             if atualizar:
                 self.controla_campos(None)
-
         else:
             self.status_label.configure(text=f'{msg_falha}', text_color='red')
             self.update_idletasks()
             self.after(2000, lambda: self.status_label.configure(text=''))
 
 
+    def controla_campos(self, dados: Optional[Dict[str, Any]] = None) -> None:
+        """Preenche o formulário com dados de uma receita selecionada para edição."""
 
-    def controla_campos(self, dados= None): #dados = dict(valor_recebido,descricao,data)
-        
-        #Limpa os capos
         self.limpa_campos()
 
         if dados:
             id_rec = dados.get('id_receita')
-
             data_obj = mysql_para_obj(dados.get('data'))
 
             self.fonte.insert(0, dados['fonte'])
-            self.valor.insert(0, dados.get('valor'))
-            self.descricao.insert(0, dados.get('descricao'))
-            self.data_recebimento.set_date(data_obj)
+            self.valor.insert(0, str(dados.get('valor', '')))
+            self.descricao.insert(0, dados.get('descricao', ''))
+            
+            if data_obj:
+                self.data_recebimento.set_date(data_obj)
 
             self.botao_salvar.configure(text='Atualizar', fg_color="orange", command=lambda: self.salvar_dados(id_rec, atualizar=True))
-        
         else:
-            id_rec = None
-
             self.botao_salvar.configure(
             text="Salvar Dados", 
-            fg_color=["#3B8ED0", "#1F6AA5"], # Cores padrão do CTk
-            command=self.salvar_dados # Função original de INSERT
+            fg_color=["#3B8ED0", "#1F6AA5"],
+            command=self.salvar_dados 
         )
 
+    def limpa_campos(self) -> None:
+        """Reseta todos os inputs do formulário."""
 
-    def limpa_campos(self):
         self.valor.delete(0, ctk.END)
         self.descricao.delete(0, ctk.END)
+        self.fonte.delete(0, ctk.END)
         self.data_recebimento.set_date(self.sentinela)
 
+# =================================================================================
+# --- CADASTRO DE DESPESAS ---
+# =================================================================================
 
-#Filho de Despesas e Simulacao (crud_app.py)
 class Cadastrar_despesa(ctk.CTkFrame):
+    """
+    Formulário para lançamento de despesas. 
+    Capaz de diferenciar despesas avulsas (direto da renda) e despesas de cartão.
+    Suporta injeção de dados no modo Simulação (Mock DB).
+    """
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes =None, cb_comandante_crud=None, simulacao=None, dados_select=None, controle_dados=None, cb_vcmd_num=None, *args, **kwargs):
+    def __init__(self, parent: Any = None, user_id: Optional[int] = None, dados_cartoes: Optional[List[Dict[str, Any]]] = None, cb_comandante_crud: Optional[Callable] = None, simulacao: bool = False, dados_select: Optional[List[Dict[str, Any]]] = None, controle_dados: Optional[Callable] = None, cb_vcmd_num: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.dados_cartoes = dados_cartoes
+        self.dados_cartoes = dados_cartoes or []
         self.cdt_crud = cb_comandante_crud
         self.vcmd_num = cb_vcmd_num
 
         self.dados_select = dados_select
-        self.simulacao = simulacao #boolean passado por mãe Simulacao
-        self.controle_dados = controle_dados #métoddo callback de mãe Simulacao (crud_app.py)
+        self.simulacao = simulacao
+        self.controle_dados = controle_dados 
 
         # ---------------- Gerencimento de self ---------------------
-        self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes]
+        self.nomes_cartoes = [c.get('nome_cartao') for c in self.dados_cartoes] if self.dados_cartoes else []
         self.data_atual = datetime.now().date()
-
         self.sentinela = (self.data_atual.replace(day=1, month=1, year=2099))
 
         # --------------- Configuração da janela/'labels' -----------------------
@@ -339,7 +334,6 @@ class Cadastrar_despesa(ctk.CTkFrame):
 
         # ------ PARCELAS ------
         parcelas_opcoes = [str(i) for i in range(1, 13)]
-
         ctk.CTkLabel(self, text="N° Parcelas*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=5, column=0, padx=20, sticky="w")
         self.menu_parcelas = ctk.CTkOptionMenu(self, values=parcelas_opcoes)
         self.menu_parcelas.grid(row=6, column=0, padx=20, pady=(2, 10), sticky="ew")
@@ -351,7 +345,6 @@ class Cadastrar_despesa(ctk.CTkFrame):
 
         # ------ CATEGORIA ------
         categorias = ['Não Selecionado', 'Essencial', 'Lazer', 'Hobby', 'Vestimenta/Acessórios','Eletrônicos', 'Evolução Pessoal', 'Saúde', 'Empréstimo', 'Reforma e Construção', 'Outros']
-
         ctk.CTkLabel(self, text="Categoria*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=9, column=0, padx=20, sticky="w")
         self.categoria = ctk.CTkOptionMenu(self, values=categorias)
         self.categoria.grid(row=10, column=0, padx=20, pady=(2, 10), sticky="ew")
@@ -359,7 +352,6 @@ class Cadastrar_despesa(ctk.CTkFrame):
         # ------- DATA DA COMPRA --------
         self.label_data_compra = ctk.CTkLabel(self, text="Data da Compra*", font=ctk.CTkFont(size=12, weight="bold"))
         self.label_data_compra.grid(row=11, column=0)
-
         self.campo_data_compra = DateEntry(self, width=12, background='darkblue',
                             foreground='white', borderwidth=2, year=2026, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
@@ -368,7 +360,6 @@ class Cadastrar_despesa(ctk.CTkFrame):
         # ---- DATA PRIMEIRO PAGAMENTO - SE NÃO FOR NO CARTÃO -----
         self.label_primeira_dc = ctk.CTkLabel(self, text="Data do Primeiro Pagamento: \n(obs. Não preencher se a compra for no Cartão)", font=ctk.CTkFont(size=12, weight="bold"))
         self.label_primeira_dc.grid(row=13, column=0)
-
         self.campo_primeira_dc = DateEntry(self, width=12, background='darkblue',
                             foreground='white', borderwidth=2, day=1, month=1, year=2099, 
                             locale='pt_BR', date_pattern='dd/mm/yyyy')
@@ -377,7 +368,6 @@ class Cadastrar_despesa(ctk.CTkFrame):
         # ---- MENU CARTÕES DE CRÉDITO ----
         if self.nomes_cartoes:
             campo_cartoes = ["Cartão de Cobrança - Sem Cartão"] + self.nomes_cartoes
-
             self.car_cred = ctk.CTkOptionMenu(self, values=campo_cartoes)
             self.car_cred.grid(row=15, column=0, padx=20, pady=(2, 10), sticky="ew")
             self.car_cred.set("Cartão de Cobrança - Sem Cartão")
@@ -386,7 +376,7 @@ class Cadastrar_despesa(ctk.CTkFrame):
             self.car_cred.grid(row=15, column=0, padx=20, pady=(2, 10), sticky="ew")
             self.car_cred.set("Cadastre Seus Cartões Na Área Destinada")
 
-        # ----- BOTÃO SALVER E ATUALIZAR -----
+        # ----- BOTÃO SALVAR E ATUALIZAR -----
         if not self.simulacao:
             self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
             self.botao_salvar.grid(row=16, column=0, padx=20, pady=(2, 10), sticky="ew")
@@ -399,15 +389,15 @@ class Cadastrar_despesa(ctk.CTkFrame):
         self.status_label.grid(row=17, column=0, pady=5)
 
 
-    def salvar_dados(self, id_desp=None, atualizar=None, simulacao=False, dados_select=None):
-        """ Verifica e salva os dados no BD """
+    def salvar_dados(self, id_desp: Optional[int] = None, atualizar: bool = False, simulacao: bool = False, dados_select: Optional[List[Dict[str, Any]]] = None) -> None:
+        """Coleta, valida e orquestra a injeção da despesa (real ou mockada)."""
 
         dia_venc = None
         verifica_pri_dc = False
         id_card = None
 
         local = self.local.get().strip()
-        valor_total = self.valor_total.get().strip()
+        valor_total_str = self.valor_total.get().strip()
         menu_parcelas_str = self.menu_parcelas.get()
         descricao = self.descricao.get().strip()
         categoria = self.categoria.get()
@@ -415,7 +405,6 @@ class Cadastrar_despesa(ctk.CTkFrame):
         self.prim_dc_select = self.campo_primeira_dc.get_date()
 
         prim_dc_select_mysql = None
-
         self.sentinela = self.data_atual.replace(day=1, month=1, year=2099)
 
         if self.prim_dc_select != self.sentinela:
@@ -424,12 +413,9 @@ class Cadastrar_despesa(ctk.CTkFrame):
             prim_dc_select_mysql = data_para_mysql(self.prim_dc_select)
 
         car_cred = self.car_cred.get()
-
-        # Formata o objeto datetime para a string 'AAAA-MM-DD' para mandar para o db
         dc_select_mysql = data_para_mysql(self.dc_select)
         
-        if not local or not valor_total or categoria == "Categoria" or menu_parcelas_str == "N° Parcelas":
-
+        if not local or not valor_total_str or categoria == "Categoria" or menu_parcelas_str == "N° Parcelas":
             self.status_label.configure(text='Preencha Local, Valor Total, Categoria,\n N° Parcelas e Data da compra', text_color='red')
             tocar_notificacao('erro')
             self.after(3000, lambda: self.status_label.configure(text=''))
@@ -437,16 +423,14 @@ class Cadastrar_despesa(ctk.CTkFrame):
     
         try:
             parcelas = int(menu_parcelas_str)
-             # Tenta converter o valor para float
-            valor_total = float(valor_total.replace(",", "."))
+            valor_total = float(valor_total_str.replace(",", "."))
         except ValueError:
             self.status_label.configure(text='Valor Total ou Parcelas devem ser \nnúmeros válidos!', text_color='red')
             tocar_notificacao('erro')
-
             self.after(3000, lambda: self.status_label.configure(text=''))
             return
         
-        tem_cartao = car_cred != "Cartão de Cobrança - Sem Cartão" or car_cred != "Cadastre Seus Cartões Na Área Destinada"
+        tem_cartao = car_cred != "Cartão de Cobrança - Sem Cartão" and car_cred != "Cadastre Seus Cartões Na Área Destinada"
 
         if self.dados_cartoes:
             for card in self.dados_cartoes:
@@ -454,7 +438,6 @@ class Cadastrar_despesa(ctk.CTkFrame):
                     id_card = card['id_cartao']
 
         if not tem_cartao and not verifica_pri_dc:
-            # Se não tem cartão E não tem dia de vencimento, falha!
             self.status_label.configure(text='Informe um Cartão OU Data do \nprimeiro pagamento', text_color='red')
             tocar_notificacao('erro')
             self.after(3000, lambda: self.status_label.configure(text=''))
@@ -474,20 +457,20 @@ class Cadastrar_despesa(ctk.CTkFrame):
             self.update_idletasks()
             self.after(4000, lambda: self.status_label.configure(text=''))
 
-        #----------------- SIMULAÇÃO ---------------------------
-        if simulacao:
+        #----------------- SIMULAÇÃO (MOCK DB) ---------------------------
+        if simulacao and dados_select is not None:
             dict_dados: Despesa_simulacao = {
                 "local": local,
                 "valor_total": valor_total,
-                "parcelas": menu_parcelas_str,
+                "parcelas": int(menu_parcelas_str),
                 "descricao": descricao,
                 "categoria": categoria,
-                "data_compra": self.dc_select,
-                "prim_data_pag": self.prim_dc_select,
+                "data_compra": self.dc_select, # type: ignore
+                "prim_data_pag": self.prim_dc_select, # type: ignore
                 "nome_cartao": car_cred,
                 "info_cartao": None,
             }  
-            dados_select.append(dict_dados)
+            dados_select.append(dict_dados) # type: ignore
 
             if self.controle_dados:
                 self.controle_dados(dados=dados_select)
@@ -496,23 +479,17 @@ class Cadastrar_despesa(ctk.CTkFrame):
                 return
         # -------------- SIMULAÇÃO END ---------------
 
-        obj_despesa = Despesa(local=local, valor_total=valor_total, parcelas=parcelas, descricao=descricao, categoria=categoria, data_compra=dc_select_mysql, data_pp=prim_dc_select_mysql, dia_venc=dia_venc, id_cc=id_card)
+        obj_despesa = Despesa(local=local, valor_total=valor_total, parcelas=parcelas, descricao=descricao, categoria=categoria, data_compra=dc_select_mysql, data_pp=prim_dc_select_mysql, dia_venc=dia_venc, id_cc=id_card) # type: ignore
 
-        if not atualizar: # Inserir no bd
-
-            sucesso = self.cdt_crud(inserir=obj_despesa)
-
+        if not atualizar:
+            sucesso = self.cdt_crud(inserir=obj_despesa) if self.cdt_crud else False
             msg_ok = 'INSERIDOS'
             msg_erro = "SALVAR"
-
-        else: # Atualiza no BD
-
+        else: 
             obj_despesa.id_desp = id_desp
-            sucesso = self.cdt_crud(atualizar=obj_despesa)
-
+            sucesso = self.cdt_crud(atualizar=obj_despesa) if self.cdt_crud else False
             msg_ok = 'ATUALIZADOS'
             msg_erro = "ATUALIZAR"
-
 
         if sucesso:
             self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')
@@ -522,37 +499,33 @@ class Cadastrar_despesa(ctk.CTkFrame):
                 self.controla_campos(None)
             
             self.after(3000, lambda: self.status_label.configure(text=''))
-
         else:
             self.status_label.configure(text=f'Não foi possível {msg_erro} os dados, contate o adm do sistema...', text_color='red')
             self.update_idletasks()
-
             self.after(3000, lambda: self.status_label.configure(text=''))
 
 
-
-    def controla_campos(self, dados=None):
+    def controla_campos(self, dados: Optional[Dict[str, Any]] = None) -> None:
+        """Preenche o form para update com base em registro pré-selecionado na UI."""
 
         self.limpa_campos()
         
         if dados:
-
             id_desp = dados.get('id_desp')
-
             nome_card = "Cartão de Cobrança - Sem Cartão"
 
             if self.dados_cartoes:
                 for cartao in self.dados_cartoes:
                     if cartao.get('id_cartao') == dados.get('id_cc'):
-                        nome_card = cartao.get('nome_cartao')
+                        nome_card = cartao.get('nome_cartao', nome_card)
 
-            self.local.insert(0, (dados.get('local')))
-            self.valor_total.insert(0, (dados.get('valor_total')))
-            self.descricao.insert(0, (dados.get('descricao')))
+            self.local.insert(0, str(dados.get('local', '')))
+            self.valor_total.insert(0, str(dados.get('valor_total', '')))
+            self.descricao.insert(0, str(dados.get('descricao', '')))
 
-            self.menu_parcelas.set(dados.get('parcelas'))
-            self.categoria.set(dados.get('categoria'))
-            self.car_cred.set(nome_card)
+            self.menu_parcelas.set(str(dados.get('parcelas', 'N° Parcelas')))
+            self.categoria.set(str(dados.get('categoria', 'Categoria')))
+            self.car_cred.set(str(nome_card))
 
             data_compra_obj = mysql_para_obj(dados.get('data_compra'))
             data_pp = dados.get('data_pp')
@@ -562,25 +535,22 @@ class Cadastrar_despesa(ctk.CTkFrame):
             else:
                 data_pp_obj = mysql_para_obj(data_pp)
 
-            self.campo_data_compra.set_date(data_compra_obj)
-            self.campo_primeira_dc.set_date(data_pp_obj)
+            if data_compra_obj:
+                self.campo_data_compra.set_date(data_compra_obj)
+            if data_pp_obj:
+                self.campo_primeira_dc.set_date(data_pp_obj)
 
             self.botao_salvar.configure(text='Atualizar Assinatura', fg_color="orange", command=lambda: self.salvar_dados(id_desp, atualizar=True))
-        
         else:
-            id_desp = None
-
             self.botao_salvar.configure(
-            text="Confirmar Assinatura", 
-            fg_color=["#3B8ED0", "#1F6AA5"], # Cores padrão do CTk
-            command=self.salvar_dados # Função original de INSERT
+            text="Confirmar Assinatura" if self.simulacao else "Salvar Dados", 
+            fg_color=["#3B8ED0", "#1F6AA5"], 
+            command=self.salvar_dados 
         )
 
+    def limpa_campos(self) -> None:
+        """Reseta todos os inputs da tela de despesas para o default."""
 
-    def limpa_campos(self):
-        """Limpa todos os campos de entrada do formulário de despesas."""
-        
-        # Limpa CTkEntry's
         self.local.delete(0, ctk.END)
         self.valor_total.delete(0, ctk.END)
         self.descricao.delete(0, ctk.END)
@@ -592,20 +562,23 @@ class Cadastrar_despesa(ctk.CTkFrame):
         self.campo_data_compra.set_date(self.data_atual)
         self.campo_primeira_dc.set_date(self.sentinela)
         
+# =================================================================================
+# --- CADASTRO DE CARTÕES DE CRÉDITO ---
+# =================================================================================
 
-#Filho de Cartões de Crédito (crud_app.py)
 class Cadastrar_car_cred(ctk.CTkFrame):
+    """
+    Formulário para definição de propriedades de cartões de crédito 
+    (Limites, Dias de Fechamento/Vencimento e Cor).
+    """
 
-    def __init__(self,  parent=None, user_id=None, nomes_cards=None, cb_comandante_crud=None, cb_vcmd_num=None, *args, **kwargs):
+    def __init__(self, parent: Any = None, user_id: Optional[int] = None, nomes_cards: Optional[List[str]] = None, cb_comandante_crud: Optional[Callable] = None, cb_vcmd_num: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.nomes_cards = nomes_cards
+        self.nomes_cards = nomes_cards or []
         self.cdt_crud = cb_comandante_crud
         self.vcmd_num = cb_vcmd_num
-
-        # ---------------- Gerencimento de self ---------------------
-        
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1)
@@ -643,7 +616,7 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         ctk.CTkLabel(self, text="Cor do Cartão*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=11, column=0, padx=20, sticky="w")
         self.cor = ctk.CTkOptionMenu(self, values=cores)
         self.cor.grid(row=12, column=0, padx=20, pady=(2, 10), sticky="ew")
-        self.cor.set('Sem cor')
+        self.cor.set('Sem Cor')
 
         # -------- BOTÃO SALVAR ---------
         self.botao_salvar = ctk.CTkButton(self, text="Salvar Dados", command=self.salvar_dados)
@@ -654,8 +627,8 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         self.status_label.grid(row=14, column=0, pady=5)
 
 
-    def salvar_dados(self, id_card=None, atualizar=None):
-        """ Verifica e salva os dados no BD """
+    def salvar_dados(self, id_card: Optional[int] = None, atualizar: bool = False) -> None:
+        """Processa e valida a criação/edição da entidade Cartao_credito."""
 
         nome_cc = self.nome_cc.get().strip()
         limite = self.limite.get().strip()
@@ -664,91 +637,83 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         bandeira = self.bandeira.get().strip()
         cor_card = self.cor.get().strip()
         
-        #verifiva se já tem o nome informado na entry no bd
+        # Evita duplicidade de nomes para não confundir o helper/joins
         for nome in self.nomes_cards:
             if nome == nome_cc:
                 tocar_notificacao("dv_erro", True)
-
                 if not atualizar:
-                    self.status_label.configure(text=f'Por favor, Não repitir nome de cartões já cadastrados, tente - *{nome_cc}10', text_color='red')
+                    self.status_label.configure(text=f'Por favor, Não repita nome de cartões já cadastrados, tente - *{nome_cc}10', text_color='red')
                     self.update_idletasks()
-
                     self.after(3000, lambda: self.status_label.configure(text=''))
                     return
 
         if not nome_cc or not limite or not dia_f or not dia_v:
             self.status_label.configure(text='Por favor, preencha todos os campos obrigarórios (*)', text_color='red')
             tocar_notificacao("dv_erro", True)
-
             self.update_idletasks()
             self.after(2000, lambda: self.status_label.configure(text=''))
-            
             return
         
-        obj_cartao = Cartao_credito(nome=nome_cc, limite=limite, fech=dia_f, venc=dia_v, bandeira=bandeira, cor=cor_card)
+        try:
+            limite_float = float(limite.replace(',', '.'))
+            dia_f_int = int(dia_f)
+            dia_v_int = int(dia_v)
+        except ValueError:
+            self.status_label.configure(text='Limites e dias devem ser numéricos!', text_color='red')
+            return
 
-        if not atualizar: #inserir
-            sucesso = self.cdt_crud(inserir=obj_cartao)
+        obj_cartao = Cartao_credito(nome=nome_cc, limite=limite_float, fech=dia_f_int, venc=dia_v_int, bandeira=bandeira, cor=cor_card)
 
+        if not atualizar: 
+            sucesso = self.cdt_crud(inserir=obj_cartao) if self.cdt_crud else False
             msg_ok = "INSERIDOS"
             msg_erro = "SALVAR"
-
-        else:# Atualizar
+        else:
             obj_cartao.id_cartao = id_card
-            sucesso = self.cdt_crud(atualizar=obj_cartao)
-
+            sucesso = self.cdt_crud(atualizar=obj_cartao) if self.cdt_crud else False
             msg_ok = "ATUALIZADOS"
             msg_erro = "ATUALIZAR"
 
         if sucesso:
             self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')
             self.update_idletasks()
-            
             self.after(2000, lambda: self.status_label.configure(text=''))
-
             self.controla_campos(None)
-                
         else:
             self.status_label.configure(text=f'Não foi possível {msg_erro} os dados, contate o adm do sistema...', text_color='red')
             self.update_idletasks()
-
             self.after(2000, lambda: self.status_label.configure(text=''))
     
 
-    def controla_campos(self, dados=None):
-        
+    def controla_campos(self, dados: Optional[Dict[str, Any]] = None) -> None:
+        """Preenche o form para update com base em registro pré-selecionado na UI."""
+
         self.limpa_campos()
 
         if dados:
-
             id_card = dados.get('id_cartao')
 
-            self.nome_cc.insert(0, (dados.get('nome_cartao')))
-            self.limite.insert(0, str(dados.get('limite_cartao')))
-            self.dia_fechamento.insert(0, dados.get('dia_fechamento'))
-            self.dia_vencimento.insert(0, dados.get('dia_vencimento'))
+            self.nome_cc.insert(0, str(dados.get('nome_cartao', '')))
+            self.limite.insert(0, str(dados.get('limite_cartao', '')))
+            self.dia_fechamento.insert(0, str(dados.get('dia_fechamento', '')))
+            self.dia_vencimento.insert(0, str(dados.get('dia_vencimento', '')))
 
             ret_bandeira = dados.get('bandeira') or ""
-            self.bandeira.insert(0, ret_bandeira)
+            self.bandeira.insert(0, str(ret_bandeira))
 
             ret_cor = dados.get('cor') or 'Sem Cor'
-            self.cor.set(formata_cor(cor=ret_cor))
+            self.cor.set(formata_cor(cor=str(ret_cor)))
 
             self.botao_salvar.configure(text='Atualizar Cartão', fg_color="orange", command=lambda: self.salvar_dados(id_card, atualizar=True))
-        
         else:
-            id_card = None
-
             self.botao_salvar.configure(
             text="Salvar Dados", 
             fg_color=["#3B8ED0", "#1F6AA5"], 
             command=self.salvar_dados 
         )
 
-
-    def limpa_campos(self):
-        """Limpa todos os campos de entrada do formulário""" 
-        
+    def limpa_campos(self) -> None:
+        """Limpa todos os campos de entrada do formulário de cartões.""" 
         self.nome_cc.delete(0, ctk.END)
         self.limite.delete(0, ctk.END)
         self.dia_fechamento.delete(0, ctk.END)
@@ -757,14 +722,18 @@ class Cadastrar_car_cred(ctk.CTkFrame):
         self.cor.set('Sem Cor')
 
 
-#Filho de Assinaturas (crud_app.py)
-class Cadastrar_assinatura(ctk.CTkFrame):
+# =================================================================================
+# --- CADASTRO DE ASSINATURAS ---
+# =================================================================================
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, cb_comandante_crud=None, cb_vcmd_num=None, *args, **kwargs):
+class Cadastrar_assinatura(ctk.CTkFrame):
+    """Formulário focado em pagamentos recorrentes indefinidos (Assinaturas)."""
+
+    def __init__(self, parent: Any = None, user_id: Optional[int] = None, dados_cartoes: Optional[List[Dict[str, Any]]] = None, cb_comandante_crud: Optional[Callable] = None, cb_vcmd_num: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
-        self.dados_cartoes = dados_cartoes 
+        self.dados_cartoes = dados_cartoes or []
         self.cdt_crud = cb_comandante_crud
         self.vcmd_num = cb_vcmd_num
         
@@ -824,14 +793,13 @@ class Cadastrar_assinatura(ctk.CTkFrame):
         # ------- MENU DE CARTÕES ---------
         if self.nomes_cartoes:
             campo_cartoes = ["Cartão de Cobrança - Sem Cartão"] + self.nomes_cartoes
-
             self.menu_cc = ctk.CTkOptionMenu(self, values=campo_cartoes, width=300)
             self.menu_cc.grid(row=13, column=0, padx=20, pady=(2,10), sticky="ew")
             self.menu_cc.set("Cartão de Cobrança - Sem Cartão")
         else:
-            self.car_cred = ctk.CTkOptionMenu(self, values=[' ', ' ',])
-            self.car_cred.grid(row=13, column=0, padx=20, pady=(2,10), sticky="ew")
-            self.car_cred.set("Cadastre Seus Cartões Na Área Destinada")
+            self.menu_cc = ctk.CTkOptionMenu(self, values=[' ', ' ',])
+            self.menu_cc.grid(row=13, column=0, padx=20, pady=(2,10), sticky="ew")
+            self.menu_cc.set("Cadastre Seus Cartões Na Área Destinada")
     
         # ------ BOTÃO SALVAR -------
         self.btn_salvar = ctk.CTkButton(self, text="Confirmar Assinatura", command=self.salvar_dados, fg_color="#2c3e50", hover_color="#34495e")
@@ -842,25 +810,22 @@ class Cadastrar_assinatura(ctk.CTkFrame):
         self.status_label.grid(row=15, column=0, pady=5)
 
 
-    def salvar_dados(self, id_ass=None, atualizar=None):
+    def salvar_dados(self, id_ass: Optional[int] = None, atualizar: bool = False) -> None:
+        """Processa e valida a criação/edição da entidade assinatura."""
 
         dia_venc = None
         verifica_data_pp = False
-
         id_card = None
 
         nome = self.entry_nome.get().strip()
-        valor = self.entry_valor.get().strip()
+        valor_str = self.entry_valor.get().strip()
         descricao = self.entry_desc.get().strip()
         data_aq =  self.data_aquisicao.get_date()
         data_pp = self.campo_prim_dp.get_date()
         categoria = self.menu_cat.get().strip()
         cartao = self.menu_cc.get().strip()
 
-        #preparando para mandar para o db
-
         data_aq_mysql = data_para_mysql(data_aq)
-
         data_pp_mysql = None
 
         if data_pp != self.sentinela:
@@ -870,76 +835,61 @@ class Cadastrar_assinatura(ctk.CTkFrame):
 
             if data_pp.year == self.sentinela.year:
                 self.status_label.configure(text='Mude o ano da data de primeiro pagemento', text_color='red')
-
                 tocar_notificacao("dv_erro", True)
                 self.after(3000, lambda: self.status_label.configure(text='')) 
                 return
 
-        if not nome or not valor or categoria == "Selecione a Categoria":
-
+        if not nome or not valor_str or categoria == "Selecione a Categoria":
             self.status_label.configure(text='Preencha Nome, Valor, Categoria ,', text_color='red')
             tocar_notificacao("dv_erro", True)
             self.after(3000, lambda: self.status_label.configure(text=''))
             return
 
         try:
-             # Converte o valor para float
-            valor = float(valor.replace(",", "."))
+            valor = float(valor_str.replace(",", "."))
         except ValueError:
             self.status_label.configure(text=" 'Valor' deve ser números válidos!", text_color='red')
             tocar_notificacao("dv_erro", True)
-
             self.after(3000, lambda: self.status_label.configure(text=''))
             return
         
-        #Verifica de o usuário selecionou um cartão
         tem_cartao = cartao != "Cartão de Cobrança - Sem Cartão"
         if tem_cartao:
             for dado in self.dados_cartoes:
                 if dado.get('nome_cartao') == cartao:
                     id_card = dado.get('id_cartao')
 
-        #Verifica se data_pp ou seleção do cartão não foi alterado 
         if not verifica_data_pp and cartao == "Cartão de Cobrança - Sem Cartão":
             self.status_label.configure(text='Selecione uma data de primeiro pagamento ou um cartão de crédito ', text_color='red')
             tocar_notificacao("dv_erro", True)
-
             self.after(3000, lambda: self.status_label.configure(text='')) 
             return
         
+        obj_assinatura = Assinatura(nome=nome, valor=valor, descricao=descricao, categoria=categoria, data_aq=data_aq_mysql, data_pp=data_pp_mysql, dia_venc=dia_venc, id_cc=id_card) # type: ignore
 
-        obj_assinatura = Assinatura(nome=nome, valor=valor, descricao=descricao, categoria=categoria, data_aq=data_aq_mysql, data_pp=data_pp_mysql, dia_venc=dia_venc, id_cc=id_card)
-
-        if not atualizar: # inserir no banco
-            sucesso = self.cdt_crud(inserir=obj_assinatura)
-
+        if not atualizar: 
+            sucesso = self.cdt_crud(inserir=obj_assinatura) if self.cdt_crud else False
             msg_ok = "INSERIDOS"
             msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
-            
-        else: # atualizar no banco
+        else: 
             obj_assinatura.id_ass = id_ass
-            sucesso = self.cdt_crud(atualizar=obj_assinatura)
-
+            sucesso = self.cdt_crud(atualizar=obj_assinatura) if self.cdt_crud else False
             msg_ok = "ATUALIZADOS"
             msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema...'"
 
         if sucesso:
             self.status_label.configure(text=f'Os dados foram {msg_ok} com sucesso!', text_color='green')
             self.update_idletasks()
-
             self.controla_campos(None)
-            
             self.after(2000, lambda: self.status_label.configure(text=''))  
-
         else:
             self.status_label.configure(text=f'{msg_falha}', text_color='red')
             self.update_idletasks()
-
             self.after(2000, lambda: self.status_label.configure(text=''))
 
 
-    def controla_campos(self, dados=None):
-
+    def controla_campos(self, dados: Optional[Dict[str, Any]] = None) -> None:
+        """Preenche o form para update com base em registro pré-selecionado na UI."""
 
         self.limpa_campos()
 
@@ -947,50 +897,40 @@ class Cadastrar_assinatura(ctk.CTkFrame):
             nome_card = "Cartão de Cobrança - Sem Cartão"
 
             if self.dados_cartoes:
-
                 for cartao in self.dados_cartoes:
                     if cartao.get('id_cartao') == dados.get('id_cc'):
-                        nome_card = cartao.get('nome_cartao')
+                        nome_card = str(cartao.get('nome_cartao', ''))
 
             id_ass = dados.get('id_ass')
-
             data_aq_obj = mysql_para_obj(dados.get('data_aquisicao'))
             data_pp_obj = mysql_para_obj(dados.get('data_pp'))
 
-            self.entry_nome.insert(0, (dados.get('nome')))
-            self.entry_valor.insert(0, str(dados.get('valor')))
-            self.entry_desc.insert(0, dados.get('descricao'))
-            self.data_aquisicao.set_date(data_aq_obj)
-            self.campo_prim_dp.set_date(data_pp_obj)
-            self.menu_cat.set(dados.get('categoria'))
-            self.menu_cc.set(nome_card)
+            self.entry_nome.insert(0, str(dados.get('nome', '')))
+            self.entry_valor.insert(0, str(dados.get('valor', '')))
+            self.entry_desc.insert(0, str(dados.get('descricao', '')))
             
+            if data_aq_obj: self.data_aquisicao.set_date(data_aq_obj)
+            if data_pp_obj: self.campo_prim_dp.set_date(data_pp_obj)
+            
+            self.menu_cat.set(str(dados.get('categoria', '')))
+            self.menu_cc.set(nome_card)
 
             self.btn_salvar.configure(text='Atualizar Assinatura', fg_color="orange", command=lambda: self.salvar_dados(id_ass, atualizar=True))
-        
         else:
-            id_ass = None
-
             self.btn_salvar.configure(
             text="Confirmar Assinatura", 
-            fg_color=["#3B8ED0", "#1F6AA5"], # Cores padrão do CTk
-            command=self.salvar_dados # Função original de INSERT
+            fg_color=["#3B8ED0", "#1F6AA5"],
+            command=self.salvar_dados
         )
 
-
-    def limpa_campos(self):
-        """Limpa todos os campos de entrada do formulário de assinaturas."""
-        
-        # Limpa CTkEntry's
+    def limpa_campos(self) -> None:
+        """Restaura todas as comboboxes e entries do form Assinatura para o padrão."""
         self.entry_nome.delete(0, ctk.END)
         self.entry_valor.delete(0, ctk.END)
         self.entry_desc.delete(0, ctk.END)
 
-        # Reseta CTkOptionMenu's para seus valores padrão
         self.menu_cat.set("Selecione a Categoria")
         self.menu_cc.set("Cartão de Cobrança - Sem Cartão")
 
         self.data_aquisicao.set_date(self.data_atual)
         self.campo_prim_dp.set_date(self.sentinela)
-
-
