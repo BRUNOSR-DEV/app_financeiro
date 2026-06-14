@@ -1,3 +1,11 @@
+"""
+Módulo CRUD App (Gerenciamento de Janelas e Controladores)
+
+Este módulo atua como a camada Controller do padrão MVC. Ele contém o `CrudManage` 
+(Fábrica de Janelas) e as classes Toplevel (pop-ups) que integram os formulários (forms.py), 
+as listagens (detalhar.py) e os repositórios do banco de dados, controlando o fluxo de 
+inserção, atualização e exclusão de dados na interface.
+"""
 
 # ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
 # ----- BANCO DE DADOS (models) ------
@@ -19,7 +27,7 @@ from utils.audio_helper import(tocar_notificacao)
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
 #BILIO PADRÕES
-from typing import List
+from typing import List, Optional, Callable, Any, Dict
 from datetime import datetime
 
 #BIBLIO VIA PIP
@@ -30,16 +38,34 @@ from dateutil.relativedelta import relativedelta
 ctk.set_appearance_mode('dark')
 
 
-# -1° MÓDULO CrudManager - GERENCIADOR DE JANELAS
-class  CrudManage:
+# =================================================================================
+# -1° MÓDULO: CrudManage - GERENCIADOR DE JANELAS (FACTORY)
+# =================================================================================
+
+class CrudManage:
+    """
+    Fábrica responsável por instanciar e abrir todas as janelas secundárias (Pop-ups/Toplevel).
+    Armazena o estado global (dados do usuário logado) e repassa para as telas filhas.
+    """
 
     def __init__(
-            self, parent=None,
-            # ------- dependências
-            user_id=None, dados_usuario=None, dados_receitas=None, dados_cartoes=None, 
-            nomes_cartoes=None, despesas_avulsas=None, assinaturas_avulsas=None, dados_prontos=None,
-            # ------- callbacks
-            cb_atualiza_bd=None, cb_vcmd_num=None, cb_att_app=None, cb_trocar_mes=None):
+            self, 
+            parent: Any = None,
+            # ------- dependências de dados
+            user_id: Optional[int] = None, 
+            dados_usuario: Optional[List[Dict[str, Any]]] = None, 
+            dados_receitas: Optional[List[Dict[str, Any]]] = None, 
+            dados_cartoes: Optional[List[Dict[str, Any]]] = None, 
+            nomes_cartoes: Optional[List[str]] = None, 
+            despesas_avulsas: Optional[List[Dict[str, Any]]] = None, 
+            assinaturas_avulsas: Optional[List[Dict[str, Any]]] = None, 
+            dados_prontos: Optional[List[Dict[str, Any]]] = None,
+            # ------- callbacks (Eventos disparados entre janelas)
+            cb_atualiza_bd: Optional[Callable] = None, 
+            cb_vcmd_num: Optional[Callable] = None, 
+            cb_att_app: Optional[Callable] = None, 
+            cb_trocar_mes: Optional[Callable] = None
+        ) -> None:
         
         self.parent = parent
         self.user_id = user_id
@@ -51,84 +77,83 @@ class  CrudManage:
         self.assinaturas_avulsas = assinaturas_avulsas
         self.dados_prontos = dados_prontos
 
+        #------ callbacks mapeados
+        self.atualiza_bd = cb_atualiza_bd # vem do login_app
+        self.vcmd_num = cb_vcmd_num       # vem do login_app e main_app
+        self.att_app = cb_att_app         # vem do main_app
+        self.trocar_mes = cb_trocar_mes   # vem do main_app
 
-        #------ callbacks
-        self.atualiza_bd = cb_atualiza_bd #vem do login_app
-        self.vcmd_num = cb_vcmd_num #vem do login_app e main_app
-        self.att_app = cb_att_app # vem do main_app
-        self.trocar_mes = cb_trocar_mes #vem do main_app
 
-
-    def tela_usuarios(self):
+    def tela_usuarios(self) -> None:
+        """Abre a janela de cadastro e gerenciamento de novos usuários."""
         tocar_notificacao("open_w", True)
-
         register_window = Usuarios(parent=self.parent, cb_atualiza_bd=self.atualiza_bd, cb_vcmd_num=self.vcmd_num)
         self.parent.wait_window(register_window)
 
-
-    def tela_receitas(self):
+    def tela_receitas(self) -> None:
+        """Abre a janela de CRUD de Receitas."""
         tocar_notificacao('open_w', True)
-        
-        register_window = Receitas(parent=self.parent, user_id=self.user_id, dados_receitas=self.dados_receitas, att_app = self.att_app, cb_vcmd_num=self.vcmd_num)
+        register_window = Receitas(parent=self.parent, user_id=self.user_id, dados_receitas=self.dados_receitas, att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
         self.parent.wait_window(register_window) 
 
-
-    def tela_despesas(self):
+    def tela_despesas(self) -> None:
+        """Abre a janela de CRUD de Despesas avulsas e parceladas."""
         tocar_notificacao('open_w', True)
-
         register_window = Despesas(parent=self.parent, user_id=self.user_id, dados_cartoes=self.dados_cartoes, cb_trocar_mes=self.trocar_mes, cb_att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
         self.parent.wait_window(register_window)
 
-
-    def tela_car_cred(self):
+    def tela_car_cred(self) -> None:
+        """Abre a janela de CRUD de Cartões de Crédito."""
         tocar_notificacao('open_w', True)
-
         register_window = Car_cred(parent=self.parent, user_id=self.user_id, dados_cartoes=self.dados_cartoes, nomes_cards=self.nomes_cartoes, cb_att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
         self.parent.wait_window(register_window)
 
-
-    def tela_assinaturas(self):
+    def tela_assinaturas(self) -> None:
+        """Abre a janela de CRUD de Assinaturas/Recorrências."""
         tocar_notificacao('open_w', True)
-
         register_window = Assinaturas(parent=self.parent, user_id=self.user_id, dados_cartoes=self.dados_cartoes, cb_att_app=self.att_app, cb_vcmd_num=self.vcmd_num)
         self.parent.wait_window(register_window)
         
-
-    def tela_simulacao(self):
+    def tela_simulacao(self) -> None:
+        """Abre o ambiente Sandbox para simulação de impacto de novas despesas."""
         tocar_notificacao('open_w', True)
-
-        register_window = Simulacao(parent=self.parent, id_user=self.user_id, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_usuario=self.dados_usuario, nomes_cartoes=self.nomes_cartoes, dados_prontos=self.dados_prontos, cb_vcmd_num=self.vcmd_num)
-
+        register_window = Simulacao(parent=self.parent, id_user=self.user_id, despesas_avulsas=self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_usuario=self.dados_usuario, nomes_cartoes=self.nomes_cartoes, dados_prontos=self.dados_prontos, cb_vcmd_num=self.vcmd_num)
         self.parent.wait_window(register_window) 
 
-
-    def tela_faturas(self, nome_select=None):
+    def tela_faturas(self, nome_select: Optional[str] = None) -> None:
+        """
+        Abre a visão detalhada (Fatura Fechada/Aberta) de um cartão específico.
+        
+        Args:
+            nome_select (str): Nome do cartão selecionado no dropdown da Main_app.
+        """
         tocar_notificacao('open_w', True)
-
         id_card = [card['id_cartao'] for card in self.dados_cartoes if card['nome_cartao'] == nome_select]
 
         if id_card:
-            register_window = Faturas(parent=self.parent, id_user=self.user_id, id_card=id_card[0], nome_card=nome_select, dados_card=self.dados_cartoes, dados_prontos= self.dados_prontos)
+            register_window = Faturas(parent=self.parent, id_user=self.user_id, id_card=id_card[0], nome_card=nome_select, dados_card=self.dados_cartoes, dados_prontos=self.dados_prontos)
             self.parent.wait_window(register_window)
         else:
             print('ERRO: ID card não encontrado!')
 
 
-#-2° Módulo Usuarios
-class Usuarios(ctk.CTkToplevel):
+# =================================================================================
+# -2° MÓDULO: Usuarios
+# =================================================================================
 
-    def __init__(self,  parent=None, cb_atualiza_bd=None, cb_vcmd_num=None, *args, **kwargs):
+class Usuarios(ctk.CTkToplevel):
+    """Interface de criação e gestão de usuários (Login/Senha)."""
+
+    def __init__(self, parent: Any = None, cb_atualiza_bd: Optional[Callable] = None, cb_vcmd_num: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
     
         self.parent = parent 
         self.atualiza_bd = cb_atualiza_bd
         self.vcmd_num = cb_vcmd_num
 
-        #instância do db - classe Rep_Usuario - entidade Usuario
-        self.db_conn= Database()
+        self.db_conn = Database()
         self.db = Rep_Usuario(self.db_conn)
 
-        # --------------- Configuração da janela/'labels' -----------------------
         self.title("Registrar Novo Usuário")
         centralizar_janela_responsiva(janela=self, tipo_janela='medio')
         self.transient(parent) 
@@ -138,8 +163,7 @@ class Usuarios(ctk.CTkToplevel):
         self.grid_columnconfigure(0, weight=1) 
 
         # ---------------- Gerencimento ---------------------
-        self.dados_usuarios: List[Dados_usuarios_db] = self.db.dados_usuarios()
-
+        self.dados_usuarios = self.db.dados_usuarios()
         self.nome_users = [dado['nome_user'] for dado in self.dados_usuarios]
 
         # ---------------- Frame Cadastro ------------------------
@@ -147,30 +171,33 @@ class Usuarios(ctk.CTkToplevel):
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
 
-    def comandante_crud(self, inserir:Usuario=None):
-        
+    def comandante_crud(self, inserir: Optional[Usuario] = None) -> Optional[bool]:
+        """Recebe o objeto de formulário e orquestra a inserção no banco."""
         sucesso = None
-
         if inserir:
             sucesso = self.db.inserir_usuario(usuario=inserir)
         
         if sucesso:
             tocar_notificacao("dv_sucesso", True)
-            
             self.atualiza_bd()
         else:
             tocar_notificacao("dv_erro", True)
         
         return sucesso
 
-    def fechar(self):
+    def fechar(self) -> None:
+        """Destroi a Toplevel de forma limpa."""
         self.destroy()
         
 
-#-3° Módulo Receitas
-class Receitas(ctk.CTkToplevel): 
+# =================================================================================
+# -3° MÓDULO: Receitas
+# =================================================================================
 
-    def __init__(self,  parent=None, user_id=None, dados_receitas=None, att_app=None, cb_vcmd_num=None, *args, **kwargs):
+class Receitas(ctk.CTkToplevel): 
+    """Interface para visualização, inserção, edição e exclusão de Rendas Variáveis."""
+
+    def __init__(self, parent: Any = None, user_id: Optional[int] = None, dados_receitas: Optional[List] = None, att_app: Optional[Callable] = None, cb_vcmd_num: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.parent = parent
@@ -179,22 +206,18 @@ class Receitas(ctk.CTkToplevel):
         self.att_app = att_app
         self.vcmd_num = cb_vcmd_num
 
-        #instância do db - classe Rep_Usuario - entidade Usuario
         self.db_conn= Database()
         self.db = Rep_Receita(self.db_conn)
 
-        # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Receitas")
         centralizar_janela_responsiva(janela=self, tipo_janela='medio')
-        self.transient(self.parent) # Faz a popup aparecer sobre a janela principal e fechar com ela
-        self.focus_set() # Define o foco para esta janela
+        self.transient(self.parent) 
+        self.focus_set() 
 
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
-
         self.notifica_delete = False
 
-        # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1) 
         self.grid_columnconfigure(1, weight=2) 
         self.grid_rowconfigure(0, weight=1)
@@ -203,16 +226,14 @@ class Receitas(ctk.CTkToplevel):
         self.frame_cadastro = Cadastrar_receita(parent=self, user_id=self.user_id, callback_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
-
         #-------------- FRAME DA LISTA (Update/Delete) --------------------------
-        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, dados_receitas=self.dados_receitas, controle_dados= self.controle_dados, callback_comandante_crud=self.comandante_crud)
+        self.frame_lista = Listar_receitas(parent=self, user_id=self.user_id, dados_receitas=self.dados_receitas, controle_dados=self.controle_dados, callback_comandante_crud=self.comandante_crud)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
-    
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
 
-
-    def comandante_crud(self, inserir: Receita= None, atualizar: Receita=None, deletar: int =None):
+    def comandante_crud(self, inserir: Optional[Receita] = None, atualizar: Optional[Receita] = None, deletar: Optional[int] = None) -> Optional[bool]:
+        """Roteador principal de transações (CRUD) para a entidade Receita."""
 
         sucesso = None
 
@@ -223,7 +244,6 @@ class Receitas(ctk.CTkToplevel):
         elif deletar:
             self.notifica_delete = True
             sucesso = self.db.deletar_receita(id_rec=deletar)
-        
             
         if sucesso:
             self.definicao_sucesso()
@@ -233,8 +253,8 @@ class Receitas(ctk.CTkToplevel):
         return sucesso
     
 
-    def definicao_sucesso(self):
-
+    def definicao_sucesso(self) -> None:
+        """Gatilho visual e sonoro de sucesso + Update assíncrono do Dashboard."""
         if not self.notifica_delete:
             tocar_notificacao("dv_sucesso", True)
         else:
@@ -245,27 +265,29 @@ class Receitas(ctk.CTkToplevel):
             self.dados_receitas = new_dados['dados_receitas']
         
         self.update()
-
         self.frame_lista.listar(dados_receitas=self.dados_receitas)
         self.frame_cadastro.limpa_campos()
 
-
-    def definicao_insucesso(self):
+    def definicao_insucesso(self) -> None:
+        """Gatilho de falha de validação ou erro de banco."""
         tocar_notificacao("dv_erro", True)
 
-
-    def controle_dados(self, dados=None):
-        
+    def controle_dados(self, dados: Optional[Dict] = None) -> None:
+        """Repassa os dados selecionados na tabela para edição no formulário."""
         if dados:
             self.frame_cadastro.controla_campos(dados)
         else:
             print('ERRO: detalhar.py(Listar_receitas) não enviou os dados')
         
 
-#-4° Módulo Despesas
-class Despesas(ctk.CTkToplevel):
+# =================================================================================
+# -4° MÓDULO: Despesas
+# =================================================================================
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes =None, cb_trocar_mes=None, cb_att_app=None, cb_vcmd_num=None, *args, **kwargs):
+class Despesas(ctk.CTkToplevel):
+    """Interface principal para lançamento e edição de Despesas gerais."""
+
+    def __init__(self, parent: Any = None, user_id: Optional[int] = None, dados_cartoes: Optional[List] = None, cb_trocar_mes: Optional[Callable] = None, cb_att_app: Optional[Callable] = None, cb_vcmd_num: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
@@ -274,11 +296,9 @@ class Despesas(ctk.CTkToplevel):
         self.att_app = cb_att_app
         self.vcmd_num = cb_vcmd_num
 
-        #instância do db - classe Rep_Usuario - entidade Usuario
         self.db_conn= Database()
         self.db = Rep_Despesa(self.db_conn)
 
-        # --------------- Configuração da janela/'labels' -----------------------
         self.title("Gerenciar Despesas")
         centralizar_janela_responsiva(janela=self, tipo_janela='despass')
         self.transient(parent)
@@ -290,34 +310,28 @@ class Despesas(ctk.CTkToplevel):
 
         # ---------------- Gerencimento ---------------------
         self.data_atual = datetime.now().date()
-
-        self.dados_despesas: List[Dados_despesas_db] = self.db.dados_despesas(self.user_id)
-
+        self.dados_despesas = self.db.dados_despesas(self.user_id)
         self.notifica_delete = False
 
-         # ---------- formulário de cadastro -----------------------
+        # ---------- formulário de cadastro -----------------------
         self.frame_cadastro = Cadastrar_despesa(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, cb_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
-
         #-------------------- FRAME DA LISTA (Update/Delete) ----------------------------------
-        self.frame_lista = Listar_despesas(parent=self, user_id=self.user_id, dados_cartoes= self.dados_cartoes, dados_despesas=self.dados_despesas, controle_dados=self.controle_dados, cb_comandante_crud=self.comandante_crud)
+        self.frame_lista = Listar_despesas(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, dados_despesas=self.dados_despesas, controle_dados=self.controle_dados, cb_comandante_crud=self.comandante_crud)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
-    
         self.frame_lista.grid_columnconfigure(0, weight=1)
 
 
-
-    def comandante_crud(self, inserir: Despesa=None, atualizar:Despesa=None, deletar:Despesa=None):
+    def comandante_crud(self, inserir: Optional[Despesa] = None, atualizar: Optional[Despesa] = None, deletar: Optional[int] = None) -> Optional[bool]:
+        """Controlador de transações CRUD para a entidade Despesa."""
 
         sucesso = None
 
         if inserir:
             sucesso = self.db.inserir_despesa(id_user=self.user_id, despesa=inserir)
-
         elif atualizar:
             sucesso = self.db.atualizar_despesa(despesa=atualizar)
-
         elif deletar:
             self.notifica_delete = True
             sucesso = self.db.deletar_despesa(id_desp=deletar)
@@ -330,8 +344,8 @@ class Despesas(ctk.CTkToplevel):
         return sucesso
     
 
-    def definicao_sucesso(self):
-
+    def definicao_sucesso(self) -> None:
+        """Confirmação de transação e reload da grid."""
         if not self.notifica_delete:
             tocar_notificacao("dv_sucesso", True)
         else:
@@ -341,54 +355,48 @@ class Despesas(ctk.CTkToplevel):
             self.att_app()
         
         self.dados_despesas = self.db.dados_despesas(self.user_id)
-        
         self.update()
-
         self.frame_lista.listar(dados_despesas=self.dados_despesas)
         self.frame_cadastro.limpa_campos()
 
-
-    def definicao_insucesso(self):
+    def definicao_insucesso(self) -> None:
         tocar_notificacao("dv_erro", True)
 
-
-    def controle_dados(self, dados):
-
+    def controle_dados(self, dados: Optional[Dict] = None) -> None:
+        """Injeta dados selecionados da listagem para o painel de edição (Form)."""
         if dados:
             self.frame_cadastro.controla_campos(dados)
         else:
             print('ERRO: detalhar(despesas não mandou os dados esperados!)')
 
 
-#-5 Módulo Cartões de Crédito
-class Car_cred(ctk.CTkToplevel):
+# =================================================================================
+# -5° MÓDULO: Cartões de Crédito
+# =================================================================================
 
-    def __init__(self,  parent=None, user_id=None, dados_cartoes=None, nomes_cards =None, cb_att_app = None, cb_vcmd_num=None, *args, **kwargs):
+class Car_cred(ctk.CTkToplevel):
+    """Interface para gerenciamento de Cartões, bandeiras, dias de corte e limite."""
+
+    def __init__(self, parent: Any = None, user_id: Optional[int] = None, dados_cartoes: Optional[List] = None, nomes_cards: Optional[List] = None, cb_att_app: Optional[Callable] = None, cb_vcmd_num: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.nomes_cards = nomes_cards
         self.dados_cartoes = dados_cartoes
-
         self.vcmd_num = cb_vcmd_num
         self.att_app = cb_att_app
 
-        #instância do db - classe Rep_Usuario - entidade Usuario
         self.db_conn= Database()
         self.db = Rep_Cartao_credito(self.db_conn)
 
-        # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Cartões de Crédito")
         centralizar_janela_responsiva(janela=self, tipo_janela='outro')
         self.transient(parent)
         self.focus_set()
 
-        # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
-
         self.notifica_delete = False
 
-        # --------------- Configuração da janela/'labels' -----------------------
         self.grid_columnconfigure(0, weight=1) 
         self.grid_columnconfigure(1, weight=2) 
         self.grid_rowconfigure(0, weight=1)
@@ -398,23 +406,22 @@ class Car_cred(ctk.CTkToplevel):
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
-        self.frame_lista = Listar_car_cred(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, controle_dados = self.controle_dados, cb_comandante_crud=self.comandante_crud)
+        self.frame_lista = Listar_car_cred(parent=self, user_id=self.user_id, dados_cartoes=self.dados_cartoes, controle_dados=self.controle_dados, cb_comandante_crud=self.comandante_crud)
         self.frame_lista.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
-    
         self.frame_lista.grid_columnconfigure(0, weight=1)
 
 
-    def comandante_crud(self, inserir:Cartao_credito=None, atualizar:Cartao_credito=None, deletar: int=None):
-        #'Sem Cor','Roxo', 'Laranja', 'Preto', 'Vermelho', 'Cinza', 'Verde'
+    def comandante_crud(self, inserir: Optional[Cartao_credito] = None, atualizar: Optional[Cartao_credito] = None, deletar: Optional[int] = None) -> Optional[bool]:
+        """Mediador do fluxo de transação de Cartões de Crédito, com conversão HEX automática."""
+
         if inserir:
             inserir.cor = formata_cor(nome_cor=inserir.cor)
-
             sucesso = self.db.inserir_cc(id_user=self.user_id, cartao=inserir)
 
         elif atualizar:
             atualizar.cor = formata_cor(nome_cor=atualizar.cor)
-            
             sucesso = self.db.atualizar_cartao(cartao=atualizar)
+
         elif deletar:
             self.notifica_delete = True
             sucesso =  self.db.deletar_cartao(id_card=deletar)
@@ -426,9 +433,7 @@ class Car_cred(ctk.CTkToplevel):
         
         return sucesso
 
-
-    def definicao_sucesso(self):
-
+    def definicao_sucesso(self) -> None:
         if not self.notifica_delete:
             tocar_notificacao("dv_sucesso", True)
         else:
@@ -439,57 +444,50 @@ class Car_cred(ctk.CTkToplevel):
             self.dados_cartoes = retorno['dados_cartoes']
         
         self.update()
-
         self.frame_lista.listar(dados_cartoes=self.dados_cartoes)
         self.frame_cadastro.limpa_campos()
 
-
-    def definicao_insucesso(self):
+    def definicao_insucesso(self) -> None:
         tocar_notificacao("dv_erro", True)
 
-
-    def controle_dados(self, dados=None):
-        
+    def controle_dados(self, dados: Optional[Dict] = None) -> None:
         if dados:
             self.frame_cadastro.controla_campos(dados)
         else:
             print('ERRO: Detalhar(car_cred não mandou os dados esperados!)')
         
 
-#-6° Módulo Assinaturas
-class Assinaturas(ctk.CTkToplevel):
+# =================================================================================
+# -6° MÓDULO: Assinaturas
+# =================================================================================
 
-    def __init__(self, parent=None, user_id=None, dados_cartoes=None, cb_att_app= None, cb_vcmd_num=None, *args, **kwargs):
+class Assinaturas(ctk.CTkToplevel):
+    """Interface para gestão de débitos contínuos (Streamings, Lazer, Software)."""
+
+    def __init__(self, parent: Any = None, user_id: Optional[int] = None, dados_cartoes: Optional[List] = None, cb_att_app: Optional[Callable] = None, cb_vcmd_num: Optional[Callable] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes
-
         self.att_app = cb_att_app
         self.vcmd_num = cb_vcmd_num
 
-        #instância do db - classe Rep_Usuario - entidade Usuario
         self.db_conn= Database()
         self.db = Rep_Assinatura(self.db_conn)
 
-        # --------------- Criação da Jenela -----------------------
         self.title("Gerenciar Assinaturas")
         centralizar_janela_responsiva(janela=self, tipo_janela='despass')
         self.transient(parent) 
         self.focus_set() 
        
-        # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
+        # Assinaturas não têm fim por padrão (Simulado até +73 anos)
         self.data_futuro = (self.data_atual + relativedelta(years=73)).replace(day=1, month=1)
-
         self.dados_assinaturas = self.db.dados_assinaturas(self.user_id)
-
         self.notifica_delete = False
 
-        # --------------- Configuração da janela/'labels' -----------------------
-
-        self.grid_columnconfigure(0, weight=1) #coluna o - formulário
-        self.grid_columnconfigure(1, weight=4) #coluna 1 - Lista
+        self.grid_columnconfigure(0, weight=1) 
+        self.grid_columnconfigure(1, weight=4) 
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
@@ -499,20 +497,16 @@ class Assinaturas(ctk.CTkToplevel):
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
         self.frame_lista = Listar_assinaturas(self, self.user_id, self.dados_cartoes, self.dados_assinaturas, self.controle_dados, cb_comandante_crud=self.comandante_crud )
         self.frame_lista.grid(row=0, column=1, padx=(0,20), pady=20, sticky="nsew")
-    
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
 
-    def comandante_crud(self, inserir:Assinatura=None, atualizar:Assinatura=None, deletar:int=None):
-
-        inserir: Envia_ass_form = inserir
-        atualizar: Envia_ass_form = atualizar
+    def comandante_crud(self, inserir: Optional[Assinatura] = None, atualizar: Optional[Assinatura] = None, deletar: Optional[int] = None) -> Optional[bool]:
+        """Gerencia o disparo de inserts/updates de recorrências."""
 
         sucesso = None
 
         if inserir:
             sucesso = self.db.inserir_assinatura(id_user=self.user_id, assinatura=inserir)
-
         elif atualizar:
             sucesso = self.db.atualizar_assinatura(assinatura=atualizar)
         elif deletar:
@@ -527,8 +521,7 @@ class Assinaturas(ctk.CTkToplevel):
         return sucesso
 
 
-    def definicao_sucesso(self):
-
+    def definicao_sucesso(self) -> None:
         if not self.notifica_delete:
             tocar_notificacao("dv_sucesso", True)
         else:
@@ -538,44 +531,44 @@ class Assinaturas(ctk.CTkToplevel):
             self.att_app()
         
         self.dados_assinaturas = self.db.dados_assinaturas(self.user_id)
-        
         self.update()
-
         self.frame_lista.listar(dados_ass=self.dados_assinaturas)
         self.frame_cadastro.limpa_campos()
 
-
-    def definicao_insucesso(self):
+    def definicao_insucesso(self) -> None:
         tocar_notificacao("dv_erro", True)
 
-
-    def controle_dados(self, dados=None):
-        
+    def controle_dados(self, dados: Optional[Dict] = None) -> None:
         if dados:
             self.frame_cadastro.controla_campos(dados)
         else:
             print('ERRO: Detalhar(car_cred não mandou os dados esperados!)')
         
 
-#-7° Módulo Faturas
+# =================================================================================
+# -7° MÓDULO: Faturas (Visão Analítica Mensal)
+# =================================================================================
+
 class Faturas(ctk.CTkToplevel):
+    """
+    Interface de "Fatura Fechada". 
+    Mostra em tempo real as parcelas e assinaturas de um cartão para o mês atual e o próximo.
+    """
     
-    def __init__(self, parent, id_user=None, id_card=None, nome_card=None, dados_prontos=None, dados_card=None, *args, **kwargs):
+    def __init__(self, parent: Any, id_user: Optional[int] = None, id_card: Optional[int] = None, nome_card: Optional[str] = None, dados_prontos: Optional[List] = None, dados_card: Optional[List] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
         self.id_card = id_card
         self.nome_card = nome_card
-        self.dados_card: List[Dados_cartoes_db]  = dados_card
+        self.dados_card = dados_card
         self.dados_prontos = dados_prontos
 
-        # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Detalhes: {self.nome_card}")
         centralizar_janela_responsiva(janela=self)
         self.transient(parent)
         self.focus_set() 
 
-        self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -586,20 +579,17 @@ class Faturas(ctk.CTkToplevel):
         self.container_principal.grid_rowconfigure(1, weight=1) 
 
         # ---------------- Gerencimento ---------------------
-
-
         self.limite = None
         self.fechamento = None
         self.vencimento = None
 
-        for card in self.dados_card:
-            if self.id_card == card['id_cartao']:
-
-                self.limite = card["limite_cartao"]
-                self.fechamento = card['dia_fechamento']
-                self.vencimento = card['dia_vencimento']
+        if self.dados_card:
+            for card in self.dados_card:
+                if self.id_card == card['id_cartao']:
+                    self.limite = card["limite_cartao"]
+                    self.fechamento = card['dia_fechamento']
+                    self.vencimento = card['dia_vencimento']
         
-
         self.data_atual = datetime.now().date()
         self.prox_mes_data = self.data_atual + relativedelta(months=1)
 
@@ -610,10 +600,13 @@ class Faturas(ctk.CTkToplevel):
         self.quart_prox_mes =  (self.data_atual + relativedelta(months=4)).month
         self.quint_prox_mes =  (self.data_atual + relativedelta(months=5)).month
 
-        if self.data_atual.day < self.fechamento:
-            proximo_venc = self.data_atual.replace(day=self.vencimento)
+        if self.fechamento and self.vencimento:
+            if self.data_atual.day < self.fechamento:
+                proximo_venc = self.data_atual.replace(day=self.vencimento)
+            else:
+                proximo_venc = self.prox_mes_data.replace(day=self.vencimento)
         else:
-            proximo_venc = self.prox_mes_data.replace(day=self.vencimento)
+            proximo_venc = self.data_atual # Fallback
 
         opcoes = gerar_opcoes_meses()
         self.mes_atual_str = opcoes.get(self.mes_atual)
@@ -624,8 +617,9 @@ class Faturas(ctk.CTkToplevel):
         self.quint_prox_mes_str = opcoes.get(self.quint_prox_mes)
 
         e = ' - '
-        self.nomes_datas = [self.mes_atual_str + e + self.prox_mes_str, self.seg_prox_mes_str + e + self.ter_prox_mes_str, self.quart_prox_mes_str + e + self.quint_prox_mes_str]
-
+        self.nomes_datas = [str(self.mes_atual_str) + e + str(self.prox_mes_str), 
+                            str(self.seg_prox_mes_str) + e + str(self.ter_prox_mes_str), 
+                            str(self.quart_prox_mes_str) + e + str(self.quint_prox_mes_str)]
 
         mes_a = f"#{self.nome_card} - Mês: {self.mes_atual_str}"
         mes_b = f"#{self.nome_card} - Mês: {self.prox_mes_str}"
@@ -634,9 +628,9 @@ class Faturas(ctk.CTkToplevel):
         self.top_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
         self.top_section.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         
-        self.top_section.grid_columnconfigure(0, weight=2) # fatura
-        self.top_section.grid_columnconfigure((1, 2, 3), weight=1) #infos cartao
-        self.top_section.grid_columnconfigure((4, 5), weight=0) # lebel e menu datas
+        self.top_section.grid_columnconfigure(0, weight=2) 
+        self.top_section.grid_columnconfigure((1, 2, 3), weight=1) 
+        self.top_section.grid_columnconfigure((4, 5), weight=0) 
 
         self.label_titulo = ctk.CTkLabel(self.top_section, text=f"Fatura: {nome_card}", font=("Arial", 22, "bold"))
         self.label_titulo.grid(row=0, column=0, padx=15, pady=10, sticky="w")
@@ -647,38 +641,35 @@ class Faturas(ctk.CTkToplevel):
         self.fech = ctk.CTkLabel(self.top_section, text=f"Dia de Fechamento: {self.fechamento}", font=("Arial", 16, "bold"))
         self.fech.grid(row=0, column=2, padx=10, pady=5, sticky="w")
 
-        self.limite = ctk.CTkLabel(self.top_section, text=f"Limite Cartão: {formatar_moeda(self.limite)}", font=("Arial", 16, "bold"))
+        self.limite = ctk.CTkLabel(self.top_section, text=f"Limite Cartão: {formatar_moeda(self.limite or 0)}", font=("Arial", 16, "bold"))
         self.limite.grid(row=0, column=3, padx=10, pady=5, sticky="w")
 
         self.label_mes = ctk.CTkLabel(self.top_section, text=f"Meses: ", font=ctk.CTkFont(size=16, weight="bold"))
         self.label_mes.grid(row=0, column=4, padx=(10, 5), pady=5, sticky="e")
 
-        self.menu_mes = ctk.CTkOptionMenu(self.top_section, values= self.nomes_datas, command=self.trocar_meses, fg_color="#676666")
+        self.menu_mes = ctk.CTkOptionMenu(self.top_section, values=self.nomes_datas, command=self.trocar_meses, fg_color="#676666")
         self.menu_mes.grid(row=0, column=5, padx=(0, 10), pady=5, sticky="e")
 
         # --------------- Main section ----------------------------------
         self.main_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
         self.main_section.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
-        self.main_section.grid_columnconfigure(0, weight=1) #tabela um
-        self.main_section.grid_columnconfigure(1, weight=1) #tabela dois
+        self.main_section.grid_columnconfigure(0, weight=1) 
+        self.main_section.grid_columnconfigure(1, weight=1) 
         self.main_section.grid_rowconfigure(0, weight=1)
 
         #Instancia tabelas
-        #-------------- Tabela mês mes_a --------------------------
         self.frame_tabela_um = Listar_faturas_cartao(self.main_section, self.id_user, self.id_card, self.nome_card, self.dados_prontos)
         self.frame_tabela_um.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
-
         self.frame_tabela_um.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_a, controle_mes=self.mes_atual)
 
-        # ---------------- Tabela próximo mês ------------------------------
         self.frame_tabela_dois = Listar_faturas_cartao(self.main_section, self.id_user, self.id_card, self.nome_card, self.dados_prontos)
         self.frame_tabela_dois.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
-
         self.frame_tabela_dois.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_b, controle_mes=self.prox_mes)
 
 
-    def trocar_meses(self, escolha):
+    def trocar_meses(self, escolha: str) -> None:
+        """Comuta as visões das duas tabelas de faturas simuladas nos meses selecionados."""
 
         meses = [m.strip() for m in escolha.split('-')]
 
@@ -688,17 +679,22 @@ class Faturas(ctk.CTkToplevel):
         mes_a = f"#{self.nome_card} - Mês: {meses[0]}"
         mes_b = f"#{self.nome_card} - Mês: {meses[1]}"
 
-        #tabela 1
         self.frame_tabela_um.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_a, controle_mes=controle_mes_a)
-
-        #tabela 2
         self.frame_tabela_dois.tabela_cartao(id_user=self.id_user, id_card=self.id_card, escolha=mes_b, controle_mes=controle_mes_b)
       
 
-#-8° Módulo Simulação
-class Simulacao(ctk.CTkToplevel):
+# =================================================================================
+# -8° MÓDULO: Simulação (Modo Sandbox)
+# =================================================================================
 
-    def __init__(self, parent, id_user=None, despesas_avulsas=None, dados_cartoes=None, assinaturas_avulsas=None, dados_usuario=None, nomes_cartoes=None, dados_prontos=None, cb_vcmd_num=None,  *args, **kwargs):
+class Simulacao(ctk.CTkToplevel):
+    """
+    Ambiente isolado onde o usuário adiciona despesas provisórias.
+    O sistema recalcula dinamicamente se a conta (Despesas vs Receitas) 
+    fecha no azul ou no vermelho nos meses subsequentes. NADA É SALVO NO BD.
+    """
+
+    def __init__(self, parent: Any, id_user: Optional[int] = None, despesas_avulsas: Optional[List] = None, dados_cartoes: Optional[List] = None, assinaturas_avulsas: Optional[List] = None, dados_usuario: Optional[List] = None, nomes_cartoes: Optional[List] = None, dados_prontos: Optional[List] = None, cb_vcmd_num: Optional[Callable] = None,  *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
@@ -707,7 +703,7 @@ class Simulacao(ctk.CTkToplevel):
         self.assinaturas_avulsas = assinaturas_avulsas
         self.dados_usuario = dados_usuario
         self.nomes_cartoes = nomes_cartoes
-        self.dados_prontos: List[Pega_div_cartao_db] = dados_prontos
+        self.dados_prontos = dados_prontos
         self.vcmd_num = cb_vcmd_num
 
         # ---------------- Gerencimento de self ---------------------
@@ -727,17 +723,15 @@ class Simulacao(ctk.CTkToplevel):
         self.quart_prox_mes_str = opcoes.get(self.quart_prox_mes)
         self.quint_prox_mes_str = opcoes.get(self.quint_prox_mes)
 
-        self.nomes_datas = [self.mes_atual_str, self.prox_mes_str, self.seg_prox_mes_str, self.ter_prox_mes_str, self.quart_prox_mes_str]
+        self.nomes_datas = [str(self.mes_atual_str), str(self.prox_mes_str), str(self.seg_prox_mes_str), str(self.ter_prox_mes_str), str(self.quart_prox_mes_str)]
 
         self.dados_select = []
         self.len_dados_select = 0
 
         self.id_card_atual = None
-
         self.controle_mes = 0
 
-        self.valor_renda = self.dados_usuario[0].get('sal_fixo', 0.0)
-
+        self.valor_renda = self.dados_usuario[0].get('sal_fixo', 0.0) if self.dados_usuario else 0.0
 
         # --------------- Configuração da janela/'labels' -----------------------
         self.title(f"Simulação de Despesas")
@@ -746,7 +740,7 @@ class Simulacao(ctk.CTkToplevel):
         self.grab_set()
         self.focus_set() 
 
-        self.configure(fg_color="#823737") #muda a cor da janela
+        self.configure(fg_color="#823737") 
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -761,22 +755,23 @@ class Simulacao(ctk.CTkToplevel):
         self.top_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
         self.top_section.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         
-        self.top_section.grid_columnconfigure(0, weight=1) # Bem-vindo
+        self.top_section.grid_columnconfigure(0, weight=1) 
         self.top_section.grid_columnconfigure(1, weight=1) 
 
-                        # ------------ Apresentação ------------------
-        texto = f"Simulação: Usuário - {self.dados_usuario[0].get('nome_completo')}!"
+        # ------------ Apresentação ------------------
+        nome_completo = self.dados_usuario[0].get('nome_completo') if self.dados_usuario else "Usuário"
+        texto = f"Simulação: Usuário - {nome_completo}!"
         self.nomeusuario_label = ctk.CTkLabel(self.top_section, text=texto, font=ctk.CTkFont(size=18, weight="bold"))
         self.nomeusuario_label.grid(row=0, column=0, padx=5, sticky="w")
 
-                            # --- DISPLAY DE RENDA FIXA ---
+        # --- DISPLAY DE RENDA FIXA ---
         self.frame_renda = ctk.CTkFrame(self.top_section, fg_color="transparent", width=150, height=100, corner_radius=15, border_width=3)
-        self.frame_renda.grid(row=0, column=1, padx=10, pady=(0, 10), sticky="w") # Fica do lado do nome
+        self.frame_renda.grid(row=0, column=1, padx=10, pady=(0, 10), sticky="w") 
         
         self.label_renda = ctk.CTkLabel(self.frame_renda, text=f"Renda Fixa: {formatar_moeda(self.valor_renda)}", text_color="#27ae60", font=ctk.CTkFont(size=18,weight="bold"))
         self.label_renda.pack(side="left", padx=5)
 
-                            # -------- Botões de funções ------------
+        # -------- Botões de funções ------------
         self.btn_resete = ctk.CTkButton(self.top_section, text='Resete', command=self.resetar_lista, fg_color="#F87979", hover_color="#823737")
         self.btn_resete.grid(row=0, column=3, padx=10, pady=10, sticky="ew")
 
@@ -797,17 +792,17 @@ class Simulacao(ctk.CTkToplevel):
         self.main_section = ctk.CTkFrame(self.container_principal, fg_color="transparent")
         self.main_section.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
-        self.main_section.grid_columnconfigure(0, weight=1) #formulário
-        self.main_section.grid_columnconfigure(1, weight=4) #tabela
-        self.main_section.grid_columnconfigure(2, weight=3) #tab_fatura
+        self.main_section.grid_columnconfigure(0, weight=1) 
+        self.main_section.grid_columnconfigure(1, weight=4) 
+        self.main_section.grid_columnconfigure(2, weight=3) 
         self.main_section.grid_rowconfigure(0, weight=1)
 
-        # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_despesa(self.main_section, self.id_user, self.dados_cartoes, simulacao=True, dados_select= self.dados_select, controle_dados=self.controle_dados, cb_vcmd_num=self.vcmd_num)
+        # ---------------- formulário de cadastro (Mock DB) -----------------------
+        self.frame_cadastro = Cadastrar_despesa(self.main_section, self.id_user, self.dados_cartoes, simulacao=True, dados_select=self.dados_select, controle_dados=self.controle_dados, cb_vcmd_num=self.vcmd_num)
         self.frame_cadastro.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 
-        # ------------------- FRAME TABELA -----------------------------
-        self.tabela_frame = Listar_desp_tabela(parent=self.main_section, id_user=self.id_user, despesas_avulsas= self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_prontos=self.dados_prontos)
+        # ------------------- FRAME TABELA GERAL -----------------------------
+        self.tabela_frame = Listar_desp_tabela(parent=self.main_section, id_user=self.id_user, despesas_avulsas=self.despesas_avulsas, assinaturas_avulsas=self.assinaturas_avulsas, dados_cartoes=self.dados_cartoes, dados_prontos=self.dados_prontos)
         self.tabela_frame.grid(row=0, column=1, padx=5, pady=5, sticky="nsew") 
 
         self.tabela_frame.renderizar()
@@ -817,10 +812,9 @@ class Simulacao(ctk.CTkToplevel):
         self.frame_tab_fatura.grid(row=0, column=2, padx=5, pady=5, sticky="nsew")
 
 
-    def resetar_lista(self):
-
+    def resetar_lista(self) -> None:
+        """Limpa o Sandbox, recarregando a tabela apenas com as despesas reais."""
         self.dados_select.clear()
-
         self.tabela_frame.renderizar()
 
         for widget in self.frame_tab_fatura.container_dados.winfo_children():
@@ -833,30 +827,29 @@ class Simulacao(ctk.CTkToplevel):
         self.menu_mes.set(self.mes_atual_str)
 
 
-    def controle_dados(self, dados=None, controle_mes=None, trocar_card=None):
-
+    def controle_dados(self, dados: Optional[List[Dict]] = None, controle_mes: Optional[int] = None, trocar_card: Optional[int] = None) -> None:
+        """
+        Engine do Sandbox de Simulação:
+        Recebe as despesas falsas vindas do formulário, emula o impacto de parcelamento e 
+        vencimento dos cartões (passando pelas regras do Helper) e repassa os dados manipulados 
+        direto para as tabelas (Listar_desp_tabela), sem salvar no banco de dados.
+        """
         if dados:
             tocar_notificacao('open_w', True)
 
             if self.len_dados_select < len(self.dados_select):
-                
                 self.len_dados_select = len(self.dados_select)
                 trocar_card = None
-
         else:
             print('ERRO: Forms não enviou os dados!')
             tocar_notificacao('dv_erro', True)
             return
 
-
         for dado in dados:
-
             nome_cartao = dado['nome_cartao']
-            
-            #dado['info_cartao'] = None    
             tem_cartao = nome_cartao and nome_cartao != "Cartão de Cobrança - Sem Cartão" and nome_cartao != "Cadastre Seus Cartões Na Área Destinada"
 
-            if tem_cartao:
+            if tem_cartao and self.dados_cartoes:
                     
                 for card in self.dados_cartoes:
                         
@@ -867,38 +860,37 @@ class Simulacao(ctk.CTkToplevel):
                             
                             data_compra = mysql_para_obj(dado.get('data_compra'))
 
-                            if venc < 12:
-                                fech_dc = data_compra.month - 1
-                                data_fech = data_compra.replace(day=fech, month=fech_dc) #formata data com dia de fechamento do cartão
-                            else:
-                                data_fech = data_compra.replace(day=fech)
-
-                            if not controle_mes:
-                                
-                                if data_compra >= data_fech:
-                                    controle_mes = (data_compra + relativedelta(months=1)).month
+                            if data_compra and venc and fech:
+                                if venc < 12:
+                                    fech_dc = data_compra.month - 1
+                                    data_fech = data_compra.replace(day=fech, month=fech_dc) 
                                 else:
-                                    controle_mes = data_compra.month
+                                    data_fech = data_compra.replace(day=fech)
 
-                            dados_card: Cartao = {
+                                if not controle_mes:
+                                    if data_compra >= data_fech:
+                                        controle_mes = (data_compra + relativedelta(months=1)).month
+                                    else:
+                                        controle_mes = data_compra.month
+
+                            dados_card_dict = {
                                 'id_cartao': id_card,
                                 'nome_cartao': nome_cartao,
                                 'fechamento': fech,
                                 'vencimento': venc
                             }
-                            dado['info_cartao'] = dados_card
+                            dado['info_cartao'] = dados_card_dict
                             break 
   
-            else: #Despesa avulsa
+            else: # Despesa avulsa
                 data_pp = dado.get('prim_data_pag')
 
-                if not controle_mes:
+                if not controle_mes and data_pp:
                     controle_mes = data_pp.month
             
-            str_mes = gerar_opcoes_meses()[controle_mes]
+            str_mes = str(gerar_opcoes_meses().get(controle_mes))
 
             self.menu_mes.set(str_mes)
-
             self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=str_mes, dados_simulacao=dados)
 
             if tem_cartao:
@@ -908,16 +900,15 @@ class Simulacao(ctk.CTkToplevel):
                     id_card = trocar_card
 
                 self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
-
-                self.menu_cartao.set(nome_cartao)   
-            
+                self.menu_cartao.set(str(nome_cartao))   
 
 
-    def trocar_mes(self, escolha):
+    def trocar_mes(self, escolha: str) -> None:
+        """Gatilho de seleção de mês no menu superior (Dropdown). Recarrega o Mock Engine."""
 
         tocar_notificacao('open_w', True)
 
-        dados= None
+        dados = None
         if self.dados_select:
             dados = self.dados_select
 
@@ -939,12 +930,11 @@ class Simulacao(ctk.CTkToplevel):
         else:
             self.controle_mes = self.mes_atual
  
-
         if not dados:
             self.tabela_frame.renderizar(controle_mes=self.controle_mes, escolha=escolha)
 
-            mes_str = gerar_opcoes_meses()[self.controle_mes]
-            self.menu_mes.set(mes_str)
+            mes_str = gerar_opcoes_meses().get(self.controle_mes)
+            self.menu_mes.set(str(mes_str))
 
             cartao = self.menu_cartao.get()
             self.trocar_frame_cartao(escolha=cartao)
@@ -953,36 +943,31 @@ class Simulacao(ctk.CTkToplevel):
             self.controle_dados(dados=dados, controle_mes=self.controle_mes, trocar_card=self.id_card_atual)
 
 
-    def trocar_frame_cartao(self, escolha):
-        
+    def trocar_frame_cartao(self, escolha: str) -> None:
+        """Comuta as métricas do Sandbox para visualizar as faturas de outro cartão."""
+
         cartoes = self.dados_cartoes
         id_card = None
         nome_cartao = None
 
-        for cartao in cartoes:
-            nome_cartao = cartao['nome_cartao']
-            if nome_cartao == escolha:
-
-                id_card = cartao['id_cartao']
+        if cartoes:
+            for cartao in cartoes:
+                nome_cartao = cartao['nome_cartao']
+                if nome_cartao == escolha:
+                    id_card = cartao['id_cartao']
 
         self.id_card_atual = id_card
         
         if self.dados_select:
-
-            self.controle_dados(dados=self.dados_select, trocar_card= self.id_card_atual)
-
+            self.controle_dados(dados=self.dados_select, trocar_card=self.id_card_atual)
         else:
             if not self.controle_mes:
                 self.controle_mes = self.mes_atual
-                self.menu_mes.set(self.mes_atual_str)
+                self.menu_mes.set(str(self.mes_atual_str))
 
-                str_cartao_mes = f"[{escolha}] - Mês: {gerar_opcoes_meses()[self.controle_mes]}"
-
+                str_cartao_mes = f"[{escolha}] - Mês: {gerar_opcoes_meses().get(self.controle_mes)}"
                 self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, escolha=str_cartao_mes, controle_mes=self.controle_mes)
 
             else:
-                str_cartao_mes = f"[{escolha}] - Mês: {gerar_opcoes_meses()[self.controle_mes]}"
-
+                str_cartao_mes = f"[{escolha}] - Mês: {gerar_opcoes_meses().get(self.controle_mes)}"
                 self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, escolha=str_cartao_mes, controle_mes=self.controle_mes)
-                
-
