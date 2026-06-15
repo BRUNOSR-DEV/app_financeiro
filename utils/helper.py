@@ -461,7 +461,7 @@ def controle_data_parc_cc(
         
     primeira_cobranca = data_compra_obj
 
-    if dia_vencimento < 12: #Se o cartão vence antes do dia 12, com certeza a fatura dele fecha no mês anterior!
+    if dia_vencimento < 12: #ATENÇÃO: Se o cartão vence antes do dia 12, com certeza a fatura dele fecha no mês anterior! 
         fech_dc = primeira_cobranca.month - 1
 
         if fech_dc == 0:
