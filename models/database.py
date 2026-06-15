@@ -1,20 +1,27 @@
-import MySQLdb
+"""
+Módulo de Conexão com Banco de Dados (Database Infrastructure)
 
+Gerencia o ciclo de vida de conexões brutas com o servidor MySQL/MariaDB
+utilizando o driver MySQLdb, aplicando isolamento de credenciais via config.ini.
+"""
+
+import MySQLdb
 import configparser
+from typing import Optional, Dict, Any
 
 class Database:
-    def __init__(self):
-        self.config = self._ler_configuracao()
+    def __init__(self) -> None:
+        self.config: Optional[Dict[str, Any]] = self._ler_configuracao()
 
-    def _ler_configuracao(self):
-        """Lê as credenciais do banco de dados do arquivo config.ini."""
+    def _ler_configuracao(self) -> Optional[Dict[str, Any]]:
+        """Lê as credenciais de infraestrutura a partir de arquivo de configuração INI externo."""
+
         config = configparser.ConfigParser()
         
-        # Tenta ler o arquivo de configuração
         try:
             config.read('config.ini')
             if 'mysql' not in config:
-                raise ValueError("Seção [mysql] não encontrada em config.ini")
+                raise ValueError("Seção obrigatória [mysql] não encontrada em config.ini")
             
             db_config = config['mysql']
             return {
@@ -24,22 +31,21 @@ class Database:
                 'db': db_config.get('db')
             }
         except FileNotFoundError:
-            print("Erro: Arquivo 'config.ini' não encontrado.")
+            print("Erro Crítico: Arquivo de infraestrutura 'config.ini' ausente na raiz.")
             return None
         except ValueError as e:
-            print(f"Erro de configuração: {e}")
+            print(f"Erro de Parse de Configuração: {e}")
             return None
         except Exception as e:
-            print(f"Erro inesperado ao ler o arquivo de configuração: {e}")
+            print(f"Erro de E/S inesperado ao mapear config.ini: {e}")
             return None 
-        
 
-    def conectar_bd_original(self):
-        """Função para conectar ao servidor"""
+
+    def conectar_bd_original(self) -> Optional[MySQLdb.Connection]:
+        """Inicializa e retorna uma instância estável de conexão ativa com o servidor MySQL."""
 
         if not self.config:
-            # Se as credenciais não puderam ser lidas, não tente conectar
-            print("Não foi possível conectar ao banco de dados devido a um erro de configuração.")
+            print("Handshake abortado devido a falhas na leitura do config.ini.")
             return None
     
         try:
@@ -50,11 +56,11 @@ class Database:
                 passwd=self.config['passwd']
             )
             return conn
-
         except MySQLdb.Error as e:
-            print(f'Erro na conexão ao MySql Server: {e}')
+            print(f'Falha na tabela de conexões ao MySQL Server: {e}')
+            return None
 
-
-    def desconectar(self, conn):
+    def desconectar(self, conn: Optional[MySQLdb.Connection]) -> None:
+        """Garante a desalocação dos sockets e encerramento da conexão ativa."""
         if conn:
             conn.close()

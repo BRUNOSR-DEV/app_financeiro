@@ -1,3 +1,10 @@
+"""
+Módulo de Infraestrutura de Áudio (Audio Helper)
+
+Interface gráfica sonora baseada na engine Pygame Mixer. Suporta a execução síncrona
+de alertas e triggers de notificações mapeados em assets binários (.mp3 e .mpeg).
+"""
+
 import pygame
 import os
 
@@ -5,13 +12,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 pygame.mixer.init()
 
-def tocar_notificacao(tipo, boll=False):
-    """
-    Toca um som baseado no evento.
-    Tipos: 'sucesso', 'erro', 'clique'
-    """
+def tocar_notificacao(tipo: str, boll: bool = False) -> None:
+    """Toca um feedback sonoro baseado no evento mapeado no sistema."""
+    
     try:
-        # Caminho dos sons (crie uma pasta 'assets/sons' no seu projeto)
         sons = {          
             "sucesso": "sucesso",
             "erro": "erro",
@@ -27,23 +31,21 @@ def tocar_notificacao(tipo, boll=False):
         }
 
         nome_arq = sons.get(tipo)
+        if not nome_arq:
+            print(f"Tipo de áudio inválido ou não mapeado: {tipo}")
+            return
         
-        if boll:
-            caminho = os.path.join(BASE_DIR, "assets", f"{nome_arq}.mpeg")
-        else:
-            caminho = os.path.join(BASE_DIR, "assets", f"{nome_arq}.mp3")
+        extensao = ".mpeg" if boll else ".mp3"
+        caminho = os.path.join(BASE_DIR, "assets", f"{nome_arq}{extensao}")
         
         if os.path.exists(caminho):
             try:
-
                 pygame.mixer.music.load(caminho)
                 pygame.mixer.music.play()
             except Exception as e:
-                print(f'erro ao tocar {e}')
+                print(f'Erro ao carregar ou reproduzir mídia: {e}')
         else:
-            print(f'Arquivo não encontrado: {caminho}')
+            print(f'Arquivo não encontrado no diretório de assets: {caminho}')
 
     except Exception as e:
-        print(f"Erro ao reproduzir áudio: {e}")
-
-    
+        print(f"Erro fatal no subsistema de áudio: {e}")

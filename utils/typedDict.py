@@ -1,10 +1,15 @@
-from typing import TypedDict, List
-from decimal import Decimal
+"""
+Módulo de Mapeamento de Tipos Estruturados (Data Contracts)
 
-from datetime import datetime
+Concentra os contratos estáticos de transferência de dados (DTOs) via TypedDicts.
+Substitui o uso de dicionários puros por estruturas tipadas em tempo de checagem estática.
+"""
+
+from typing import TypedDict, List, Optional, Union
+from decimal import Decimal
+from datetime import datetime, date
 
 class Dados_usuarios_db(TypedDict):
-
     id_user: int
     nome_completo: str
     nome_user: str
@@ -15,8 +20,6 @@ class Dados_usuarios_db(TypedDict):
 
 
 class Dados_receitas_db(TypedDict):
-    """Dict de receitas"""
-
     id_receita: int
     fonte: str
     valor: float
@@ -25,7 +28,6 @@ class Dados_receitas_db(TypedDict):
 
 
 class Dados_despesas_db(TypedDict):
-
     id_desp: int
     local: str
     valor_total: float
@@ -35,11 +37,10 @@ class Dados_despesas_db(TypedDict):
     data_compra: datetime
     data_pp: datetime
     dia_vencimento: int
-    id_cc: int
+    id_cc: Optional[int]
+
 
 class Pega_despesas_cartao_db(TypedDict):
-    """ Dict de despesas do cartão informado """
-
     id_desp: int
     local: str
     valor_total: float
@@ -54,7 +55,6 @@ class Pega_despesas_cartao_db(TypedDict):
 
 
 class Pega_despesas_avulsas_bd(TypedDict):
-
     id_desp: int
     local: str
     valor_total: float
@@ -67,8 +67,6 @@ class Pega_despesas_avulsas_bd(TypedDict):
 
 
 class Dados_cartoes_db(TypedDict):
-    """ Dict dos cartões """
-
     id_cartao: int
     nome_cartao: str
     limite_cartao: float
@@ -79,7 +77,6 @@ class Dados_cartoes_db(TypedDict):
 
 
 class Dados_assinaturas_db(TypedDict):
-
     id_ass: int
     nome: str
     valor: float
@@ -88,11 +85,10 @@ class Dados_assinaturas_db(TypedDict):
     data_pp: datetime
     categoria: str
     dia_vencimento: int
-    id_cc: int
+    id_cc: Optional[int]
 
 
 class Pega_assinaturas_avulças_db(TypedDict):
-
     id_ass: int
     nome: str
     valor: float
@@ -103,7 +99,6 @@ class Pega_assinaturas_avulças_db(TypedDict):
 
 
 class Pega_assinatuas_cartao_db(TypedDict):
-
     id_assinatura: int
     nome: str
     valor: float
@@ -118,9 +113,7 @@ class Pega_assinatuas_cartao_db(TypedDict):
     dia_vencimento_cc: int
 
 
-
 class Cartao(TypedDict):
-
     id_cartao: int
     nome_cartao: str
     fechamento: int
@@ -129,30 +122,26 @@ class Cartao(TypedDict):
 
 
 class Despesa_simulacao(TypedDict):
-
     id_desp: int
     local: str
     valor_total: float
     parcelas: int
     descricao: str
     categoria: str
-    data_compra: datetime
-    prim_data_pag: datetime
+    data_compra: Union[datetime, date]
+    prim_data_pag: Optional[Union[datetime, date]]
     nome_cartao: str
-    info_cartao: Cartao
+    info_cartao: Optional[Cartao]
 
 
 class Pega_div_cartao_db(TypedDict):
-
     info: Dados_cartoes_db
     despesas: List[Pega_despesas_cartao_db]
     assinaturas: List[Pega_assinatuas_cartao_db]
 
 
-
 class Envia_despesa_form(TypedDict):
-
-    user_id_or_id_desp: int #user_id ou id_desp
+    user_id_or_id_desp: int  # Pode representar user_id (Inclusão) ou id_desp (Edição)
     local: str
     valor_total: float
     parcelas: int
@@ -161,17 +150,16 @@ class Envia_despesa_form(TypedDict):
     dc_select_mysql: datetime
     prim_dc_select_mysql: datetime
     dia_venc: int
-    id_card: int
+    id_card: Optional[int]
 
 
 class Envia_ass_form(TypedDict):
-
-    user_id_or_id_ass: int
+    user_id_or_id_ass: int  # Pode representar user_id (Inclusão) ou id_ass (Edição)
     nome: str
     valor: float
     descricao: str
     data_aq_mysql: datetime
     data_pp_mysql: datetime
     dia_venc: int
-    categoria:str
-    id_card: int
+    categoria: str
+    id_card: Optional[int]
