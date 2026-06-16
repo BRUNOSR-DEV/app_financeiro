@@ -118,12 +118,12 @@ class Despesa:
         
         self.local: str = local
         self._valor_total: Decimal = valor_total
-        self.parcelas: int = parcelas
+        self._parcelas: int = parcelas
         self.descricao: str = descricao
         self.categoria: str = categoria
         self.data_compra: datetime = data_compra
         self.data_pp: datetime = data_pp
-        self.dia_vencimento: int = dia_venc
+        self._dia_vencimento: int = dia_venc
         self.id_cc: Optional[int] = id_cc
         self.id_desp: Optional[int] = id_desp
         
@@ -158,6 +158,7 @@ class Despesa:
             raise ValueError("O dia de vencimento deve estar entre 1 e 31.")
         self._dia_vencimento = dia
 
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             'local': self.local,
@@ -169,7 +170,7 @@ class Despesa:
             'data_pp': self.data_pp,
             'dia_vencimento': self.dia_vencimento,
             'id_cc': self.id_cc,
-            'id_desp': self.id_desp,
+            'id_desp': self.id_desp
         }
     
 
@@ -255,16 +256,13 @@ class Cartao_credito:
     
     def to_dict(self) -> Dict[str, Any]:
         return {
-            'local': self.local,
-            'valor_total': self.valor_total,
-            'parcelas': self.parcelas,
-            'descricao': self.descricao,
-            'categoria': self.categoria,
-            'data_compra': self.data_compra,
-            'data_pp': self.data_pp,
+            'nome_cartao': self.nome_cartao,
+            'limite_cartao': self.limite_cartao,
+            'dia_fechamento': self.dia_fechamento,
             'dia_vencimento': self.dia_vencimento,
-            'id_cc': self.id_cc,
-            'id_desp': self.id_desp
+            'bandeira': self.bandeira,
+            'cor': self.cor,
+            'id_cartao': self.id_cartao,
         }
 
 
@@ -280,12 +278,12 @@ class Assinatura:
     def __init__(self, nome: str, valor: Decimal, descricao: str, categoria: str, data_aq: datetime, data_pp: datetime, dia_venc: int, id_cc: Optional[int] = None, id: Optional[int] = None) -> None:
         
         self.nome: str = nome
-        self.valor: Decimal = valor
+        self._valor: Decimal = valor
         self.descricao: str = descricao
         self.categoria: str = categoria
         self.data_aquisicao: datetime = data_aq
         self.data_pp: datetime = data_pp
-        self.dia_vencimento: int = dia_venc
+        self._dia_vencimento: int = dia_venc
         self.id_cc: Optional[int] = id_cc
         self.id_ass: Optional[int] = id
         
@@ -299,6 +297,15 @@ class Assinatura:
             raise ValueError("O valor de uma assinatura tem que ser maior que zero.")
         self._valor = novo_valor
 
+    @property
+    def dia_vencimento(self) -> int:
+        return self._dia_vencimento
+    
+    @dia_vencimento.setter
+    def dia_vencimento(self, dia_v: int) -> None:
+        if not (1 <= dia_v <= 31):
+            raise ValueError('Dia de vencimenro válido precisa ser de 1 á 31!')
+        self._dia_vencimento = dia_v
 
     def to_dict(self) -> Dict[str, Any]:
         return {
