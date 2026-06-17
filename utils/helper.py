@@ -24,6 +24,8 @@ from typing import List, Dict, Optional, Union, Any, Tuple
 
 #BIBLIO VIA PIP
 from dateutil.relativedelta import relativedelta
+import holidays 
+
 
 
 # =================================================================================
@@ -315,6 +317,68 @@ def centralizar_janela_responsiva(janela: Any, tipo_janela: str = "main") -> Non
 # ---------- ENGINES: CONTROLE DE DATA E PARCELAS -----------------
 # =================================================================================
 
+
+
+def obter_proximo_dia_util(data_base: datetime.date) -> datetime.date:
+    """
+    Recebe uma data e, se ela cair em um final de semana (sábado/domingo) 
+    ou feriado nacional brasileiro, empurra consecutivamente para o próximo dia útil.
+    """
+    # Instancia os feriados do Brasil
+    feriados_br = holidays.Brazil()
+    data_aux = data_base
+
+    # Loop continua enquanto for sábado (5), domingo (6) ou estiver na lista de feriados
+    while data_aux.weekday() in (5, 6) or data_aux in feriados_br:
+        data_aux += datetime.timedelta(days=1)
+        
+    return data_aux
+
+
+def calcular_datas_reais_cartao(ano: int, mes: int, dia_vencimento_fixo: int, dia_fechamento_nominal: int) -> Tuple[datetime.date, datetime.date]:
+    """
+    Calcula o vencimento e o fechamento reais para um determinado mês/ano.
+    
+    A janela de dias corridos entre o fechamento nominal e o vencimento é preservada,
+    e o vencimento real é ajustado para dias úteis (sábados, domingos e feriados).
+    """
+    # 1. Calcular a janela original de dias corridos entre fechamento e vencimento
+    # Tratando o caso comum onde o fechamento nominal é no mês anterior ao vencimento (ex: fecha 25, vence 05)
+
+    if dia_fechamento_nominal > dia_vencimento_fixo:
+        # Cria uma data fictícia de vencimento e fechamento para calcular a diferença de dias
+        data_v_ficticia = datetime.date(2026, 2, dia_vencimento_fixo)
+        data_f_ficticia = datetime.date(2026, 1, dia_fechamento_nominal)
+        janela_dias = (data_v_ficticia - data_f_ficticia).days
+    else:
+        janela_dias = dia_vencimento_fixo - dia_fechamento_nominal
+
+    # 2. Construir o vencimento nominal para o mês solicitado
+    # Proteção defensiva para meses que não possuem o dia fixo (ex: dia 31 em meses de 30 dias ou fevereiro)
+    ano_alvo = ano
+    mes_alvo = mes
+    dia_alvo = dia_vencimento_fixo
+    
+    while True:
+        try:
+            data_vencimento_nominal = datetime.date(ano_alvo, mes_alvo, dia_alvo)
+            break
+        except ValueError:
+            # Se o dia estourar o mês, reduz o dia em 1 até encontrar o último dia válido do mês (ex: 28 de fevereiro)
+            dia_alvo -= 1
+
+    # 3. Aplicar a regra de dias úteis no Vencimento (Finais de semana e Feriados pulam para frente)
+    data_vencimento_real = obter_proximo_dia_util(data_vencimento_nominal)
+
+    # 4. Calcular o Fechamento Real subtraindo a janela de dias corridos do Vencimento Real
+    # Isso garante que se o vencimento pulou por causa de um feriado, o fechamento acompanha a flutuação!
+    data_fechamento_real = data_vencimento_real - datetime.timedelta(days=janela_dias)
+
+    return data_fechamento_real, data_vencimento_real
+
+
+
+
 def controle_data_parc(
     data_pp: datetime, 
     dia_vencimento: int, 
@@ -461,7 +525,7 @@ def controle_data_parc_cc(
         
     primeira_cobranca = data_compra_obj
 
-    if dia_vencimento < 12: #ATENÇÃO: Se o cartão vence antes do dia 12, com certeza a fatura dele fecha no mês anterior! 
+    if dia_fechamento > dia_vencimento: #ATENÇÃO: Se o cartão vence antes do dia 12, com certeza a fatura dele fecha no mês anterior! 
         fech_dc = primeira_cobranca.month - 1
 
         if fech_dc == 0:
