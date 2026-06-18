@@ -21,12 +21,29 @@ from datetime import datetime, date, timedelta
 import calendar
 import re
 from typing import List, Dict, Optional, Union, Any, Tuple
+import urllib.request
+import json
 
 #BIBLIO VIA PIP
 from dateutil.relativedelta import relativedelta
 import holidays 
 
 
+def obter_estado_por_ip() -> str:
+    """Faz um ping rápido em uma API de geolocalização e retorna a sigla do estado."""
+    try:
+        # Consulta uma API gratuita de localização de IP
+        url = "https://ipapi.co/json/"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        
+        with urllib.request.urlopen(req, timeout=3) as response:
+            dados = json.loads(response.read().decode())
+            # Retorna a sigla do estado (ex: "SP", "RJ", "MG")
+            return dados.get("region_code", "SP") 
+    except Exception:
+        # Caso o usuário esteja sem internet na hora, retorna um padrão seguro
+        return "SP"
+    
 
 # =================================================================================
 # -------- OPÇÕES MESES ----------
@@ -325,7 +342,7 @@ def obter_proximo_dia_util(data_base: datetime.date) -> datetime.date:
     ou feriado nacional brasileiro, empurra consecutivamente para o próximo dia útil.
     """
     # Instancia os feriados do Brasil
-    feriados_br = holidays.Brazil(subdiv='SP')
+    feriados_br = holidays.Brazil(subdiv=obter_estado_por_ip())
     data_aux = data_base
 
     # Loop continua enquanto for sábado (5), domingo (6) ou estiver na lista de feriados

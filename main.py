@@ -11,6 +11,7 @@ garantindo a desalocação de memória e tratamento limpo de fluxos de Logout.
 from ui.main_app import Main_app
 from ui.login_app import Login
 
+
 def rodar_sistema() -> None:
     """
     Executa a engine de loop infinito para controle sequencial de janelas do app.
