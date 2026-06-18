@@ -17,7 +17,7 @@ from utils.audio_helper import tocar_notificacao
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
 #BILIO PADRÕES
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import calendar
 import re
 from typing import List, Dict, Optional, Union, Any, Tuple
@@ -325,12 +325,12 @@ def obter_proximo_dia_util(data_base: datetime.date) -> datetime.date:
     ou feriado nacional brasileiro, empurra consecutivamente para o próximo dia útil.
     """
     # Instancia os feriados do Brasil
-    feriados_br = holidays.Brazil()
+    feriados_br = holidays.Brazil(subdiv='SP')
     data_aux = data_base
 
     # Loop continua enquanto for sábado (5), domingo (6) ou estiver na lista de feriados
     while data_aux.weekday() in (5, 6) or data_aux in feriados_br:
-        data_aux += datetime.timedelta(days=1)
+        data_aux += timedelta(days=1)
         
     return data_aux
 
@@ -347,8 +347,8 @@ def calcular_datas_reais_cartao(ano: int, mes: int, dia_vencimento_fixo: int, di
 
     if dia_fechamento_nominal > dia_vencimento_fixo:
         # Cria uma data fictícia de vencimento e fechamento para calcular a diferença de dias
-        data_v_ficticia = datetime.date(2026, 2, dia_vencimento_fixo)
-        data_f_ficticia = datetime.date(2026, 1, dia_fechamento_nominal)
+        data_v_ficticia = datetime(2026, 2, dia_vencimento_fixo)
+        data_f_ficticia = datetime(2026, 1, dia_fechamento_nominal)
         janela_dias = (data_v_ficticia - data_f_ficticia).days
     else:
         janela_dias = dia_vencimento_fixo - dia_fechamento_nominal
@@ -361,7 +361,7 @@ def calcular_datas_reais_cartao(ano: int, mes: int, dia_vencimento_fixo: int, di
     
     while True:
         try:
-            data_vencimento_nominal = datetime.date(ano_alvo, mes_alvo, dia_alvo)
+            data_vencimento_nominal = datetime(ano_alvo, mes_alvo, dia_alvo)
             break
         except ValueError:
             # Se o dia estourar o mês, reduz o dia em 1 até encontrar o último dia válido do mês (ex: 28 de fevereiro)
@@ -372,9 +372,9 @@ def calcular_datas_reais_cartao(ano: int, mes: int, dia_vencimento_fixo: int, di
 
     # 4. Calcular o Fechamento Real subtraindo a janela de dias corridos do Vencimento Real
     # Isso garante que se o vencimento pulou por causa de um feriado, o fechamento acompanha a flutuação!
-    data_fechamento_real = data_vencimento_real - datetime.timedelta(days=janela_dias)
+    data_fechamento_real = data_vencimento_real - timedelta(days=janela_dias)
 
-    return data_fechamento_real, data_vencimento_real
+    return data_fechamento_real.date(), data_vencimento_real.date()
 
 
 
@@ -493,14 +493,17 @@ def controle_data_parc_cc(
         Tuple[str, bool, datetime]: Label de exibição da parcela, controle de visibilidade (bool) 
         e data exata de vencimento no mês.
     """
+
     if data_atual is None:
-        data_atual = datetime.now().date() # type: ignore
+        data_atual = datetime.now().date()
 
     assinatura = False
 
+    # Verifica se a manipulação é de assinatura
     if total_parcelas is None:
         assinatura = True
     
+    # configurando meses para comparação
     mes_vigente = data_atual.month
     prox_mes = (data_atual + relativedelta(months=1)).month
     seg_prox_mes = (data_atual + relativedelta(months=2)).month
@@ -508,8 +511,9 @@ def controle_data_parc_cc(
     quart_prox_mes = (data_atual + relativedelta(months=4)).month
     quint_prox_mes = (data_atual + relativedelta(months=5)).month
 
-    data_alvo = None
+    data_alvo: Optional[datetime] = None
 
+    #dependencia - controle de mês
     if controle_mes == mes_vigente:
         data_alvo = data_atual
     elif controle_mes == prox_mes:
@@ -523,20 +527,24 @@ def controle_data_parc_cc(
     elif controle_mes == quint_prox_mes:
         data_alvo = (data_atual + relativedelta(months=5))
         
+
+    ano = data_compra_obj.year
+    mes = data_compra_obj.month
+
+    data_fech_real, data_venc_real = calcular_datas_reais_cartao(ano, mes, dia_vencimento, dia_fechamento)
+
     primeira_cobranca = data_compra_obj
 
-    if dia_fechamento > dia_vencimento: #ATENÇÃO: Se o cartão vence antes do dia 12, com certeza a fatura dele fecha no mês anterior! 
-        fech_dc = primeira_cobranca.month - 1
+    #  ex: 27/02/2026     ex: 27/02/2026  
+    if data_compra_obj >= data_fech_real: #true
 
-        if fech_dc == 0:
-            fech_dc = 12
+            # ex: 5                  ex: 27
+        if data_venc_real.day < data_fech_real.day: # Se o fechamento ocorre no mês anterior, pula mês seguinte (ex: abril (vencimento: 05/04/2026))
+            primeira_cobranca += relativedelta(months=2)
 
-        data_fechamento = data_compra_obj.replace(day=dia_fechamento, month=fech_dc)
-    else:
-        data_fechamento = data_compra_obj.replace(day=dia_fechamento)
+        else:
+            primeira_cobranca += relativedelta(months=1)
 
-    if data_compra_obj >= data_fechamento: 
-        primeira_cobranca += relativedelta(months=1)
 
     if not assinatura:
         diferenca_anos = data_alvo.year - primeira_cobranca.year # type: ignore
@@ -545,12 +553,13 @@ def controle_data_parc_cc(
 
         parcela_atual = meses_passados + 1
     
-    try:
-        data_pagamento = data_alvo.replace(day=dia_vencimento) # type: ignore
-        
-    except ValueError:
-        ultimo_dia = calendar.monthrange(data_alvo.year, data_alvo.month)[1] # type: ignore
-        data_pagamento = data_alvo.replace(day=ultimo_dia) # type: ignore
+
+    _, data_pagamento = calcular_datas_reais_cartao(
+        data_alvo.year, 
+        data_alvo.month, 
+        dia_vencimento, 
+        dia_fechamento
+    )
 
     if assinatura:
         data_inicio_cobranca = primeira_cobranca.replace(day=1)
@@ -562,11 +571,11 @@ def controle_data_parc_cc(
             return "Mensal", False, data_pagamento
     
     if not assinatura:
-        if parcela_atual < 1: # type: ignore
+        if parcela_atual < 1: 
             return f"0/{total_parcelas} (A vencer)", False, data_pagamento
         
         elif parcela_atual > total_parcelas: # type: ignore
             return f"{total_parcelas}/{total_parcelas} (Quitado)", False, data_pagamento
         
         else:
-            return f"{parcela_atual}/{total_parcelas}", True, data_pagamento # type: ignore
+            return f"{parcela_atual}/{total_parcelas}", True, data_pagamento
