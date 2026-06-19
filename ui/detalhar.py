@@ -11,7 +11,7 @@ vencimentos e simulações para exibir resumos financeiros mensais e gráficos d
 
 # ----- FUNÇÕES DE AJUDA - (utils) -------
 from utils.helper import(
-    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, controle_data_parc, centralizar_janela_responsiva, formata_cor
+    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, controle_data_parc, centralizar_janela_responsiva, formata_cor, distribuir_parcelas_decimal
 )
 from utils.audio_helper import tocar_notificacao 
 
@@ -537,6 +537,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
         self.tabela_frame.grid_columnconfigure(0, weight=1)
         self.tabela_frame.grid_rowconfigure(0, weight=1)
 
+
     def renderizar(self, controle_mes: Optional[int] = None, escolha: Optional[str] = None, dados_simulacao: Optional[List[Dict[str, Any]]] = None) -> Decimal:
         """
         Processa as regras de datas do helper (controle_data_parc_cc) para desenhar 
@@ -663,6 +664,8 @@ class Listar_desp_tabela(ctk.CTkFrame):
 
             if despesas:
                 for _, dados in enumerate(despesas):
+                    dados: Dados_despesas_db = dados
+
                     primeira_parc = mysql_para_obj(dados['data_pp'])
                     dia_venc = dados['dia_vencimento']
                 
@@ -676,7 +679,8 @@ class Listar_desp_tabela(ctk.CTkFrame):
                         data_fatura = datetime.now().replace(day=dia_venc)
 
                     if control_parc:
-                        valor_mensal = Decimal(str(dados.get('valor_total'))) / dados.get('parcelas')
+                        parcela_atual = int(str_parcela.split('/')[0])
+                        valor_mensal = distribuir_parcelas_decimal(valor_total=dados['valor_total'], total_parcelas=dados["parcelas"])[parcela_atual - 1]
                     
                         ctk.CTkLabel(self.tabela_frame, text=dados.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
                         ctk.CTkLabel(self.tabela_frame, text=str_parcela).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
@@ -902,13 +906,13 @@ class Listar_faturas_cartao(ctk.CTkFrame):
     Suporta o Mock Engine para a tela de Simulação.
     """
 
-    def __init__(self, parent: Any = None, id_user: Optional[int] = None, id_card: Optional[int] = None, nome_card: Optional[str] = None, dados_prontos: Optional[List] = None, *args, **kwargs) -> None:
+    def __init__(self, parent: Any = None, id_user: Optional[int] = None, id_card: Optional[int] = None, nome_card: Optional[str] = None, dados_prontos: Optional[List[Dict[str, Any]]] = None, *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.id_user = id_user
         self.id_card = id_card
         self.nome_card = nome_card
-        self.dados_prontos = dados_prontos
+        self.dados_prontos = dados_prontos #LISTA DE DICIONÁRIOS
 
         # ---------------- Gerencimento de self ---------------------
         self.data_atual = datetime.now().date()
@@ -935,6 +939,7 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
         self.container_dados = ctk.CTkFrame(self.tabela_frame, fg_color="transparent")
         self.container_dados.pack(fill="both", expand=True)
+
 
     def tabela_cartao(self, id_user: int, id_card: int, escolha: Optional[str] = None, controle_mes: Optional[int] = None, dados_simulacao: Optional[List[Dict[str, Any]]] = None) -> None: 
         """Recalcula e renderiza a listagem de despesas que compõem a fatura do cartão focado."""
@@ -988,6 +993,8 @@ class Listar_faturas_cartao(ctk.CTkFrame):
 
             if dados_desp_card:
                 for _, item_desp  in enumerate(dados_desp_card):
+                    item_desp: Pega_despesas_cartao_db = item_desp
+
                     data_compra = mysql_para_obj(item_desp.get('data_compra'))
                     fecha_fatura = item_desp.get('dia_fechamento')
                     dia_venc = item_desp.get('dia_vencimento')
@@ -997,14 +1004,16 @@ class Listar_faturas_cartao(ctk.CTkFrame):
                     str_parc, control_parc, controle_data = resultado
 
                     if control_parc:
-                        valor_mensal = Decimal(str(item_desp.get('valor_total'))) / item_desp.get('parcelas')
+                        parcela_atual = int(str_parc.split('/')[0])
+                        valor_mensal = distribuir_parcelas_decimal(valor_total=item_desp['valor_total'], total_parcelas=item_desp['parcelas'])[parcela_atual - 1]
                         total_fatura += valor_mensal
 
                         ctk.CTkLabel(self.container_dados, text=item_desp.get('local')).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
                         ctk.CTkLabel(self.container_dados, text=str_parc).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
                         ctk.CTkLabel(self.container_dados, text=formatar_moeda(valor_mensal),justify=ctk.LEFT, text_color="green").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
                         ctk.CTkLabel(self.container_dados, text=data_para_exibicao(controle_data)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
-                        linha += 1 
+                        linha += 1
+
 
             if dados_simulacao:
                 for dado in dados_simulacao:

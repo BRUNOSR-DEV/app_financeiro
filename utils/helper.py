@@ -23,6 +23,7 @@ import re
 from typing import List, Dict, Optional, Union, Any, Tuple
 import urllib.request
 import json
+from decimal import Decimal, ROUND_HALF_UP
 
 #BIBLIO VIA PIP
 from dateutil.relativedelta import relativedelta
@@ -78,6 +79,7 @@ def gerar_opcoes_meses(id: Optional[int] = None, str_mes: Optional[str] = None) 
     return meses_nome
 
 
+# - CHAMADA POR main_app.py
 def preparar_dados_completos_cartao(id_user: int, dados_cartoes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     Transforma uma lista simples de cartões em uma lista robusta (DTO), 
@@ -334,6 +336,30 @@ def centralizar_janela_responsiva(janela: Any, tipo_janela: str = "main") -> Non
 # ---------- ENGINES: CONTROLE DE DATA E PARCELAS -----------------
 # =================================================================================
 
+def distribuir_parcelas_decimal(valor_total: Decimal, total_parcelas: int) -> List[Decimal]:
+    """
+    Divide um valor Decimal pelo número de parcelas, ajustando eventuais
+    sobras de centavos na última parcela para manter a integridade financeira.
+    """
+    if total_parcelas <= 0:
+        return []
+
+
+    #Calcula o valor base arredondando estritamente para 2 casas decimais
+    valor_parcela_base = (valor_total / total_parcelas).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    
+    #Cria a lista com o valor base para todas as parcelas  Resul = [parcela, parcela, parcela]
+    parcelas = [valor_parcela_base] * total_parcelas
+    
+    # Calcula a soma atual e descobre a diferença/resíduo
+    soma_atual = sum(parcelas)
+    diferenca = valor_total - soma_atual  # Pode ser +0.01, -0.02
+    
+    #Injeta a diferença na última parcela para fechar a conta cravada
+    if diferenca != 0:
+        parcelas[-1] += diferenca
+        
+    return parcelas
 
 
 def obter_proximo_dia_util(data_base: datetime.date) -> datetime.date:
@@ -583,7 +609,7 @@ def controle_data_parc_cc(
         data_alvo_inicio = data_alvo.replace(day=1) # type: ignore
 
         if data_alvo_inicio >= data_inicio_cobranca:
-            return "Mensal", True, data_pagamento
+            return "Mensal", True, data_pagamento # True é controle_parc
         else:
             return "Mensal", False, data_pagamento
     
@@ -595,4 +621,4 @@ def controle_data_parc_cc(
             return f"{total_parcelas}/{total_parcelas} (Quitado)", False, data_pagamento
         
         else:
-            return f"{parcela_atual}/{total_parcelas}", True, data_pagamento
+            return f"{parcela_atual}/{total_parcelas}", True, data_pagamento   # True é controle_parc
