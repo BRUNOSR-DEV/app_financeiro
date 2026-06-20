@@ -347,33 +347,45 @@ class Listar_car_cred(ctk.CTkFrame):
             if self.controle_dados: self.controle_dados(None)
 
     def confirmar_delete(self, dados: Dict[str, Any]) -> None:
+        dados: Dados_cartoes_db = dados
+
         popup = ctk.CTkToplevel(self)
         popup.title("Confirmação")
         centralizar_janela_responsiva(janela=popup, tipo_janela='pequeno')
         popup.grab_set()
         popup.grid_columnconfigure((0, 1), weight=1)
 
-        label = ctk.CTkLabel(popup, text="Tem certeza que deseja\nexcluir este Cartão?", font=("Arial", 14))
+        label = ctk.CTkLabel(popup, text=f"Tem certeza que deseja\nexcluir cartão ({dados['nome_cartao']})?", font=("Arial", 14))
         label.grid(row=0, column=0, columnspan=2, pady=20)
 
         btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=popup.destroy)
         btn_cancelar.grid(row=1, column=0, padx=10, pady=10)
 
+        status_label = ctk.CTkLabel(popup, text="", text_color="red")
+        status_label.grid(row=2, column=0, columnspan=2, pady=10)
+
         btn_confirmar = ctk.CTkButton(popup, text="Sim, excluir!", fg_color="#c0392b", hover_color="#e74c3c",
-                                  command=lambda: self.executar_delete(dados, popup))
+                                  command=lambda: self.executar_delete(dados, popup, status_label))
         btn_confirmar.grid(row=1, column=1, padx=10, pady=10)
 
-    def executar_delete(self, dados: Dict[str, Any], popup: ctk.CTkToplevel) -> None:
+        
+
+
+    def executar_delete(self, dados: Dict[str, Any], popup: ctk.CTkToplevel, label_erro: ctk.CTkLabel) -> None:
         id_card = dados.get('id_cartao')
         nome = dados.get('nome_cartao')
 
         if self.cdt_crud:
             sucesso = self.cdt_crud(deletar=id_card)
+
             if sucesso:
                 print(f"ID: {id_card} None: '{nome}'. Mandado pro espaço 🌌​")
                 popup.destroy()
             else:
-                print("Erro ao deletar")
+                label_erro.configure(text='ERRO! Cartão tem despesas cadastradas, apague elas antes...', text_color='red')
+                popup.update_idletasks()
+                popup.after(6000, lambda: label_erro.configure(text=''))
+                print("Erro ao deletar cartão!")
 
 # =================================================================================
 # --- LISTAGEM DE ASSINATURAS ---
