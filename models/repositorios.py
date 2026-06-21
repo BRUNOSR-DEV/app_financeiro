@@ -35,7 +35,7 @@ class Rep_Usuario:
         db_conn (Database): Instância da classe de gerenciamento do banco de dados.
     """
     
-    def __init__(self, db_conn: Database) -> None:
+    def __init__(self, db_conn: Database = None) -> None:
         self.db_conn: Database = db_conn
     
     def validar_credenciais(self, username: str, senha_digitada: str) -> Optional[List[Dict[str, Any]]]:
@@ -51,6 +51,7 @@ class Rep_Usuario:
             Optional[List[Dict[str, Any]]]: Uma lista contendo o dicionário do usuário se 
             autorizado, ou None se as credenciais forem inválidas.
         """
+
         user_id = self.pega_id(username)
         usuario = self.pega_usuario(user_id) 
         

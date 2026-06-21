@@ -5,19 +5,19 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
 -- -----------------------------------------------------
--- Schema new_app_financeiro
+-- Schema app_financeiro_v2
 -- -----------------------------------------------------
 
 -- -----------------------------------------------------
--- Schema new_app_financeiro
+-- Schema app_financeiro_v2
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `new_app_financeiro` DEFAULT CHARACTER SET utf8 ;
-USE `new_app_financeiro` ;
+CREATE SCHEMA IF NOT EXISTS `app_financeiro_v2` DEFAULT CHARACTER SET utf8 ;
+USE `app_financeiro_v2` ;
 
 -- -----------------------------------------------------
--- Table `new_app_financeiro`.`usuarios`
+-- Table `app_financeiro_v2`.`usuarios`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `new_app_financeiro`.`usuarios` (
+CREATE TABLE IF NOT EXISTS `app_financeiro_v2`.`usuarios` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `nome_completo` VARCHAR(150) NOT NULL,
   `nome_usuario` VARCHAR(80) NOT NULL,
@@ -33,9 +33,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `new_app_financeiro`.`cartoes_credito`
+-- Table `app_financeiro_v2`.`cartoes_credito`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `new_app_financeiro`.`cartoes_credito` (
+CREATE TABLE IF NOT EXISTS `app_financeiro_v2`.`cartoes_credito` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(80) NOT NULL,
   `limite` DECIMAL(10,2) NOT NULL,
@@ -48,16 +48,16 @@ CREATE TABLE IF NOT EXISTS `new_app_financeiro`.`cartoes_credito` (
   INDEX `fk_cartoes_credito_1_idx` (`id_usuario` ASC) VISIBLE,
   CONSTRAINT `fk_cartoes_credito_1`
     FOREIGN KEY (`id_usuario`)
-    REFERENCES `new_app_financeiro`.`usuarios` (`id`)
+    REFERENCES `app_financeiro_v2`.`usuarios` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `new_app_financeiro`.`despesas`
+-- Table `app_financeiro_v2`.`despesas`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `new_app_financeiro`.`despesas` (
+CREATE TABLE IF NOT EXISTS `app_financeiro_v2`.`despesas` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `local` VARCHAR(80) NOT NULL,
   `valor_total` DECIMAL(10,2) NOT NULL,
@@ -74,21 +74,21 @@ CREATE TABLE IF NOT EXISTS `new_app_financeiro`.`despesas` (
   INDEX `fk_despesas_2_idx` (`id_cartao` ASC) VISIBLE,
   CONSTRAINT `fk_despesas_1`
     FOREIGN KEY (`id_usuario`)
-    REFERENCES `new_app_financeiro`.`usuarios` (`id`)
+    REFERENCES `app_financeiro_v2`.`usuarios` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_despesas_2`
     FOREIGN KEY (`id_cartao`)
-    REFERENCES `new_app_financeiro`.`cartoes_credito` (`id`)
+    REFERENCES `app_financeiro_v2`.`cartoes_credito` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `new_app_financeiro`.`receitas`
+-- Table `app_financeiro_v2`.`receitas`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `new_app_financeiro`.`receitas` (
+CREATE TABLE IF NOT EXISTS `app_financeiro_v2`.`receitas` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `fonte` VARCHAR(60) NOT NULL,
   `valor` DECIMAL(10,2) NOT NULL,
@@ -99,16 +99,16 @@ CREATE TABLE IF NOT EXISTS `new_app_financeiro`.`receitas` (
   INDEX `fk_receitas_1_idx` (`id_usuario` ASC) VISIBLE,
   CONSTRAINT `fk_receitas_1`
     FOREIGN KEY (`id_usuario`)
-    REFERENCES `new_app_financeiro`.`usuarios` (`id`)
+    REFERENCES `app_financeiro_v2`.`usuarios` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `new_app_financeiro`.`assinaturas`
+-- Table `app_financeiro_v2`.`assinaturas`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `new_app_financeiro`.`assinaturas` (
+CREATE TABLE IF NOT EXISTS `app_financeiro_v2`.`assinaturas` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(100) NOT NULL,
   `valor` DECIMAL(10,2) NOT NULL,
@@ -124,12 +124,12 @@ CREATE TABLE IF NOT EXISTS `new_app_financeiro`.`assinaturas` (
   INDEX `fk_assinaturas_2_idx` (`id_cartao` ASC) VISIBLE,
   CONSTRAINT `fk_assinaturas_1`
     FOREIGN KEY (`id_usuario`)
-    REFERENCES `new_app_financeiro`.`usuarios` (`id`)
+    REFERENCES `app_financeiro_v2`.`usuarios` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_assinaturas_2`
     FOREIGN KEY (`id_cartao`)
-    REFERENCES `new_app_financeiro`.`cartoes_credito` (`id`)
+    REFERENCES `app_financeiro_v2`.`cartoes_credito` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
