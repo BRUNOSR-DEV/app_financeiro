@@ -7,7 +7,7 @@ from models.repositorios import Rep_Usuario, Rep_Receita, Rep_Despesa, Rep_Carta
 from models.entidades import *
 
 
-def limpar_tabelas(conn):
+def limpar_tabelas(conn: MySQLdb.Connection):
         """
         Limpa os dados das tabelas para garantir um ambiente isolado em cada teste.
     
@@ -21,7 +21,7 @@ def limpar_tabelas(conn):
         cursor.execute("SELECT DATABASE()")
         db_name = cursor.fetchone()[0]
 
-        if "teste" not in db_name.lower():
+        if "test" not in db_name.lower():
             raise Exception(
                 f"TRAVA DE SEGURANÇA: O banco conectado '{db_name}' não parece ser um banco de testes. "
                 "Operação de limpeza abortada para evitar perda de dados reais."

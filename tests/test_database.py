@@ -5,6 +5,7 @@ import configparser
 from typing import Optional, Dict, Any
 
 class Test_database:
+    
     def __init__(self) -> None:
         self.test_config: Optional[Dict[str, Any]] = self._ler_configuracao()
 
