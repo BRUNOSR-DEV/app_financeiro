@@ -71,8 +71,13 @@ class Test_Rep_Usuario(unittest.TestCase):
         """Roda ANTES de cada método de teste individual."""
         self.rep = Rep_Usuario()
 
+        # Limpa as tabelas do banco
         limpar_tabelas(conn=self.conn)
         print(f"\n-> Rodando: {self._testMethodName}")
+
+        self.user1 = Usuario('Bruno Rodrigues', 'bruno', '1234', 'bruno@gmail.com', 2000, '11964824753', None)
+        self.user2 = Usuario('Dante Sparta', 'dante', '1234', 'dante@gmail.com', 10000, '11964824753', None)
+        self.user3 = Usuario('Kratos Good', 'kratos', '1234', 'kratos@gmail.com', 12000, '11964824753', None)
 
 
     def tearDown(self):
@@ -80,26 +85,68 @@ class Test_Rep_Usuario(unittest.TestCase):
         print(f"-> Finalizado: {self._testMethodName}")
 
 
-    # --------- INICIANDO TESTES ---------
-    def test_inserir_usuario_pega_id(self):
+                                    # --------- INICIANDO TESTES ---------
+
+    def test_inserir_usuario_pega_id_pega_usuario(self):
         """Garante que a entidade Usuário insere e retorna id do usuário."""
 
-        # Arrange (Prepara o objeto)
-        user = Usuario('Bruno Rodrigues', 'bruno', '1234', 'bruno@gmail.com', 2000, '11964824753', None)
-
         # Act & Assert (Executa as ações repassando o cls.conn que criamos no setUpClass)
-        self.assertTrue(self.rep.inserir_usuario(usuario=user, conn=self.conn))
+        self.assertTrue(self.rep.inserir_usuario(usuario=self.user1, conn=self.conn))
         
         user_id = self.rep.pega_id('bruno', conn=self.conn)
+        usuario = self.rep.pega_usuario(user_id, conn=self.conn)
 
-        # Assert Final
+        # Validação dos métodos
         self.assertIsNotNone(user_id)
         self.assertGreater(user_id, 0)
+        self.assertIsNotNone(usuario)
+
+        #Garante que o banco salvou e trouxe o dado certo
+        self.assertEqual(usuario['id_user'], user_id)
+        self.assertEqual(usuario['nome_completo'], self.user1.nome_completo)
+        self.assertEqual(usuario['nome_user'], self.user1.nome_user)
+        self.assertEqual(usuario['senha'], self.user1.senha)
+        self.assertEqual(usuario['sal_fixo'], self.user1.sal_fixo)
+        self.assertEqual(usuario['email'], self.user1.email)
+        self.assertEqual(usuario['telefone'], self.user1.telefone)
+        self.assertEqual(usuario['tci'], self.user1.tci)
 
 
 
+    def test_listar_usuarios(self):
+        """Garante que o método retorna os usuários do banco em dicionários"""
 
+        #Inserindo dois usuários no banco
+        self.rep.inserir_usuario(self.user1, conn=self.conn)
+        self.rep.inserir_usuario(self.user2, conn=self.conn)
+        self.rep.inserir_usuario(self.user3, conn=self.conn)
+        
 
+        usuarios = self.rep.dados_usuarios(conn=self.conn)
+
+        # Garante que usuarios tenha os 3 usuários cadastrados
+        self.assertEqual(len(usuarios),3)
+
+        #Garante que o retorno é um dicionário com os campos mapeados corretamente
+        primeiro_usuario = usuarios[0] # usuário Bruno
+        self.assertIn('id_user', primeiro_usuario)
+        self.assertIn('nome_completo', primeiro_usuario)
+        self.assertIn('nome_user', primeiro_usuario)
+        self.assertIn('senha', primeiro_usuario)
+        self.assertIn('email', primeiro_usuario)
+        self.assertIn('sal_fixo', primeiro_usuario)
+        self.assertIn('telefone', primeiro_usuario)
+        self.assertIn('tci', primeiro_usuario)
+
+        # Garante que os dois ultimos usuários do dicionário tenha 8 campos.
+        self.assertEqual(len(usuarios[1]), 8) #usuário 2 Dante
+        self.assertEqual(len(usuarios[2]), 8) #usuário 3 Kratos
+
+        # Garante que o terceiro usuário realmente é o Kratos e o telefone veio nulo
+        self.assertEqual(usuarios[2]['nome'], 'Kratos Good')
+        self.assertIsNone(usuarios[2]['tci'])
+
+        
 
     
 class Test_Rep_Receita(unittest.TestCase):

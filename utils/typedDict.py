@@ -15,9 +15,10 @@ class Dados_usuarios_db(TypedDict):
     nome_user: str
     senha: str
     email: str
-    telefone: str
     sal_fixo: Decimal
-
+    telefone: str
+    tci: str
+    
 
 class Dados_receitas_db(TypedDict):
     id_receita: int
