@@ -31,8 +31,7 @@ def limpar_tabelas(conn: MySQLdb.Connection):
         try:
             # Desativa temporariamente a checagem de chave estrangeira para limpar sem erros
             cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
-            cursor.execute("DELETE FROM tarefas")
-            cursor.execute("DELETE FROM usuario")
+            cursor.execute("DELETE FROM usuarios")
             cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
             conn.commit() 
         except MySQLdb.Error as e:
@@ -208,7 +207,7 @@ class Test_Rep_Usuario(unittest.TestCase):
         self.assertEqual(len(usuarios[2]), 8) #usuário 3 Kratos
 
         # Garante que o terceiro usuário realmente é o Kratos e o telefone veio nulo
-        self.assertEqual(usuarios[2]['nome'], 'Kratos Good')
+        self.assertEqual(usuarios[2]['nome_completo'], 'Kratos Good')
         self.assertIsNone(usuarios[2]['tci'])
 
 
@@ -240,99 +239,11 @@ class Test_Rep_Usuario(unittest.TestCase):
             f'A senha do usuário deveria ter sido alterada, mas continua {user1[0]['senha']}'
             )
         
-        self.assertEqual(user1[0]['senha'], '1111') # '1111' sendo a nova senha do usuário
+        user1_atualizado = self.rep.pega_usuario(user_id, conn=self.conn)
+        
+        self.assertEqual(user1_atualizado[0]['senha'], '1111') # '1111' sendo a nova senha do usuário
 
 
     
-class Test_Rep_Receita(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        """Prepara a infraestrutura e a conexão uma única vez para esta classe."""
-        cls.db_infra = Database_teste()
-        cls.conn = cls.db_infra.conectar_bd_teste()
-
-        limpar_tabelas(cls.conn)
-        print(f"\n--- Configurando teste Usuários: {cls._testMethodName} ---")
-
-    @classmethod
-    def tearDownClass(cls):
-        """Desconecta do banco após rodar todos os testes desta entidade."""
-        if hasattr(cls, 'conn') and cls.conn:
-            cls.db_infra.desconectar(cls.conn)
-
-    def test_fluxo(self):
-        """Garante que a entidade Usuário consegue persistir dados."""
-
-        # Injeta a conexão ativa do repositório real
-        repo = Rep_Receita(conn=self.conn)
-    
-
-
-class Test_Rep_Despesa(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        """Prepara a infraestrutura e a conexão uma única vez para esta classe."""
-        cls.db_infra = Database_teste()
-        cls.conn = cls.db_infra.conectar_bd_teste()
-
-    @classmethod
-    def tearDownClass(cls):
-        """Desconecta do banco após rodar todos os testes desta entidade."""
-        if hasattr(cls, 'conn') and cls.conn:
-            cls.db_infra.desconectar(cls.conn)
-
-    def test_fluxo(self):
-        """Garante que a entidade Usuário consegue persistir dados."""
-
-        # Injeta a conexão ativa do repositório real
-        repo = Rep_Despesa(conn=self.conn)
-    
-
-
-class Test_Rep_Cartao_credito(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        """Prepara a infraestrutura e a conexão uma única vez para esta classe."""
-        cls.db_infra = Database_teste()
-        cls.conn = cls.db_infra.conectar_bd_teste()
-
-    @classmethod
-    def tearDownClass(cls):
-        """Desconecta do banco após rodar todos os testes desta entidade."""
-        if hasattr(cls, 'conn') and cls.conn:
-            cls.db_infra.desconectar(cls.conn)
-
-    def test_fluxo(self):
-        """Garante que a entidade Usuário consegue persistir dados."""
-
-        # Injeta a conexão ativa do repositório real
-        repo = Rep_Cartao_credito(conn=self.conn)
-    
-
-
-class Test_Rep_Assinatura(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        """Prepara a infraestrutura e a conexão uma única vez para esta classe."""
-        cls.db_infra = Database_teste()
-        cls.conn = cls.db_infra.conectar_bd_teste()
-
-    @classmethod
-    def tearDownClass(cls):
-        """Desconecta do banco após rodar todos os testes desta entidade."""
-        if hasattr(cls, 'conn') and cls.conn:
-            cls.db_infra.desconectar(cls.conn)
-
-    def test_fluxo(self):
-        """Garante que a entidade Usuário consegue persistir dados."""
-
-        # Injeta a conexão ativa do repositório real
-        repo = Rep_Assinatura(conn=self.conn)
-    
-
 
 

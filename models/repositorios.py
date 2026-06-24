@@ -38,7 +38,7 @@ class Rep_Usuario:
     def __init__(self, db_conn: Database = None) -> None:
         self.db_conn: Database = db_conn
     
-    def validar_credenciais(self, username: str, senha_digitada: str) -> Optional[List[Dict[str, Any]]]:
+    def validar_credenciais(self, username: str, senha_digitada: str, conn: Optional[MySQLdb.Connection] = None) -> Optional[List[Dict[str, Any]]]:
         """
         Valida o login do usuário, realizando a migração automática de senhas antigas 
         (texto puro) para hashes Bcrypt, se necessário.
@@ -51,14 +51,26 @@ class Rep_Usuario:
             Optional[List[Dict[str, Any]]]: Uma lista contendo o dicionário do usuário se 
             autorizado, ou None se as credenciais forem inválidas.
         """
-
-        user_id = self.pega_id(username)
-        usuario = self.pega_usuario(user_id) 
+        params = {}
+        if conn is None:
+            user_id = self.pega_id(username) # busca no banco original
+            usuario = self.pega_usuario(user_id)  # busca no banco original
         
-        if not user_id:
-            return None 
+            if not user_id:
+                return None 
             
-        senha_salva = usuario[0]['senha'] 
+            senha_salva = usuario[0]['senha'] 
+
+        else:
+            # ------  CONEXÃO COM O BANCO DE TESTES -----
+            user_id = self.pega_id(username, conn=conn) # busca no banco de teste
+            usuario = self.pega_usuario(user_id, conn=conn)  # busca no banco de teste
+        
+            if not user_id:
+                return None 
+            
+            senha_salva = usuario[0]['senha'] 
+
 
         if senha_salva.startswith('$2b$') or senha_salva.startswith('$2a$'):
 
@@ -71,7 +83,11 @@ class Rep_Usuario:
             # Fluxo de migração de senha legado para Bcrypt
             if senha_digitada == senha_salva:
                 nova_senha_cripto = SegurancaService.criptografar_senha(senha_digitada)
-                self.atualizar_senha_usuario(user_id, nova_senha_cripto)
+
+                if conn is None:
+                    self.atualizar_senha_usuario(user_id, nova_senha_cripto) #conexã com o banco orinal
+                else:
+                    self.atualizar_senha_usuario(user_id, nova_senha_cripto, conn=conn) # conexão com banco de teste
                 
                 print(f"🔒 Usuário {usuario[0]['nome_user']} migrado com sucesso para criptografia avançada!")
                 return usuario
@@ -199,7 +215,7 @@ class Rep_Usuario:
                 self.db_conn.desconectar(conn)
 #       @@Testado
 
-    def inserir_usuario(self, usuario: Usuario, conn: Optional[Any] = None) -> bool:
+    def inserir_usuario(self, usuario: Usuario, conn: Optional[Any] = None) -> Optional[int]:
         """
         Insere um novo registro de usuário no banco de dados.
 
@@ -222,25 +238,24 @@ class Rep_Usuario:
         try:
             cursor.execute("INSERT INTO usuarios (nome_completo, nome_usuario, senha, email, salario_fixo, numero_telefone, telegram_chat_id) VALUES (%s, %s, %s, %s, %s, %s, %s)",(usuario.nome_completo, usuario.nome_user, usuario.senha, usuario.email, usuario.sal_fixo, usuario.telefone, usuario.tci))
             conn.commit()
+            id_gerado = cursor.lastrowid
 
             if cursor.rowcount == 1: 
                 print(f'Usuário inserido com sucesso! olá {usuario.nome_completo}')
-                sucesso = True
-                return sucesso 
+                return id_gerado
             else:
                 print('Não foi possível inserir usuário no banco de dados! ')
-                sucesso = False
-                return sucesso
+                return None
         
         except MySQLdb.Error as e:
             print(f'Erro MySQL ao inserir usuário: {e}')
             conn.rollback()
-            return False     
+            return None  
     
         except Exception as e:
             print(f'Erro em inserir usuário {e}')
             conn.rollback()
-            return False
+            return None
         
         finally:
             if gerenciar_conn:
@@ -289,7 +304,7 @@ class Rep_Usuario:
                 self.db_conn.desconectar(conn)
 #       @@Testado
 
-    def atualizar_senha_usuario(self, user_id: int, nova_senha: str, conn: Optional[Any] = None) -> Optional[bool]:
+    def atualizar_senha_usuario(self, user_id: int, nova_senha: str, conn: Optional[MySQLdb.Connection] = None) -> bool:
         """
         Atualiza o hash de senha do usuário no banco de dados.
 
@@ -301,6 +316,7 @@ class Rep_Usuario:
         Returns:
             Optional[bool]: True se sucesso, None em caso de falha de DB.
         """
+
         gerenciar_conn = False
         if conn is None:
             conn= self.db_conn.conectar_bd_original()
@@ -319,12 +335,12 @@ class Rep_Usuario:
         except MySQLdb.Error as e:
             print(f"Erro MySQL ao fazer atualização: {e}")
             conn.rollback()
-            return None 
+            return False
     
         except Exception as e:
             print(f"Erro inesperado ao atualizar senha: {e}")
             conn.rollback()
-            return None
+            return False
         
         finally:
             if gerenciar_conn:
