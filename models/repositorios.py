@@ -61,8 +61,10 @@ class Rep_Usuario:
         senha_salva = usuario[0]['senha'] 
 
         if senha_salva.startswith('$2b$') or senha_salva.startswith('$2a$'):
+
             if SegurancaService.verificar_senha(senha_digitada, senha_salva):
                 return usuario
+            
             return None
         
         else:
@@ -74,7 +76,7 @@ class Rep_Usuario:
                 print(f"🔒 Usuário {usuario[0]['nome_user']} migrado com sucesso para criptografia avançada!")
                 return usuario
             return None
-
+#       @@Testado
 
     def dados_usuarios(self, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
@@ -117,7 +119,7 @@ class Rep_Usuario:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
-
+#      @@Testado
 
     def pega_usuario(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
@@ -157,7 +159,7 @@ class Rep_Usuario:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
-
+#      @@Testado
 
     def pega_id(self, usuario: str, conn: Optional[Any] = None) -> Optional[int]: 
         """
@@ -195,7 +197,7 @@ class Rep_Usuario:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
-
+#       @@Testado
 
     def inserir_usuario(self, usuario: Usuario, conn: Optional[Any] = None) -> bool:
         """
@@ -243,7 +245,7 @@ class Rep_Usuario:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
-
+#       @@Testado
 
     def atualizar_renda(self, id_user: int, nova_renda: Decimal, conn: Optional[Any] = None) -> bool: 
         """
@@ -285,7 +287,7 @@ class Rep_Usuario:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
-
+#       @@Testado
 
     def atualizar_senha_usuario(self, user_id: int, nova_senha: str, conn: Optional[Any] = None) -> Optional[bool]:
         """
@@ -327,7 +329,7 @@ class Rep_Usuario:
         finally:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
-                                         
+#         @@Testado                                         
 
 # =================================================================================
 # --- REPOSITÓRIO RECEITA ---
