@@ -16,11 +16,13 @@ from models.entidades import *
 
 # ----- FUNÇÕES DE AJUDA - (UTILS) -------
 from utils.segurança import SegurancaService
+from utils.helper import data_para_mysql
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
 # BIBLIO PADRÕES
 from decimal import Decimal
 from typing import Optional, List, Dict, Any, Union
+from datetime import date, datetime
 
 
 # =================================================================================
@@ -356,7 +358,7 @@ class Rep_Receita:
     Gerencia as operações de persistência relacionadas às Entidades de Receita.
     """
 
-    def __init__(self, db_conn: Database) -> None:
+    def __init__(self, db_conn: Database= None) -> None:
         self.db_conn: Database = db_conn
     
     def dados_receitas(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
@@ -421,9 +423,16 @@ class Rep_Receita:
             gerenciar_conn = True
 
         cursor = conn.cursor()
+
+        if isinstance(receita.data, (date, datetime)):
+            data_formatada = data_para_mysql(receita.data)
+        else:
+            data_formatada = receita.data
+        
+
         try:
             sql = "INSERT INTO receitas (fonte, valor, descricao, data_recebimento, id_usuario) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(sql, (receita.fonte, receita.valor, receita.descricao, receita.data, id_user))
+            cursor.execute(sql, (receita.fonte, receita.valor, receita.descricao, data_formatada, id_user))
             conn.commit()
             return cursor.lastrowid 
     
@@ -526,7 +535,7 @@ class Rep_Despesa:
     complexos com tabelas de cartões de crédito.
     """
 
-    def __init__(self, db_conn: Database) -> None:
+    def __init__(self, db_conn: Database = None) -> None:
         self.db_conn: Database = db_conn
 
     def dados_despesas(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
@@ -814,7 +823,7 @@ class Rep_Cartao_credito:
     Abstração de acesso aos dados para manipulação das faturas e propriedades de cartões.
     """
 
-    def __init__(self, db_conn: Database) -> None:
+    def __init__(self, db_conn: Database= None) -> None:
         self.db_conn: Database = db_conn
     
     def dados_cartoes(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
@@ -985,7 +994,7 @@ class Rep_Assinatura:
     Controla o fluxo de dados dos gastos recorrentes (Assinaturas).
     """
 
-    def __init__(self, db_conn: Database) -> None:
+    def __init__(self, db_conn: Database = None) -> None:
         self.db_conn: Database = db_conn
     
     def dados_assinaturas(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:

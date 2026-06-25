@@ -1,12 +1,23 @@
 
+# ---------------------------------- IMPORTAÇÃO - MÓDULOS LOCAIS ------------------------------------
 
-import MySQLdb
-import unittest
+# ----- BANCO DE DADOS (models) ------
+
 from tests.config.database_teste import Database_teste
 from models.repositorios import Rep_Usuario, Rep_Receita, Rep_Despesa, Rep_Cartao_credito, Rep_Assinatura
 from models.entidades import *
-from utils.segurança import SegurancaService
 
+# ----- FUNÇÕES DE AJUDA - (UTILS) -------
+from utils.segurança import SegurancaService
+from utils.helper import data_para_mysql
+
+# ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
+# BIBLIO PADRÕES
+from datetime import date, datetime
+
+#BIBLIO VIA PIP
+import MySQLdb
+import unittest
 
 def limpar_tabelas(conn: MySQLdb.Connection):
         """
@@ -281,11 +292,33 @@ class Test_Rep_Receita(unittest.TestCase):
         self.user2 = Usuario('Dante Sparta', 'dante', '1234', 'dante@gmail.com', 10000, '11985652500', None)
         self.user3 = Usuario('Kratos Good', 'kratos', '1234', 'kratos@gmail.com', 12000, '11985652500', None)
 
+        self.receita1 = Receita('Tigrinho', 250, 'Ganhos em bet', date(2026, 6, 25))
+        self.receita2 = Receita('Presente', 150, 'presente de aniversário', date(2026, 6, 27))
 
     def tearDown(self):
         """Roda DEPOIS de cada método de teste individual."""
 
         print(f"-> Finalizado: {self._testMethodName}")
+    
+
+    def test_inserir_receita_dados_receitas(self):
+        """Garante que o usuário consiga inserir uma nova receita no banco, já verifica se o método de listagem retorna a receita inserida"""
+
+        user_id = Rep_Usuario().inserir_usuario(usuario=self.user2, conn=self.conn)
+
+        self.assertTrue(self.rep.inserir_receita(id_user=user_id, receita=self.receita1, conn=self.conn)) # inseri receita1 já testando
+
+        id_rec2 = self.rep.inserir_receita(id_user=user_id, receita=self.receita2, conn=self.conn) # inseri receita2
+
+        receitas = self.rep.dados_receitas(user_id, conn=self.conn)
+
+        self.assertEqual(receitas[1]['fonte'], 'Presente')
+        self.assertEqual(receitas[1]['valor'], Decimal(150))
+        self.assertEqual(receitas[1]['descricao'], 'presente de aniversário')
+        self.assertEqual(receitas[1]['data'], date(2026, 6, 27))
+        self.assertEqual(receitas[1]['id'], id_rec2)
+
+
     
 
 
