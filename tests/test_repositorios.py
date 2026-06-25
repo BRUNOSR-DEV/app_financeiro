@@ -32,8 +32,13 @@ def limpar_tabelas(conn: MySQLdb.Connection):
             # Desativa temporariamente a checagem de chave estrangeira para limpar sem erros
             cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
             cursor.execute("DELETE FROM usuarios")
+            cursor.execute("DELETE FROM receitas")
+            cursor.execute("DELETE FROM despesas")
+            cursor.execute("DELETE FROM cartoes_credito")
+            cursor.execute("DELETE FROM assinaturas")
             cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
             conn.commit() 
+            
         except MySQLdb.Error as e:
             print(f"Erro ao limpar tabelas de teste: {e}")
             conn.rollback()
@@ -49,8 +54,6 @@ class Test_Rep_Usuario(unittest.TestCase):
         cls.db_infra = Database_teste()
         cls.conn = cls.db_infra.conectar_bd_teste()
         
-        # Garante que o banco de testes comece sem sujeira antiga
-        # limpar_tabelas(cls.conn) 
         
         print("\n==================================================")
         print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO USUÁRIO")
@@ -110,7 +113,6 @@ class Test_Rep_Usuario(unittest.TestCase):
         self.assertEqual(resultado[0]['nome_user'], 'kratos')
 
 
-
     def test_validar_credenciais_bcrypt_senha_errada(self):
         """Garante que retorna None se a senha digitada estiver incorreta"""
 
@@ -123,7 +125,6 @@ class Test_Rep_Usuario(unittest.TestCase):
         resultado = self.rep.validar_credenciais('dante_devil', 'senha_errada', conn=self.conn)
         self.assertIsNone(resultado)
     
-
 
     def test_validar_credenciais_migracao_automatica(self):
         """Garante que senhas legadas (texto puro) são migradas para Bcrypt no primeiro login"""
@@ -174,7 +175,6 @@ class Test_Rep_Usuario(unittest.TestCase):
         self.assertEqual(usuario[0]['email'], self.user1.email)
         self.assertEqual(usuario[0]['telefone'], self.user1.telefone)
         self.assertEqual(usuario[0]['tci'], self.user1.tci)
-
 
 
     def test_listar_usuarios(self):
@@ -242,8 +242,185 @@ class Test_Rep_Usuario(unittest.TestCase):
         user1_atualizado = self.rep.pega_usuario(user_id, conn=self.conn)
         
         self.assertEqual(user1_atualizado[0]['senha'], '1111') # '1111' sendo a nova senha do usuário
+#       @@Classe Testada
+    
+
+class Test_Rep_Receita(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        """Prepara a infraestrutura e a conexão uma única vez para esta classe."""
+
+        cls.db_infra = Database_teste()
+        cls.conn = cls.db_infra.conectar_bd_teste()
+
+        print("\n==================================================")
+        print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO RECEITA")
+        print("==================================================")
+
+    @classmethod
+    def tearDownClass(cls):
+        """Desconecta do banco após rodar todos os testes desta entidade."""
+        if hasattr(cls, 'conn') and cls.conn:
+            cls.db_infra.desconectar(cls.conn)
+        
+        print("\n==================================================")
+        print("   SUÍTE FINALIZADA: REPOSITÓRIO RECEITA")
+        print("==================================================")
+
+    def setUp(self):
+        """Roda ANTES de cada método de teste individual."""
+
+        self.rep = Rep_Receita()
+
+        # Limpa as tabelas do banco
+        limpar_tabelas(conn=self.conn)
+        print(f"\n-> Rodando: {self._testMethodName}")
+
+        self.user1 = Usuario('Bruno Rodrigues', 'bruno', '1234', 'bruno@gmail.com', 2000, '11985652500', None)
+        self.user2 = Usuario('Dante Sparta', 'dante', '1234', 'dante@gmail.com', 10000, '11985652500', None)
+        self.user3 = Usuario('Kratos Good', 'kratos', '1234', 'kratos@gmail.com', 12000, '11985652500', None)
 
 
+    def tearDown(self):
+        """Roda DEPOIS de cada método de teste individual."""
+
+        print(f"-> Finalizado: {self._testMethodName}")
+    
+
+
+class Test_Rep_Despesa(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        """Prepara a infraestrutura e a conexão uma única vez para esta classe."""
+
+        cls.db_infra = Database_teste()
+        cls.conn = cls.db_infra.conectar_bd_teste()
+
+        print("\n==================================================")
+        print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO DESPESA")
+        print("==================================================")
+
+    @classmethod
+    def tearDownClass(cls):
+        """Desconecta do banco após rodar todos os testes desta entidade."""
+
+        if hasattr(cls, 'conn') and cls.conn:
+            cls.db_infra.desconectar(cls.conn)
+        
+        print("\n==================================================")
+        print("   SUÍTE FINALIZADA: REPOSITÓRIO DESPESA")
+        print("==================================================")
+
+    def setUp(self):
+        """Roda ANTES de cada método de teste individual."""
+
+        self.rep = Rep_Despesa()
+
+        # Limpa as tabelas do banco
+        limpar_tabelas(conn=self.conn)
+        print(f"\n-> Rodando: {self._testMethodName}")
+
+        self.user1 = Usuario('Bruno Rodrigues', 'bruno', '1234', 'bruno@gmail.com', 2000, '11985652500', None)
+        self.user2 = Usuario('Dante Sparta', 'dante', '1234', 'dante@gmail.com', 10000, '11985652500', None)
+        self.user3 = Usuario('Kratos Good', 'kratos', '1234', 'kratos@gmail.com', 12000, '11985652500', None)
+
+
+    def tearDown(self):
+        """Roda DEPOIS de cada método de teste individual."""
+
+        print(f"-> Finalizado: {self._testMethodName}")
+    
+
+
+class Test_Rep_Cartao_credito(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        """Prepara a infraestrutura e a conexão uma única vez para esta classe."""
+
+        cls.db_infra = Database_teste()
+        cls.conn = cls.db_infra.conectar_bd_teste()
+
+        print("\n==================================================")
+        print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO CARTAO_CREDITO")
+        print("==================================================")
+
+    @classmethod
+    def tearDownClass(cls):
+        """Desconecta do banco após rodar todos os testes desta entidade."""
+        
+        if hasattr(cls, 'conn') and cls.conn:
+            cls.db_infra.desconectar(cls.conn)
+        
+        print("\n==================================================")
+        print("   SUÍTE FINALIZADA: REPOSITÓRIO CARTAO_CREDITO ")
+        print("==================================================")
+
+    def setUp(self):
+        """Roda ANTES de cada método de teste individual."""
+
+        self.rep = Rep_Cartao_credito()
+
+        # Limpa as tabelas do banco
+        limpar_tabelas(conn=self.conn)
+        print(f"\n-> Rodando: {self._testMethodName}")
+
+        self.user1 = Usuario('Bruno Rodrigues', 'bruno', '1234', 'bruno@gmail.com', 2000, '11985652500', None)
+        self.user2 = Usuario('Dante Sparta', 'dante', '1234', 'dante@gmail.com', 10000, '11985652500', None)
+        self.user3 = Usuario('Kratos Good', 'kratos', '1234', 'kratos@gmail.com', 12000, '11985652500', None)
+
+
+    def tearDown(self):
+        """Roda DEPOIS de cada método de teste individual."""
+
+        print(f"-> Finalizado: {self._testMethodName}")
+    
+
+
+class Test_Rep_Assinatura(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        """Prepara a infraestrutura e a conexão uma única vez para esta classe."""
+
+        cls.db_infra = Database_teste()
+        cls.conn = cls.db_infra.conectar_bd_teste()
+
+        print("\n==================================================")
+        print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO ASSINATURA")
+        print("==================================================")
+
+    @classmethod
+    def tearDownClass(cls):
+        """Desconecta do banco após rodar todos os testes desta entidade."""
+        
+        if hasattr(cls, 'conn') and cls.conn:
+            cls.db_infra.desconectar(cls.conn)
+        
+        print("\n==================================================")
+        print("   SUÍTE FINALIZADA: REPOSITÓRIO ASSINATURA ")
+        print("==================================================")
+
+    def setUp(self):
+        """Roda ANTES de cada método de teste individual."""
+
+        self.rep = Rep_Assinatura()
+
+        # Limpa as tabelas do banco
+        limpar_tabelas(conn=self.conn)
+        print(f"\n-> Rodando: {self._testMethodName}")
+
+        self.user1 = Usuario('Bruno Rodrigues', 'bruno', '1234', 'bruno@gmail.com', 2000, '11985652500', None)
+        self.user2 = Usuario('Dante Sparta', 'dante', '1234', 'dante@gmail.com', 10000, '11985652500', None)
+        self.user3 = Usuario('Kratos Good', 'kratos', '1234', 'kratos@gmail.com', 12000, '11985652500', None)
+
+
+    def tearDown(self):
+        """Roda DEPOIS de cada método de teste individual."""
+
+        print(f"-> Finalizado: {self._testMethodName}")
     
 
 
