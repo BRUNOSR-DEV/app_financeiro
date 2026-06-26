@@ -33,6 +33,7 @@ locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 ctk.set_appearance_mode('dark')
 
 
+
 #-1° Módulo Main app - Janela Principal
 class Main_app(ctk.CTk):
 

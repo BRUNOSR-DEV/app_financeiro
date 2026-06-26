@@ -468,10 +468,15 @@ class Rep_Receita:
             gerenciar_conn = True
 
         cursor = conn.cursor()
+
+        if isinstance(receita.data, (date, datetime)):
+            data_formatada = data_para_mysql(receita.data)
+        else:
+            data_formatada = receita.data
     
         try:
             sql = "UPDATE receitas SET fonte = %s, valor = %s, descricao = %s, data_recebimento = %s WHERE id = %s"
-            cursor.execute(sql, (receita.fonte, receita.valor, receita.descricao, receita.data, receita.id_receita))
+            cursor.execute(sql, (receita.fonte, receita.valor, receita.descricao, data_formatada, receita.id_receita))
             conn.commit()
 
             print(f"Receita com ID {receita.id_receita} atualizada com sucesso!")
@@ -492,7 +497,7 @@ class Rep_Receita:
                 self.db_conn.desconectar(conn)
 
 
-    def deletar_receita(self, id_rec: int, conn: Optional[Any] = None) -> bool:
+    def deletar_receita(self, id_rec: int, conn: Optional[MySQLdb.Connection] = None) -> bool:
         """
         Remove permanentemente uma receita da base de dados.
 
@@ -524,9 +529,8 @@ class Rep_Receita:
             if gerenciar_conn:
                 self.db_conn.desconectar(conn)
 
-
 # =================================================================================
-# --- REPOSITÓRIO DESPESA ---
+# --- REPOSITÓRIO DESPESA ---   
 # =================================================================================
 
 class Rep_Despesa:
@@ -538,7 +542,7 @@ class Rep_Despesa:
     def __init__(self, db_conn: Database = None) -> None:
         self.db_conn: Database = db_conn
 
-    def dados_despesas(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
+    def dados_despesas(self, id_user: int, conn: Optional[MySQLdb.Connection] = None) -> List[Dict[str, Any]]:
         """
         Retorna a relação completa de todas as despesas (avulsas e parceladas) do usuário.
 

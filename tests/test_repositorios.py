@@ -301,6 +301,8 @@ class Test_Rep_Receita(unittest.TestCase):
         print(f"-> Finalizado: {self._testMethodName}")
     
 
+                                 # --------- INICIANDO TESTES ---------
+                                 
     def test_inserir_receita_dados_receitas(self):
         """Garante que o usuário consiga inserir uma nova receita no banco, já verifica se o método de listagem retorna a receita inserida"""
 
@@ -316,7 +318,51 @@ class Test_Rep_Receita(unittest.TestCase):
         self.assertEqual(receitas[1]['valor'], Decimal(150))
         self.assertEqual(receitas[1]['descricao'], 'presente de aniversário')
         self.assertEqual(receitas[1]['data'], date(2026, 6, 27))
-        self.assertEqual(receitas[1]['id'], id_rec2)
+        self.assertEqual(receitas[1]['id_receita'], id_rec2)
+    
+
+    def test_atualizar_receita(self):
+        """Garante que o método atualizar_receita faça a atualização dos valores"""
+
+        user_id = Rep_Usuario().inserir_usuario(usuario=self.user2, conn=self.conn)
+        
+        id_rec2 = self.rep.inserir_receita(id_user=user_id, receita=self.receita2, conn=self.conn)
+
+        receitas = self.rep.dados_receitas(user_id, conn=self.conn) # Returns: List[Dict[str, any]]
+
+        # Alteração dos valores no dionário
+        receitas[0]['fonte'] = 'Presente brabo'
+        receitas[0]['valor'] = Decimal(200)
+
+        #Montando a entidade com o dicionário alterado
+        ent_receita = Receita(receitas[0]['fonte'], receitas[0]['valor'], receitas[0]['descricao'], receitas[0]['data'], id_rec2)
+
+        #Verificação: O teste precisa retorna True, caso atualize com sucesso
+        self.assertTrue(self.rep.atualizar_receita(receita=ent_receita, conn=self.conn))
+
+        receitas_att = self.rep.dados_receitas(user_id, conn=self.conn)
+
+        #Verifica se os valores alterados estão no banco
+        self.assertEqual(receitas_att[0]['fonte'], 'Presente brabo', 'Atualização não foi feita')
+        self.assertEqual(receitas_att[0]['valor'], Decimal(200), 'Atualização não foi feita')
+
+    
+    def test_deletar_receita(self):
+        '''Garante que o método deletar_receita faça o delete da receita com o id passado'''
+
+        user_id = Rep_Usuario().inserir_usuario(usuario=self.user2, conn=self.conn)
+        
+        id_rec2 = self.rep.inserir_receita(id_user=user_id, receita=self.receita2, conn=self.conn)
+
+        # Verifica se o valor está lá antes de deletar
+        self.assertEqual(len(self.rep.dados_receitas(user_id, conn=self.conn)), 1)
+
+        # Faz o delete, aguardando True caso ele seja realizado
+        self.assertTrue(self.rep.deletar_receita(id_rec2, conn=self.conn), 'O delete não foi realizado')
+
+        # verifica se a listagem voltou vazia após o delete
+        self.assertEqual(len(self.rep.dados_receitas(user_id, conn=self.conn)), 0)
+
 
 
     
