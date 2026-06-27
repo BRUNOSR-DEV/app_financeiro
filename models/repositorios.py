@@ -594,7 +594,7 @@ class Rep_Despesa:
                 self.db_conn.desconectar(conn)
 
 
-    def pega_despesas_cartao(self, id_user: int, id_card: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
+    def pega_despesas_cartao(self, id_user: int, id_card: int, conn: Optional[MySQLdb.Connection]  = None) -> List[Dict[str, Any]]:
         """
         Consulta de DTO: Executa um INNER JOIN para mesclar Despesas com os dados 
         do seu Cartão de Crédito associado.
@@ -652,7 +652,7 @@ class Rep_Despesa:
                 self.db_conn.desconectar(conn)
 
 
-    def pega_despesas_avulsas(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
+    def pega_despesas_avulsas(self, id_user: int, conn: Optional[MySQLdb.Connection]  = None) -> List[Dict[str, Any]]:
         """
         Isola e retorna apenas despesas vinculadas diretamente à renda fixa 
         (onde a Foreign Key do cartão é Nula).
@@ -704,7 +704,7 @@ class Rep_Despesa:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_despesa(self, id_user: int, despesa: Despesa, conn: Optional[Any] = None) -> Optional[int]:
+    def inserir_despesa(self, id_user: int, despesa: Despesa, conn: Optional[MySQLdb.Connection]  = None) -> Optional[int]:
         """
         Persiste uma nova despesa informada pelo usuário.
 
@@ -744,7 +744,7 @@ class Rep_Despesa:
                 self.db_conn.desconectar(conn)
 
 
-    def atualizar_despesa(self, despesa: Despesa, conn: Optional[Any] = None) -> bool:
+    def atualizar_despesa(self, despesa: Despesa, conn: Optional[MySQLdb.Connection]  = None) -> bool:
         """
         Atualiza as informações de uma despesa baseada em seu ID.
 
@@ -785,7 +785,7 @@ class Rep_Despesa:
                 self.db_conn.desconectar(conn)
 
 
-    def deletar_despesa(self, id_desp: int, conn: Optional[Any] = None) -> bool:
+    def deletar_despesa(self, id_desp: int, conn: Optional[MySQLdb.Connection]  = None) -> bool:
         """
         Exclui o registro de uma despesa pelo ID.
 
@@ -830,7 +830,7 @@ class Rep_Cartao_credito:
     def __init__(self, db_conn: Database= None) -> None:
         self.db_conn: Database = db_conn
     
-    def dados_cartoes(self, id_user: int, conn: Optional[Any] = None) -> List[Dict[str, Any]]:
+    def dados_cartoes(self, id_user: int, conn: Optional[MySQLdb.Connection]  = None) -> List[Dict[str, Any]]:
         """
         Recupera as características de todos os cartões vinculados a um usuário.
 
@@ -876,7 +876,7 @@ class Rep_Cartao_credito:
                 self.db_conn.desconectar(conn)
 
 
-    def inserir_cc(self, id_user: int, cartao: Cartao_credito, conn: Optional[Any] = None) -> Optional[int]:
+    def inserir_cc(self, id_user: int, cartao: Cartao_credito, conn: Optional[MySQLdb.Connection]  = None) -> Optional[int]:
         """
         Registra um novo meio de pagamento (Cartão de Crédito) para o usuário.
 
@@ -915,7 +915,7 @@ class Rep_Cartao_credito:
                 self.db_conn.desconectar(conn)
 
 
-    def atualizar_cartao(self, cartao: Cartao_credito, conn: Optional[Any] = None) -> bool:
+    def atualizar_cartao(self, cartao: Cartao_credito, conn: Optional[MySQLdb.Connection]  = None) -> bool:
         """
         Executa um UPDATE nas regras (fechamento, limite, visual) de um cartão.
 
@@ -956,7 +956,7 @@ class Rep_Cartao_credito:
                 self.db_conn.desconectar(conn)
 
 
-    def deletar_cartao(self, id_card: int, conn: Optional[Any] = None) -> bool:
+    def deletar_cartao(self, id_card: int, conn: Optional[MySQLdb.Connection]  = None) -> bool:
         """
         Remove o cadastro do cartão do banco de dados (Gera Exclusão em Cascata se configurado).
 

@@ -405,12 +405,29 @@ class Test_Rep_Despesa(unittest.TestCase):
         self.user2 = Usuario('Dante Sparta', 'dante', '1234', 'dante@gmail.com', 10000, '11985652500', None)
         self.user3 = Usuario('Kratos Good', 'kratos', '1234', 'kratos@gmail.com', 12000, '11985652500', None)
 
+        #Objeto cartão
+        card_click = Cartao_credito('Click', 8000, 18, 24, 'MasterCard', 'Laranja')
+
+        self.user_id = Rep_Usuario().inserir_usuario(usuario=self.user1, conn=self.conn)
+        self.cc_id = Rep_Cartao_credito().inserir_cc(self.user_id, cartao=card_click, conn=self.conn)
+
+        self.materia = Despesa('Fazenda', 385, 2, 'Matérias da boa', 'Lazer', date(5, 6, 2026), None, None, self.cc_id)
+
 
     def tearDown(self):
         """Roda DEPOIS de cada método de teste individual."""
 
         print(f"-> Finalizado: {self._testMethodName}")
-    
+
+
+    def test_inserir_despesas(self):
+        """Garante que o método faça a inserção dos dados recebidos"""
+
+        id_desp = self.rep.inserir_despesa(self.user_id, self.materia, conn=self.conn)
+
+        self.assertNotEqual(id_desp, 0)
+
+
 
 
 class Test_Rep_Cartao_credito(unittest.TestCase):
