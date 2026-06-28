@@ -411,7 +411,11 @@ class Test_Rep_Despesa(unittest.TestCase):
         self.user_id = Rep_Usuario().inserir_usuario(usuario=self.user1, conn=self.conn)
         self.cc_id = Rep_Cartao_credito().inserir_cc(self.user_id, cartao=card_click, conn=self.conn)
 
-        self.materia = Despesa('Fazenda', 385, 2, 'Matérias da boa', 'Lazer', date(5, 6, 2026), None, None, self.cc_id)
+        # com cartão
+        self.materia = Despesa('Fazenda', 385, 2, 'Matérias da boa', 'Lazer', date(2026, 6, 25), None, None, self.cc_id)
+
+        #alvulsa
+        self.emprestimo = Despesa('Banco', 3000, 10, 'Emprestimo no banco', 'Contas', date(2026, 6, 28), date(2026,7,15), 15, None)
 
 
     def tearDown(self):
@@ -428,7 +432,35 @@ class Test_Rep_Despesa(unittest.TestCase):
         self.assertNotEqual(id_desp, 0)
 
 
+    def test_dados_despesas_avulsas_cartao(self):
+        """Garante que os métodos de listagem traga os dados inseridos corretamente"""
 
+        id_desp = self.rep.inserir_despesa(self.user_id, self.materia, conn=self.conn)
+        id_desp2 = self.rep.inserir_despesa(self.user_id, self.emprestimo, conn=self.conn)
+
+        self.assertIsNotNone(id_desp, 'Método do banco retornou None')
+        self.assertIsNotNone(id_desp2, 'Método do banco retornou None')
+
+        despesas = self.rep.dados_despesas(self.user_id, conn=self.conn)
+        
+        # Verifica a primeira despesa inserida
+        self.assertEqual(despesas[0]['local'], 'Fazenda', 'O valor do local não corresponde!')
+
+        # Verifica a segunda despesa inserida
+        self.assertEqual(despesas[1]['descricao'], 'Emprestimo no banco', "O valor em 'descricao' não corresponde")
+
+        #Verifica se os métodos joins retorna os valores corretos
+        avulsas = self.rep.pega_despesas_avulsas(self.user_id, conn=self.conn)
+        cartao = self.rep.pega_despesas_cartao(self.user_id, self.cc_id, conn=self.conn)
+
+        
+        self.assertEqual(avulsas[0]['data_pp'], date(2026,7,15), 'Datas comparadas não correspondem') 
+
+        self.assertEqual(cartao[0]['local'], 'Fazenda')
+        self.assertEqual(cartao[0]['nome_cartao'], 'Click') # Cartão inserido no setUp
+
+
+        
 
 class Test_Rep_Cartao_credito(unittest.TestCase):
 
