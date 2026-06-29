@@ -362,10 +362,7 @@ class Test_Rep_Receita(unittest.TestCase):
 
         # verifica se a listagem voltou vazia após o delete
         self.assertEqual(len(self.rep.dados_receitas(user_id, conn=self.conn)), 0)
-
-
-
-    
+#       @@Classe Testada
 
 
 class Test_Rep_Despesa(unittest.TestCase):
@@ -460,7 +457,39 @@ class Test_Rep_Despesa(unittest.TestCase):
         self.assertEqual(cartao[0]['nome_cartao'], 'Click') # Cartão inserido no setUp
 
 
-        
+    def test_atualizar_despesa_deletar_despesa(self):
+
+        """Garante que o método de updade faça a atualização corretamente"""
+
+        id_desp = self.rep.inserir_despesa(self.user_id, self.materia, conn=self.conn)
+
+        #passa o id da despesa inserida para o objeto
+        self.materia.id_desp = id_desp
+
+        #altera os valores
+        self.materia.local = 'Fazenda Tegridade'
+        self.materia.categoria = 'Hobby'
+
+        #Verifiva se o método retorna True
+        self.assertTrue(self.rep.atualizar_despesa(self.materia, self.conn))
+
+        #Verifica se os dados foram atualizados com sucesso
+        despesas = self.rep.dados_despesas(self.user_id, conn=self.conn)
+
+        self.assertEqual(despesas[0]['local'], 'Fazenda Tegridade')
+
+        self.assertEqual(despesas[0]['categoria'], 'Hobby')
+
+        #Verifica se o método de delete retorna True e se dados_despesas retorna 0
+        self.assertTrue(self.rep.deletar_despesa(id_desp, conn=self.conn))
+
+        self.assertEqual(len(self.rep.dados_despesas(self.user_id, conn=self.conn)), 0)
+
+        #devolve os valores do objeto
+        self.materia.local = 'Fazenda'
+        self.materia.categoria = 'Lazer'
+#       @@Classe Testada
+
 
 class Test_Rep_Cartao_credito(unittest.TestCase):
 
