@@ -528,12 +528,71 @@ class Test_Rep_Cartao_credito(unittest.TestCase):
         self.user2 = Usuario('Dante Sparta', 'dante', '1234', 'dante@gmail.com', 10000, '11985652500', None)
         self.user3 = Usuario('Kratos Good', 'kratos', '1234', 'kratos@gmail.com', 12000, '11985652500', None)
 
+        #Objetos cartões
+        self.card_click = Cartao_credito('Click', 8000, 18, 24, 'MasterCard', 'Preto')
+        self.card_inter = Cartao_credito('Inter', 10000, 6, 12, 'Visa', 'Laranja')
+
+        #inserindo um usuário
+        self.user_id = Rep_Usuario().inserir_usuario(usuario=self.user1, conn=self.conn)
+        
+
 
     def tearDown(self):
         """Roda DEPOIS de cada método de teste individual."""
 
         print(f"-> Finalizado: {self._testMethodName}")
     
+
+    def test_inserir_cartao_dados_cartoes(self):
+        """Garante que o método de inserção de cartão esteja funcionando"""
+
+        # Verifica se tem o retorno do id 
+        self.assertIsNotNone(self.rep.inserir_cc(self.user_id, self.card_inter, conn=self.conn))
+        self.rep.inserir_cc(self.user_id, self.card_click, conn=self.conn) # inserindo o segundo cartão
+
+        #monta a variável que terá a lista de dicts
+        cards = self.rep.dados_cartoes(self.user_id, conn=self.conn)
+
+        #Verifica se o retorno de dados_cartaoes é 2
+        self.assertEqual(len(cards), 2)
+
+        #Verifica se o nome do objeto inserido retorna corretamente
+        self.assertEqual(cards[0]['nome_cartao'], "Inter")
+        self.assertEqual(cards[1]['bandeira'], "MasterCard")
+
+
+    def test_atualizar_deletar_cartao(self):
+        """Garante que os métodos de atuaçização e delete estejam funcionando"""
+
+        id_click = self.rep.inserir_cc(self.user_id, self.card_click, conn=self.conn)
+        id_inter = self.rep.inserir_cc(self.user_id, self.card_inter, conn=self.conn)
+
+        self.card_inter.id_cartao = id_inter
+
+        self.card_inter.bandeira = "MasterCard"
+        self.card_inter.cor = "Verde"
+
+        #Verifica se o método retorna verdadeiro
+        self.assertTrue(self.rep.atualizar_cartao(self.card_inter, conn=self.conn))
+
+        #verifica se tem dois cartões no banco
+        cards = self.rep.dados_cartoes(self.user_id, conn=self.conn)
+        self.assertEqual(len(cards), 2)
+
+        #Verifica se os dados foram alterados
+        self.assertEqual(cards[1]['bandeira'], "MasterCard")
+        self.assertEqual(cards[1]['cor'], "Verde")
+
+        #Verifica se o retono é verdadeiro
+        self.assertTrue(self.rep.deletar_cartao(id_card=id_click, conn=self.conn))
+
+        #Verifica se o cartão foi apagado
+        cards = self.rep.dados_cartoes(self.user_id, conn=self.conn)
+        self.assertEqual(len(cards), 1)
+#       @@Classe Testada
+
+
+
 
 
 class Test_Rep_Assinatura(unittest.TestCase):
