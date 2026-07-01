@@ -619,6 +619,7 @@ class Test_Rep_Assinatura(unittest.TestCase):
         print("   SUÍTE FINALIZADA: REPOSITÓRIO ASSINATURA ")
         print("==================================================")
 
+
     def setUp(self):
         """Roda ANTES de cada método de teste individual."""
 
@@ -632,11 +633,99 @@ class Test_Rep_Assinatura(unittest.TestCase):
         self.user2 = Usuario('Dante Sparta', 'dante', '1234', 'dante@gmail.com', 10000, '11985652500', None)
         self.user3 = Usuario('Kratos Good', 'kratos', '1234', 'kratos@gmail.com', 12000, '11985652500', None)
 
+        #Objeto cartão
+        card_click = Cartao_credito('Click', 8000, 18, 24, 'MasterCard', 'Laranja')
+
+        self.user_id = Rep_Usuario().inserir_usuario(usuario=self.user1, conn=self.conn)
+        self.cc_id = Rep_Cartao_credito().inserir_cc(self.user_id, cartao=card_click, conn=self.conn)
+
+        self.netflix = Assinatura('Netflix', 42.50, 'Streaming para casa', 'Streaming', date(2026,7,1), None, None, self.cc_id)
+
 
     def tearDown(self):
         """Roda DEPOIS de cada método de teste individual."""
 
         print(f"-> Finalizado: {self._testMethodName}")
     
+
+
+    def test_inserir_assinaturas_dados_assinaturas(self):
+        """Garante que o método retorne o id do objeto inserido no banco"""
+
+        #Verifica se o método inseri o objeto
+        self.assertIsNotNone(self.rep.inserir_assinatura(self.user_id, self.netflix, conn=self.conn))
+
+        #Chama o método de listagem e passa o retono para a variável 'ass'
+        ass = self.rep.dados_assinaturas(self.user_id, self.conn)
+
+        #Verifica se o tamanho da lista é de 1
+        self.assertEqual(len(ass), 1, 'O método não retono uma lista com dicionários')
+
+        #Verifica se o dicionário dentro da lista tem o valor insiro
+        self.assertEqual(ass[0]['nome'], 'Netflix')
+        self.assertEqual(ass[0]['data_aquisicao'], date(2026,7,1))
+
+
+    def test_pega_assinatura_cartao_avulsa(self):
+        """Garante que os métodos de listagem especializada retorne os valores corretos que foram inseridos"""
+
+        #objeto avulso
+        jornal = Assinatura('Jornal da Vila', 12.50, 'Jornal entregue por moradores', 'Informação', date(2026,6,20), date(2026,7,5), 5, None)
+
+        #Inseri objetos no banco
+        self.rep.inserir_assinatura(self.user_id, self.netflix, self.conn) # objeto inserido   COM cartão
+        self.rep.inserir_assinatura(self.user_id, jornal, self.conn) # objeto inserido SEM cartão
+
+        ass_cartao = self.rep.pega_assinaturas_cartao(self.user_id, self.cc_id, self.conn)
+        ass_avulsas = self.rep.pega_assinaturas_avulsas(self.user_id, self.conn)
+
+        # Verifica se os métodos retona o valor esperado (List[Dict[str, any]])
+        self.assertIsNotNone(ass_avulsas, 'O método não retornou a lista com o dicionário esperado')
+        self.assertIsNotNone(ass_cartao, 'O método não retornou a lista com o dicionário esperado')
+
+
+        #Verifica se os valores inseridos estão no banco
+        self.assertEqual(ass_cartao[0]['categoria'], 'Streaming')
+
+        self.assertEqual(ass_avulsas[0]['nome'], 'Jornal da Vila')
+        self.assertEqual(ass_avulsas[0]['id_cc'], None)
+
+
+    def test_atualiza_assinatura_deleta_assinatura(self):
+        '''Garante que o método atualize e delete assinaturas passando o id da mesma'''
+
+        #objeto avulso
+        jornal = Assinatura('Jornal da Vila', 12.50, 'Jornal entregue por moradores', 'Informação', date(2026,6,20), date(2026,7,5), 5, None)
+
+        #Inseri objetos no banco
+        id_net = self.rep.inserir_assinatura(self.user_id, self.netflix, self.conn) # objeto inserido   COM cartão
+        id_jornal = self.rep.inserir_assinatura(self.user_id, jornal, self.conn) # objeto inserido SEM cartão
+
+        #Verifica se os valores estão no banco
+        self.assertEqual(len(self.rep.dados_assinaturas(self.user_id, self.conn)), 2)
+
+        #Passa o id da assinatura para o objeto
+        jornal.id_ass = id_jornal
+
+        #Atualização de valores
+        jornal.categoria = 'Estudo'
+        jornal.data_pp = date(2026,7,10)
+
+        #Verifica se o método de update retorna True
+        self.assertTrue(self.rep.atualizar_assinatura(assinatura=jornal, conn=self.conn))
+
+        #Verifica se o método delete retorna True
+        self.assertTrue(self.rep.deletar_assinatura(id_ass=id_net, conn=self.conn))
+
+        #Verifica se os valores foram mudados e o um objeto apagado
+        ass = self.rep.dados_assinaturas(self.user_id, self.conn)
+
+        self.assertEqual(len(ass), 1)
+
+        self.assertEqual(ass[0]['categoria'], 'Estudo')
+        self.assertEqual(ass[0]['data_pp'], date(2026,7,10))
+
+
+
 
 
