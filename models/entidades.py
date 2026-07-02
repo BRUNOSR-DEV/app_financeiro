@@ -34,9 +34,9 @@ class Usuario:
         """Inicializa a entidade Usuario com validação de tipos básicos."""
         self.nome_completo: str = nome_completo
         self.nome_user: str = nome_user
-        self._senha: str = senha
+        self.senha: str = senha
         self.email: str = email
-        self._sal_fixo: Decimal = sal_fixo
+        self.sal_fixo: Decimal = sal_fixo
         self.telefone: Optional[str] = telefone
         self.tci: Optional[str] = telegram_chat_id
         self.id_user: Optional[int] = id_user
@@ -44,13 +44,29 @@ class Usuario:
     @property
     def senha(self) -> str:
         """str: Retorna o Hash protegido da senha (Bcrypt)."""
-        return self._senha
+        return self.__senha
+    
+    @senha.setter
+    def senha(self, nova_senha: str) -> None:
+        """Verificação de senha digitada"""
+
+        senha_limpa = nova_senha.strip()
+        if len(senha_limpa) < 4:
+            raise ValueError("Senha precisa ter 4 ou mais caracteres válidos")
+        self.__senha = nova_senha
     
     @property
     def sal_fixo(self) -> Decimal:
         """float: Retorna o salário fixo do usuário cadastrado."""
-        return self._sal_fixo
+        return self.__sal_fixo
     
+    @sal_fixo.setter
+    def sal_fixo(self, novo_valor: Decimal) -> None:
+        if novo_valor < 0:
+            raise ValueError("O valor do salário não pode ser menor que zero!")
+        self.__sal_fixo = novo_valor
+    
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Converte a entidade em um dicionário para consumo seguro na UI.
@@ -79,20 +95,20 @@ class Receita:
 
     def __init__(self, fonte: str, valor: Decimal, descricao: str, data: datetime, id: Optional[int] = None) -> None:
         self.fonte: str = fonte
-        self._valor: Decimal = valor 
+        self.valor: Decimal = valor 
         self.descricao: str = descricao
         self.data: datetime = data
         self.id_receita: Optional[int] = id
 
     @property
     def valor(self) -> Decimal:
-        return self._valor
+        return self.__valor
 
     @valor.setter
     def valor(self, novo_valor: Decimal) -> None:
         if novo_valor <= 0:
             raise ValueError("O valor da receita deve ser maior que zero.")
-        self._valor = novo_valor
+        self.__valor = novo_valor
 
     def to_dict(self) -> Dict[str, Any]:
         """Garante o mapeamento limpo sem expor o underline interno."""
@@ -114,49 +130,54 @@ class Despesa:
     Representa um gasto pontual ou parcelado vinculado ou não a um cartão.
     """
 
-    def __init__(self, local: str, valor_total: Decimal, parcelas: int, descricao: str, categoria: str, data_compra: datetime, data_pp: datetime, dia_venc: int, id_cc: Optional[int] = None, id_desp: Optional[int] = None) -> None:
+    def __init__(self, local: str, valor_total: Decimal, parcelas: int, descricao: str, categoria: str, data_compra: datetime, data_pp: datetime = None, dia_venc: int = None, id_cc: Optional[int] = None, id_desp: Optional[int] = None) -> None:
         
         self.local: str = local
-        self._valor_total: Decimal = valor_total
-        self._parcelas: int = parcelas
+        self.valor_total: Decimal = valor_total
+        self.parcelas: int = parcelas
         self.descricao: str = descricao
         self.categoria: str = categoria
         self.data_compra: datetime = data_compra
         self.data_pp: datetime = data_pp
-        self._dia_vencimento: int = dia_venc
+        self.dia_vencimento: int = dia_venc
         self.id_cc: Optional[int] = id_cc
         self.id_desp: Optional[int] = id_desp
         
 
     @property
     def valor_total(self) -> Decimal:
-        return self._valor_total
+        return self.__valor_total
 
     @valor_total.setter
     def valor_total(self, novo_valor: Decimal) -> None:
         if novo_valor <= 0:
             raise ValueError("O valor total da compra precisa ser maior que zero!")
-        self._valor_total = novo_valor
+        self.__valor_total = novo_valor
 
     @property
     def parcelas(self) -> int:
-        return self._parcelas
+        return self.__parcelas
 
     @parcelas.setter
     def parcelas(self, qtd: int) -> None:
         if qtd <= 0:
             raise ValueError("A quantidade de parcelas deve ser maior ou igual a 1.")
-        self._parcelas = qtd
+        self.__parcelas = qtd
 
     @property
     def dia_vencimento(self) -> int:
-        return self._dia_vencimento
+        return self.__dia_vencimento
 
     @dia_vencimento.setter
     def dia_vencimento(self, dia: int) -> None:
+        
+        if dia is None:
+            self.__dia_vencimento = None
+            return
+        
         if not (1 <= dia <= 31):
             raise ValueError("O dia de vencimento deve estar entre 1 e 31.")
-        self._dia_vencimento = dia
+        self.__dia_vencimento = dia
 
 
     def to_dict(self) -> Dict[str, Any]:
@@ -215,9 +236,9 @@ class Cartao_credito:
 
     def __init__(self, nome: str, limite: Decimal, fech: int, venc: int, bandeira: Optional[str], cor: Optional[str], id: Optional[int] = None) -> None:
         self.nome_cartao: str = nome
-        self._limite_cartao: Decimal = limite
-        self._dia_fechamento: int = fech
-        self._dia_vencimento: int = venc
+        self.limite_cartao: Decimal = limite
+        self.dia_fechamento: int = fech
+        self.dia_vencimento: int = venc
         self.bandeira: Optional[str] = bandeira
         self.cor: Optional[str] = cor
         self.id_cartao: Optional[int] = id
@@ -225,33 +246,33 @@ class Cartao_credito:
 
     @property
     def limite_cartao(self) -> Decimal:
-        return self._limite_cartao
+        return self.__limite_cartao
 
     @limite_cartao.setter
     def limite_cartao(self, novo_limite: Decimal) -> None:
         if novo_limite <= 0:
             raise ValueError('O valor do limite precisa ser maior que zero!')
-        self._limite_cartao = novo_limite
+        self.__limite_cartao = novo_limite
     
     @property
     def dia_fechamento(self) -> int:
-        return self._dia_fechamento
+        return self.__dia_fechamento
     
     @dia_fechamento.setter
     def dia_fechamento(self, dia_f: int) -> None:
         if not (1 <= dia_f <= 31):
             raise ValueError('Dia de fechamento válido precisa ser de 1 á 31!')
-        self._dia_fechamento = dia_f
+        self.__dia_fechamento = dia_f
 
     @property
     def dia_vencimento(self) -> int:
-        return self._dia_vencimento
+        return self.__dia_vencimento
     
     @dia_vencimento.setter
     def dia_vencimento(self, dia_v: int) -> None:
         if not (1 <= dia_v <= 31):
             raise ValueError('Dia de vencimenro válido precisa ser de 1 á 31!')
-        self._dia_vencimento = dia_v
+        self.__dia_vencimento = dia_v
 
     
     def to_dict(self) -> Dict[str, Any]:
@@ -278,34 +299,40 @@ class Assinatura:
     def __init__(self, nome: str, valor: Decimal, descricao: str, categoria: str, data_aq: datetime, data_pp: datetime, dia_venc: int, id_cc: Optional[int] = None, id: Optional[int] = None) -> None:
         
         self.nome: str = nome
-        self._valor: Decimal = valor
+        self.valor: Decimal = valor
         self.descricao: str = descricao
         self.categoria: str = categoria
         self.data_aquisicao: datetime = data_aq
         self.data_pp: datetime = data_pp
-        self._dia_vencimento: int = dia_venc
+        self.dia_vencimento: int = dia_venc
         self.id_cc: Optional[int] = id_cc
         self.id_ass: Optional[int] = id
         
     @property
     def valor(self) -> Decimal:
-        return self._valor
+        return self.__valor
 
     @valor.setter
     def valor(self, novo_valor: Decimal) -> None:
+        
         if novo_valor <= 0:
             raise ValueError("O valor de uma assinatura tem que ser maior que zero.")
-        self._valor = novo_valor
+        self.__valor = novo_valor
 
     @property
     def dia_vencimento(self) -> int:
-        return self._dia_vencimento
+        return self.__dia_vencimento
     
     @dia_vencimento.setter
     def dia_vencimento(self, dia_v: int) -> None:
+
+        if dia_v is None:
+            self.__dia_vencimento = None
+            return
+
         if not (1 <= dia_v <= 31):
             raise ValueError('Dia de vencimenro válido precisa ser de 1 á 31!')
-        self._dia_vencimento = dia_v
+        self.__dia_vencimento = dia_v
 
     def to_dict(self) -> Dict[str, Any]:
         return {

@@ -16,14 +16,12 @@ from models.entidades import *
 
 # ----- FUNÇÕES DE AJUDA - (UTILS) -------
 from utils.segurança import SegurancaService
-from utils.helper import data_para_mysql
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
 # BIBLIO PADRÕES
 from decimal import Decimal
 from typing import Optional, List, Dict, Any, Union
 from datetime import date, datetime
-
 
 # =================================================================================
 # --- REPOSITÓRIO USUÁRIO ---
@@ -416,6 +414,9 @@ class Rep_Receita:
         Returns:
             Optional[int]: O ID gerado para a nova receita, ou None em caso de falha.
         """
+
+        from utils.helper import data_para_mysql
+
         gerenciar_conn = False
 
         if conn is None:
@@ -462,6 +463,8 @@ class Rep_Receita:
         Returns:
             Optional[bool]: True se sucesso, None em caso de erro no SQL.
         """
+        from utils.helper import data_para_mysql
+
         gerenciar_conn = False
         if conn is None:
             conn = self.db_conn.conectar_bd_original()

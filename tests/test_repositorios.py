@@ -9,11 +9,10 @@ from models.entidades import *
 
 # ----- FUNÇÕES DE AJUDA - (UTILS) -------
 from utils.segurança import SegurancaService
-from utils.helper import data_para_mysql
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
 # BIBLIO PADRÕES
-from datetime import date, datetime
+from datetime import date
 
 #BIBLIO VIA PIP
 import MySQLdb

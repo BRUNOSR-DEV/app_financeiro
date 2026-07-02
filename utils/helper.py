@@ -512,13 +512,13 @@ def controle_data_parc(
 
 
 def controle_data_parc_cc(
-    data_compra_obj: datetime, 
+    data_compra_obj: date, 
     dia_fechamento: int, 
     dia_vencimento: int, 
     total_parcelas: Optional[int] = None, 
     controle_mes: Optional[int] = None, 
-    data_atual: Optional[datetime] = None
-) -> Tuple[str, bool, datetime]:
+    data_atual: Optional[date] = None
+) -> Tuple[str, bool, date]:
     
     """
     Motor de processamento de regras de negócio para Cartões de Crédito.
@@ -554,7 +554,7 @@ def controle_data_parc_cc(
     quart_prox_mes = (data_atual + relativedelta(months=4)).month
     quint_prox_mes = (data_atual + relativedelta(months=5)).month
 
-    data_alvo: Optional[datetime] = None
+    data_alvo: Optional[date] = None
 
     #dependencia - controle de mês
     if controle_mes == mes_vigente:
@@ -582,7 +582,7 @@ def controle_data_parc_cc(
     if data_compra_obj >= data_fech_real: #true
 
             # ex: 5                  ex: 27
-        if data_venc_real.day < data_fech_real.day: # Se o fechamento ocorre no mês anterior, pula mês seguinte (ex: abril (vencimento: 05/04/2026))
+        if data_venc_real.day < data_fech_real.day: # Se o fechamento ocorre no mês anterior, pula para o mês seguinte (ex: abril (vencimento: 05/04/2026))
             primeira_cobranca += relativedelta(months=2)
 
         else:
