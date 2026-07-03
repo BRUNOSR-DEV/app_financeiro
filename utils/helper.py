@@ -542,10 +542,7 @@ def controle_data_parc_cc(
 
     assinatura = False
 
-    # Verifica se a manipulação é de assinatura
-    if total_parcelas is None:
-        assinatura = True
-    
+
     # configurando meses para comparação
     mes_vigente = data_atual.month
     prox_mes = (data_atual + relativedelta(months=1)).month
@@ -569,19 +566,23 @@ def controle_data_parc_cc(
         data_alvo = (data_atual + relativedelta(months=4))
     elif controle_mes == quint_prox_mes:
         data_alvo = (data_atual + relativedelta(months=5))
-        
+    
+
+    primeira_cobranca = data_compra_obj
+
+    # Verifica se a manipulação é de assinatura
+    if total_parcelas is None:
+        assinatura = True
 
     ano = data_compra_obj.year
     mes = data_compra_obj.month
 
     data_fech_real, data_venc_real = calcular_datas_reais_cartao(ano, mes, dia_vencimento, dia_fechamento)
 
-    primeira_cobranca = data_compra_obj
 
-    #  ex: 27/02/2026     ex: 27/02/2026  
-    if data_compra_obj >= data_fech_real: #true
+    #  ex: 2026-05-20       
+    if data_compra_obj >= data_fech_real and not assinatura:
 
-            # ex: 5                  ex: 27
         if data_venc_real.day < data_fech_real.day: # Se o fechamento ocorre no mês anterior, pula para o mês seguinte (ex: abril (vencimento: 05/04/2026))
             primeira_cobranca += relativedelta(months=2)
 
@@ -598,21 +599,28 @@ def controle_data_parc_cc(
     
 
     _, data_pagamento = calcular_datas_reais_cartao(
-        data_alvo.year, 
-        data_alvo.month, 
-        dia_vencimento, 
-        dia_fechamento
-    )
+            data_alvo.year, 
+            data_alvo.month, 
+            dia_vencimento, 
+            dia_fechamento
+        )
 
+    #===================================
+    #           ASSINATURA
+    #===================================
     if assinatura:
+
         data_inicio_cobranca = primeira_cobranca.replace(day=1)
         data_alvo_inicio = data_alvo.replace(day=1) # type: ignore
 
         if data_alvo_inicio >= data_inicio_cobranca:
             return "Mensal", True, data_pagamento # True é controle_parc
         else:
-            return "Mensal", False, data_pagamento
-    
+            return "Mensal", False, data_pagamento 
+
+    #======================================
+    #      DESPESAS COMUNS PARCELADAS
+    #======================================     
     if not assinatura:
         if parcela_atual < 1: 
             return f"0/{total_parcelas} (A vencer)", False, data_pagamento

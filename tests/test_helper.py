@@ -8,18 +8,18 @@ class TestControleDataParcCC(unittest.TestCase):
         """Prepara datas base fixas para os testes simulando o tempo de forma estática."""
         #data atual em 15/05/2026 para todos os testes terem a mesma base temporal
 
-        self.data_atual_mock = date(2026, 8, 15)
-        self.mes_vigente = 8
+        self.data_atual_mock = date(2026, 6, 15)
+        self.mes_vigente = 6
 
 
     def test_assinatura_ativa_no_mes_vigente(self):
         """Assinatura deve ser exibida como 'Mensal' e True no mês atual."""
 
         # Arrange
-        data_compra = date(2026, 7, 26)
+        data_compra = date(2026, 5, 20)
         
         # Act
-        label, visivel, data_pagto = controle_data_parc_cc(
+        label, visivel, _ = controle_data_parc_cc(
             data_compra_obj=data_compra,
             dia_fechamento=25,
             dia_vencimento=5,
@@ -37,8 +37,8 @@ class TestControleDataParcCC(unittest.TestCase):
         """Se o filtro estiver em um mês anterior à assinatura, ela fica oculta."""
 
         # Arrange
-        data_compra = date(2026, 5, 10) # Compra em Maio
-        mes_anterior = 4 # Filtro em Abril
+        data_compra = date(2026, 8, 10) # Compra em agosto = Projeção de compra para o futuro
+        mes_anterior = 6 # Filtro em Junho = passando para controle_mes o retorno é false, pq a compra está no futuro
         
         # Act
         _, visivel, _ = controle_data_parc_cc(
@@ -58,7 +58,7 @@ class TestControleDataParcCC(unittest.TestCase):
         """Compra no dia 27 com fechamento no dia 25 deve pular para a fatura seguinte."""
 
         # Arrange
-        data_compra = date(2026, 5, 27) # Após o fechamento (25)
+        data_compra = date(2026, 6, 27) # Após o fechamento (25)
         # Se virou a fatura, a primeira cobrança deve ser em Julho (se o vencimento for menor que fechamento)
         # Vamos testar se ela calcula a parcela certa para o controle_mes de Junho (prox_mes)
         
@@ -81,6 +81,7 @@ class TestControleDataParcCC(unittest.TestCase):
 
     def test_parcela_quitada_oculta_na_ui(self):
         """Se o filtro do mês for além do total de parcelas, exibe Quitado e oculta."""
+
         # Arrange
         data_compra = date(2026, 1, 10) # Compra antiga em Janeiro
         
