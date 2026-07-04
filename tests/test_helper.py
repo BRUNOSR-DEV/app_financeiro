@@ -8,8 +8,8 @@ class TestControleDataParcCC(unittest.TestCase):
         """Prepara datas base fixas para os testes simulando o tempo de forma estática."""
         #data atual em 15/05/2026 para todos os testes terem a mesma base temporal
 
-        self.data_atual_mock = date(2026, 6, 15)
-        self.mes_vigente = 6
+        self.data_atual_mock = date(2026, 5, 15)
+        self.mes_vigente = 5
 
 
     def test_assinatura_ativa_no_mes_vigente(self):

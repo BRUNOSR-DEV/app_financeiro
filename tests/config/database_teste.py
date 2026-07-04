@@ -11,10 +11,25 @@ class Database_teste:
         self.test_config: Optional[Dict[str, Any]] = self._ler_configuracao()
 
     def _ler_configuracao(self) -> Optional[Dict[str, Any]]:
-        """Lê as credenciais de infraestrutura a partir de arquivo de configuração INI externo."""
+        """Lê as credenciais da nuvem (GitHub Actions) ou do arquivo INI local de forma segura."""
 
+        # TENTATIVA A: Se estiver rodando no GitHub Actions, as variáveis abaixo existirão
+        env_host = os.getenv('DB_HOST')
+        env_user = os.getenv('DB_USER')
+        env_pass = os.getenv('DB_PASSWORD')
+        env_db = os.getenv('DB_NAME')
+
+        if env_host and env_user and env_db:
+            # Se achou as variáveis na nuvem, ignora o arquivo .ini e retorna direto
+            return {
+                'host': env_host,
+                'user': env_user,
+                'passwd': env_pass if env_pass else "",
+                'db': env_db
+            }
+
+        # TENTATIVA B
         config = configparser.ConfigParser()
-        
         try:
             #Pega o caminho absoluto de onde este arquivo .py está rodando
             caminho_atual = os.path.dirname(os.path.abspath(__file__))

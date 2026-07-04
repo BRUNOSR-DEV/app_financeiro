@@ -385,7 +385,7 @@ def calcular_datas_reais_cartao(ano: int, mes: int, dia_vencimento_fixo: int, di
     A janela de dias corridos entre o fechamento nominal e o vencimento é preservada,
     e o vencimento real é ajustado para dias úteis (sábados, domingos e feriados).
     """
-    # 1. Calcular a janela original de dias corridos entre fechamento e vencimento
+    # Calcular a janela original de dias corridos entre fechamento e vencimento
     # Tratando o caso comum onde o fechamento nominal é no mês anterior ao vencimento (ex: fecha 25, vence 05)
 
     if dia_fechamento_nominal > dia_vencimento_fixo:
@@ -410,15 +410,14 @@ def calcular_datas_reais_cartao(ano: int, mes: int, dia_vencimento_fixo: int, di
             # Se o dia estourar o mês, reduz o dia em 1 até encontrar o último dia válido do mês (ex: 28 de fevereiro)
             dia_alvo -= 1
 
-    # 3. Aplicar a regra de dias úteis no Vencimento (Finais de semana e Feriados pulam para frente)
+    #Aplicar a regra de dias úteis no Vencimento (Finais de semana e Feriados pulam para frente)
     data_vencimento_real = obter_proximo_dia_util(data_vencimento_nominal)
 
-    # 4. Calcular o Fechamento Real subtraindo a janela de dias corridos do Vencimento Real
+    # Calcular o Fechamento Real subtraindo a janela de dias corridos do Vencimento Real
     # Isso garante que se o vencimento pulou por causa de um feriado, o fechamento acompanha a flutuação!
     data_fechamento_real = data_vencimento_real - timedelta(days=janela_dias)
 
     return data_fechamento_real.date(), data_vencimento_real.date()
-
 
 
 
@@ -578,7 +577,6 @@ def controle_data_parc_cc(
     mes = data_compra_obj.month
 
     data_fech_real, data_venc_real = calcular_datas_reais_cartao(ano, mes, dia_vencimento, dia_fechamento)
-
 
     #  ex: 2026-05-20       
     if data_compra_obj >= data_fech_real and not assinatura:
