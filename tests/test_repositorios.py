@@ -6,6 +6,7 @@
 from tests.config.database_teste import Database_teste
 from models.repositorios import Rep_Usuario, Rep_Receita, Rep_Despesa, Rep_Cartao_credito, Rep_Assinatura
 from models.entidades import *
+from tests.config.db_tabelas_teste import inicializar_banco_completo
 
 # ----- FUNÇÕES DE AJUDA - (UTILS) -------
 from utils.segurança import SegurancaService
@@ -17,6 +18,9 @@ from datetime import date
 #BIBLIO VIA PIP
 import MySQLdb
 import unittest
+
+
+
 
 def limpar_tabelas(conn: MySQLdb.Connection):
         """
@@ -68,6 +72,9 @@ class Test_Rep_Usuario(unittest.TestCase):
         print("\n==================================================")
         print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO USUÁRIO")
         print("==================================================")
+
+        inicializar_banco_completo(cls.conn)
+
 
     @classmethod
     def tearDownClass(cls):
@@ -268,6 +275,8 @@ class Test_Rep_Receita(unittest.TestCase):
         print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO RECEITA")
         print("==================================================")
 
+        inicializar_banco_completo(cls.conn)
+
     @classmethod
     def tearDownClass(cls):
         """Desconecta do banco após rodar todos os testes desta entidade."""
@@ -376,6 +385,8 @@ class Test_Rep_Despesa(unittest.TestCase):
         print("\n==================================================")
         print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO DESPESA")
         print("==================================================")
+
+        inicializar_banco_completo(cls.conn)
 
     @classmethod
     def tearDownClass(cls):
@@ -503,6 +514,8 @@ class Test_Rep_Cartao_credito(unittest.TestCase):
         print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO CARTAO_CREDITO")
         print("==================================================")
 
+        inicializar_banco_completo(cls.conn)
+
     @classmethod
     def tearDownClass(cls):
         """Desconecta do banco após rodar todos os testes desta entidade."""
@@ -592,8 +605,6 @@ class Test_Rep_Cartao_credito(unittest.TestCase):
 
 
 
-
-
 class Test_Rep_Assinatura(unittest.TestCase):
 
     @classmethod
@@ -606,6 +617,8 @@ class Test_Rep_Assinatura(unittest.TestCase):
         print("\n==================================================")
         print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO ASSINATURA")
         print("==================================================")
+
+        inicializar_banco_completo(cls.conn)
 
     @classmethod
     def tearDownClass(cls):

@@ -10,7 +10,11 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-pygame.mixer.init()
+try:
+    pygame.mixer.init()
+except Exception:
+    print("Aviso: Dispositivo de áudio não encontrado (Ambiente CI/CD).")
+
 
 def tocar_notificacao(tipo: str, boll: bool = False) -> None:
     """Toca um feedback sonoro baseado no evento mapeado no sistema."""
