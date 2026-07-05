@@ -20,8 +20,6 @@ import MySQLdb
 import unittest
 
 
-
-
 def limpar_tabelas(conn: MySQLdb.Connection):
         """
         Limpa os dados das tabelas para garantir um ambiente isolado em cada teste.

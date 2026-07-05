@@ -51,7 +51,7 @@ jobs:
     # Passo E: Executa a suíte de testes (Unitários e Integração juntos!)
     - name: Executar testes automatizados
       env:
-        # Injeta as variáveis de ambiente temporárias para o test_config.ini ler na nuvem
+        # Injeta as variáveis de ambiente temporárias para o _ler_configuracao ler da nuvem
         DB_HOST: 127.0.0.1
         DB_USER: root
         DB_PASSWORD: root_password_teste
