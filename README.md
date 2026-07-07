@@ -14,11 +14,11 @@ Um ecossistema comercialmente resiliente para gerenciamento, projeção e análi
 
 Este projeto abandonou scripts planos e estruturas "burras" para se tornar um software blindado, utilizando padrões de design de mercado:
 
-* **Gerenciamento Ágil (Kanban Rastreável):** O ciclo de vida do projeto foi orquestrado utilizando a metodologia Kanban via **Trello**.Cada funcionalidade, refatoração de banco ou implementação de teste foi mapeada para garantir previsibilidade, foco em valor incremental e eliminação de desperdícios (débito técnico).
+* **Gerenciamento Ágil (Kanban Rastreável) & Git Flow:** O ciclo de vida do projeto foi orquestrado utilizando a metodologia Kanban via **Trello**, com controle estrito de escopo por branches e validação contínua via Pull Requests.Cada funcionalidade, refatoração de banco ou implementação de teste foi mapeada/manipulada para garantir previsibilidade, foco em valor incremental e eliminação de desperdícios (débito técnico).
+* **Arquitetura Padrão Ouro & POO Avançada:**Organização impecável dividida em camadas desacopladas (models, utils, ui, tests). Aplicação estrita de Orientação a Objetos (POO), herança, encapsulamento, inversão de dependência e forte tipagem estática, garantindo manutenibilidade e fácil expansão do sistema.
+* **Lógica Contábil & Manipulação de Datas:** Domínio completo de regras de negócio financeiras complexas. Desenvolvimento de algoritmos para controle estrito de ciclos de faturamento de cartões de crédito, tratando de forma manual e segura o fluxo de parcelamentos através de manipulação avançada de strings e objetos de data (datetime).
 * **Motor de Simulação & Mocks Temporais Avançados:** Sandbox de Projeção Financeira (Simulação Volátil em Memória): O ecossistema introduz uma funcionalidade avançada de simulação preditiva integrada aos formulários nativos de despesas e cartões de crédito. O usuário pode simular o impacto de novas compras parceladas ou recorrentes para o mês vigente e para os próximos 5 meses... eliminando completamente a poluição do banco de dados de produção.
 * **Padrão Mediator (Orquestração de Interface):** Centralização da lógica de comunicação entre frames via `crud_app.py` (Pattern Facade) e controle de ciclo de vida mestre sem estouro de pilha na *Super Main*.
-* **Encapsulamento Rígido de Domínio:** Atributos críticos (como senhas, salários e limites) são privados/protegidos (`__`). Nenhuma camada visual corrompe o negócio, pois o domínio rejeita valores inválidos em tempo de execução via **Setters de Validação**.
-* **Separação de Conceitos com DTOs:** Uso de *Data Transfer Objects* (`DespesaDetalhadoDTO` e `AssinaturaDetalhadoDTO`) para transportar o resultado de queries complexas de `JOIN`, mantendo a UI em modo de leitura única (*Read-Only*).
 * **Data Access Layer (DAL):** Camada de persistência isolada em `repositorios.py`, utilizando **Row Mappers** para converter resultados SQL em dicionários Python.
 * **Sanitização Proativa & Hot-Reload:** Validação de inputs em tempo real via **Regex** no Front-end para evitar TypeErrors e atualização inteligente da interface (método `att_app`) sem reinicializar a aplicação.
 
@@ -61,21 +61,15 @@ Camada de segurança por criptografia de via única (Hashing) utilizando Bcrypt 
 
 ---
 
-## 🧪 Testes Automatizados e Esteira CI/CD (DevOps)
-A estabilidade do ecossistema é garantida por uma suíte de 23 testes automatizados (Unitários + Integração) integrados a um pipeline de nuvem.
-Testes de Integração (Banco Real): Utiliza o framework unittest acoplado ao gerenciador de conexões do MySQLdb. Aplica isolamento total com SET FOREIGN_KEY_CHECKS = 0 no setUp de limpeza de tabelas, permitindo que os testes rodem em paralelo sem travar em constraints.
-Mocks Temporários: Injeção estática de objetos datetime.date para testar viradas de mês automáticas independentemente do relógio da máquina local.
+## 🧪 Engenharia de QA (Quality Assurance) & Esteira CI/CD (GitHub Actions)
+A confiabilidade, portabilidade e estabilidade do ecossistema são garantidas por uma estratégia moderna de QA (Quality Assurance). O projeto combina validações manuais (Testes Caixa Preta (Funcionais)) e uma suíte de 23 testes automatizados (Unitários + Integração) integrados a um pipeline de nuvem que homologa cada modificação no código em menos de 1 minuto.
+
+<div align="center">
+  <!-- Puxando o PNG direto do repositório local -->
+  <img src="DOCS/esteira.png"  alt="Esteira CI/CD" />
+</div>
 
 ---
-
-## 🚀 Pipeline GitHub Actions (Ambiente Docker Headless)
-A cada commit na branch principal, o GitHub Actions dispara o workflow .github/workflows/ci.yml, executando as seguintes etapas em cerca de 1 minuto:
-
-Inicializa o interpretador Python 3.13 em um ambiente Linux.
-Levanta um container Docker oficial do MySQL 8.0 isolado na nuvem.
-Executa a DDL centralizada respeitando a hierarquia de chaves estrangeiras.
-Isolamento de Credenciais: Lê chaves dinâmicas via os.getenv(), mantendo as senhas locais protegidas no arquivo test_config.ini pelo .gitignore.
-Tratamento Headless: Captura exceções preventivas no pygame.mixer.init() para impedir falhas catastróficas em servidores Linux sem hardware de áudio.
 
 ## 🛠️ Tecnologias e Bibliotecas
 
