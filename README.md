@@ -1,4 +1,4 @@
-# 💰 MVP APP_FINANCEIRO | Gestão de Fluxo de Caixa Desktop
+## 💰 MVP APP_FINANCEIRO | Gestão de Fluxo de Caixa Desktop
 
 ![Status do Projeto](https://img.shields.io/badge/Status-Finalizando-green?style=for-the-badge)
 ![CI/CD Pipeline](https://github.com/BRUNOSR-DEV/app_financeiro/actions/workflows/ci.yml/badge.svg)
@@ -39,7 +39,7 @@ Concepção e design completo da infraestrutura de dados de ponta a ponta. Proje
 
 ---
 
-## 🔐 Segurança On-the-Fly Migration (Bcrypt)
+## 🔐 Segurança & Criptografia (Bcrypt)
 Camada de segurança por criptografia de via única (Hashing) utilizando Bcrypt com fator de custo configurado em 12 rounds. O repositório executa uma migração em tempo de execução: senhas legadas em texto limpo são validadas diretamente e, no primeiro login bem-sucedido, o sistema gera o hash automaticamente e sobrescreve o registro antigo no banco de dados de forma transparente.
 
 ---
@@ -68,8 +68,9 @@ A confiabilidade, portabilidade e estabilidade do ecossistema são garantidas po
 
 ## 🚀 Outros Diferenciais de Engenharia de Software
 
-Além da robustez arquitetural, o app_financeiro foi projetado sob os pilares de UI/UX Inteligente e Soberania do Usuário. Cada componente de interface e inteligência analítica foi lapidado para entregar uma experiência fluida, previsível, interativa e visualmente rica. `*Click/Toque no texto para mais detalhes`
+Além da robustez arquitetural, o app_financeiro foi projetado sob os pilares de UI/UX Inteligente e Soberania do Usuário. Cada componente de interface e inteligência analítica foi lapidado para entregar uma experiência fluida, previsível, interativa e visualmente rica. 
 
+`*Click/Toque no texto para mais detalhes`
 <details>
   <summary><b>📒​Data Access Layer (DAL)</b></summary>
   <p>Camada de persistência isolada em `repositorios.py`, utilizando **Row Mappers** para converter resultados SQL em dicionários Python.</p>
@@ -111,23 +112,23 @@ Além da robustez arquitetural, o app_financeiro foi projetado sob os pilares de
 
 Para construir este ecossistema estável, performático e desacoplado, foram selecionadas a dedo tecnologias que cobrem desde a fundação dos dados até a esteira de entrega contínua:
 
-#### 🧠 Core & Linguagem
+#### 🧠 **Core & Linguagem**
 *   **Gestão Ágil:** Kanban via Trello (Documentado em `/DOCS` [Quadro Trello](https://trello.com/b/PaYLzi3t/appfinanceiro)).
 * **Ideação e Arquitetura:** Colaboração técnica via Gemini AI (Google). (Consultas, organização, correção, debug)
 *   **Python 3.x** — Motor principal do ecossistema, aplicando POO avançada e tipagem.
 
-#### 🏛️ Persistência & Engenharia de Dados
+#### 🏛️ **Persistência & Engenharia de Dados**
 *   **MySQL / Connector** — Banco de dados relacional robusto com integridade referencial via Constraints.
 
-## 🔐 Segurança & Criptografia
+#### 🔐 **Segurança & Criptografia**
 *   **Bcrypt** — Algoritmo de hashing assimétrico de alta segurança utilizado para a proteção de credenciais, implementando salting robusto contra ataques de dicionário e brute-force.
 
-#### 🖼️ UI/UX Sensorial & Inteligência Analítica
+#### 🖼️ **UI/UX Sensorial & Inteligência Analítica**
 *   **GUI:** [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) (Visual Dark Mode moderno).
 *   **Matplotlib** — Biblioteca de visualização para geração e plotagem dinâmica dos gráficos de saúde financeira.
 *   **Pygame** — Motor de áudio não-bloqueante via Threads para feedbacks sensoriais do usuário.
 
-#### 🧪 Engenharia de QA & Qualidade de Código
+#### 🧪 **Engenharia de QA & Qualidade de Código**
 *   **Unittest** — Framework nativo do Python para a arquitetura e execução de testes unitários automatizados, garantindo a integridade das regras de negócio a cada alteração.
 *   **Coverage** — Ferramenta analítica de cobertura de testes que mapeia com precisão quais linhas do código fonte foram executadas durante a validação de QA, assegurando a confiabilidade da esteira de CI/CD.
 
