@@ -163,16 +163,16 @@ APP_FINANCEIRO/
 Siga o passo a passo abaixo para levantar o ambiente virtual, instalar as dependências, criar a estrutura do banco de dados e rodar tanto a aplicação quanto a suíte de testes.
 
 #### 1. Clonar o Repositório e Acessar o Diretório
-Bash: git clone [Link](https://github.com/BRUNOSR-DEV/app_financeiro.git)
+Bash: `git clone [Link](https://github.com/BRUNOSR-DEV/app_financeiro.git)`
 
 #### 2. Ativar o Ambiente Virtual (venv)
 O projeto utiliza um ambiente virtual isolado chamado avir_af. No Windows, ative-o executando:
 
-Bash:  .\avir_af\Scripts\activate 
+Bash:  `.\avir_af\Scripts\activate`
 (Nota: Certifique-se de que o prompt do seu terminal agora exibe (avir_af) no início da linha).
 
 #### 3. Instalar as Dependências do Ecossistema
-Bash: pip install -r requirements.txt
+Bash: `pip install -r requirements.txt`
 
 #### 4. Configurar a Infraestrutura do Banco de Dados (MySQL)
 Certifique-se de que o seu servidor MySQL local (8.0+) está ativo e rodando.
@@ -188,10 +188,10 @@ Para Rodar a Suíte de Testes Automatizados: Duplique o arquivo example_test_con
 #### 6. Executar a Suíte de Testes Locais
 Para garantir que o motor de negócios e a camada de persistência estão 100% íntegros antes de subir a interface, execute os 23 testes automatizados via terminal:
 
-Bash: python -m unittest discover -s tests
+Bash: `python -m unittest discover -s tests`
 
 #### 7. Inicializar o Aplicativo
 Com os testes aprovados e as credenciais do config.ini prontas, dê o start no bootstrapper mestre para abrir a interface gráfica do CustomTkinter:
 
-Bash: python main.py
+Bash: `python main.py`
 
