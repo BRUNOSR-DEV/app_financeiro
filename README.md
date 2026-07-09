@@ -1,22 +1,23 @@
-# 💰 APP_FINANCEIRO | Gestão de Fluxo de Caixa Desktop
+# 💰 MVP APP_FINANCEIRO | Gestão de Fluxo de Caixa Desktop
 
 ![Status do Projeto](https://img.shields.io/badge/Status-Finalizando-green?style=for-the-badge)
 ![CI/CD Pipeline](https://github.com/BRUNOSR-DEV/app_financeiro/actions/workflows/ci.yml/badge.svg)
 ![Python Version](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python)
 ![Database](https://img.shields.io/badge/MySQL-8.0+-orange?style=for-the-badge&logo=mysql)
 
+---
 
-Um ecossistema comercialmente resiliente para gerenciamento, projeção e análise de capacidade de controle financeiro. Desenvolvido sob os pilares de **Programação Orientada a Objetos (POO)**,  **Arquitetura Limpa** e **Integridade de Dados** o sistema mitiga falhas humanas e imprecisões matemáticas comuns em planilhas financeiras tradicionais.
+Este projeto nasceu para solucionar uma das dores mais latentes da sociedade moderna: a gestão, o controle e a projeção financeira confiável. Mais do que um gerenciador, desenvolvi um **ecossistema comercialmente resiliente para análise de capacidade de fluxo de caixa**, projetado sob os pilares estritos de **Programação Orientada a Objetos (POO) Avançada**, **Arquitetura Limpa** e **Integridade Relacional de Dados**. O sistema mitiga falhas humanas e imprecisões matemáticas catastróficas comuns em planilhas tradicionais.
 
 ---
 
-## 🗃️​ Gerenciamento Ágil (Kanban Rastreável) & Git Flow
+## 📇​​ Gerenciamento Ágil (Kanban Rastreável) & Git Flow
 
 O ciclo de vida do projeto foi orquestrado utilizando a metodologia Kanban via **Trello**, com controle estrito de escopo por branches e validação contínua via Pull Requests.Cada funcionalidade, refatoração de banco ou implementação de teste foi mapeada/manipulada para garantir previsibilidade, foco em valor incremental e eliminação de desperdícios (débito técnico).
 
 <div align="center">
   <!-- Puxando o PNG direto do repositório local -->
-  <img src="DOCS/KANBAN/KANBAN_22_06_2026.PNG" width="250" alt="DER" />
+  <img src="DOCS/KANBAN/KANBAN_22_06_2026.png" width="250" alt="DER" />
 </div>
 
 ---
@@ -27,7 +28,7 @@ Organização impecável dividida em camadas desacopladas (models, utils, ui, te
 
 ---
 
-## 🏛️ 🏛️ Modelagem Relacional & Arquitetura de Banco (DER)
+## 🏛️ Modelagem Relacional & Arquitetura de Banco (DER)
 
 Concepção e design completo da infraestrutura de dados de ponta a ponta. Projetei o Diagrama de Entidade-Relacionamento (DER) do zero, estruturando tabelas normalizadas, relacionamentos complexos (1:N), chaves primárias/estrangeiras e constraints de integridade para garantir performance e consistência transacional no MySQL.
 
@@ -49,7 +50,7 @@ Domínio completo de regras de negócio financeiras complexas. Desenvolvimento d
 
 ---
 
-## 📊 Motor de Simulação & Mocks Temporais Avançados
+## ⚙️ Motor de Simulação & Mocks Temporais Avançados
 
 Sandbox de Projeção Financeira (Simulação Volátil em Memória): O ecossistema introduz uma funcionalidade avançada de simulação preditiva integrada aos formulários nativos de despesas e cartões de crédito. O usuário pode simular o impacto de novas compras parceladas ou recorrentes para o mês vigente e para os próximos 5 meses... eliminando completamente a poluição do banco de dados de produção.
 
@@ -67,7 +68,7 @@ A confiabilidade, portabilidade e estabilidade do ecossistema são garantidas po
 
 ## 🚀 Outros Diferenciais de Engenharia de Software
 
-Além da robustez arquitetural, o app_financeiro foi projetado sob os pilares de UI/UX Inteligente e Soberania do Usuário. Cada componente de interface e inteligência analítica foi lapidado para entregar uma experiência fluida, previsível, interativa e visualmente rica.
+Além da robustez arquitetural, o app_financeiro foi projetado sob os pilares de UI/UX Inteligente e Soberania do Usuário. Cada componente de interface e inteligência analítica foi lapidado para entregar uma experiência fluida, previsível, interativa e visualmente rica. `*Click/Toque no texto para mais detalhes`
 
 <details>
   <summary><b>📒​Data Access Layer (DAL)</b></summary>
@@ -75,12 +76,12 @@ Além da robustez arquitetural, o app_financeiro foi projetado sob os pilares de
 </details>
 
 <details>
-  <summary><b>🎛️Padrão Mediator (Orquestração de Interface)</b></summary>
+  <summary><b>🎛️ Padrão Mediator (Orquestração de Interface)</b></summary>
   <p>Centralização da lógica de comunicação entre frames via `crud_app.py` (Pattern Facade) e controle de ciclo de vida mestre sem estouro de pilha na *Super Main*.</p>
 </details>
 
 <details>
-  <summary><b>🔄Sanitização Proativa & Hot-Reload</b></summary>
+  <summary><b>🔄 Sanitização Proativa & Hot-Reload</b></summary>
   <p>Validação de inputs em tempo real via **Regex** no Front-end para evitar TypeErrors e atualização inteligente da interface (método `att_app`) sem reinicializar a aplicação.</p>
 </details>
 
@@ -104,21 +105,36 @@ Além da robustez arquitetural, o app_financeiro foi projetado sob os pilares de
   <p>Integração da biblioteca <strong>Matplotlib</strong> para processar dados de despesas e renderizar um gráfico de pizza dinâmico diretamente na interface gráfica. O sistema traduz registros brutos do banco de dados em insights visuais imediatos, calculando a distribuição percentual das categorias para que o usuário tenha total clareza e previsibilidade sobre o destino do seu capital.</p>
 </details>
 
-
-## 🛠️ Tecnologias e Bibliotecas
-
-* **Gestão Ágil:** Kanban via Trello (Documentado em `/DOCS` [Quadro Trello](https://trello.com/b/PaYLzi3t/appfinanceiro)).
-* **Ideação e Arquitetura:** Colaboração técnica via Gemini AI (Google). (Consultas, organização, correção, debug)
-* **Design de Banco de Dados:** MySQL Workbench.
-* **GUI:** [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) (Visual Dark Mode moderno).
-* **Áudio:** Pygame (Feedback sonoro para operações do sistema).
-
-## 📈 Metodologia de Desenvolvimento
-
-Foi utilizada a metodologia Kanban para o mapeamento de ciclo de vida das tarefas, garantindo rastreabilidade e foco em entrega de valor incremental. Este projeto contou com o suporte técnico e consultoria de arquitetura da Gemini (Google AI), auxiliando na estruturação de padrões de projeto (Mediator, DAL), refino de UX/UI e lógica de banco de dados.
-
 ---
-## 📁 Estrutura do Projeto
+
+## 🛠️ Tecnologias, Ecossistema e Bibliotecas Chave
+
+Para construir este ecossistema estável, performático e desacoplado, foram selecionadas a dedo tecnologias que cobrem desde a fundação dos dados até a esteira de entrega contínua:
+
+#### 🧠 Core & Linguagem
+*   **Gestão Ágil:** Kanban via Trello (Documentado em `/DOCS` [Quadro Trello](https://trello.com/b/PaYLzi3t/appfinanceiro)).
+* **Ideação e Arquitetura:** Colaboração técnica via Gemini AI (Google). (Consultas, organização, correção, debug)
+*   **Python 3.x** — Motor principal do ecossistema, aplicando POO avançada e tipagem.
+
+#### 🏛️ Persistência & Engenharia de Dados
+*   **MySQL / Connector** — Banco de dados relacional robusto com integridade referencial via Constraints.
+
+## 🔐 Segurança & Criptografia
+*   **Bcrypt** — Algoritmo de hashing assimétrico de alta segurança utilizado para a proteção de credenciais, implementando salting robusto contra ataques de dicionário e brute-force.
+
+#### 🖼️ UI/UX Sensorial & Inteligência Analítica
+*   **GUI:** [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) (Visual Dark Mode moderno).
+*   **Matplotlib** — Biblioteca de visualização para geração e plotagem dinâmica dos gráficos de saúde financeira.
+*   **Pygame** — Motor de áudio não-bloqueante via Threads para feedbacks sensoriais do usuário.
+
+#### 🧪 Engenharia de QA & Qualidade de Código
+*   **Unittest** — Framework nativo do Python para a arquitetura e execução de testes unitários automatizados, garantindo a integridade das regras de negócio a cada alteração.
+*   **Coverage** — Ferramenta analítica de cobertura de testes que mapeia com precisão quais linhas do código fonte foram executadas durante a validação de QA, assegurando a confiabilidade da esteira de CI/CD.
+
+> 📝 **Nota de Engenharia:** Para fins de documentação limpa, apenas as bibliotecas estruturais e de arquitetura foram listadas acima. Todas as dependências secundárias, pacotes utilitários e sub-bibliotecas exatas estão rigorosamente mapeados e congelados no arquivo [`requirements.txt`](./requirements.txt).
+---
+
+## 📁 Arquitetura do Projeto
 
 ```text
 APP_FINANCEIRO/
