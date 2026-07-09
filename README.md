@@ -163,7 +163,7 @@ APP_FINANCEIRO/
 Siga o passo a passo abaixo para levantar o ambiente virtual, instalar as dependências, criar a estrutura do banco de dados e rodar tanto a aplicação quanto a suíte de testes.
 
 #### 1. Clonar o Repositório e Acessar o Diretório
-Bash: `git clone [Link](https://github.com/BRUNOSR-DEV/app_financeiro.git)`
+Git clone [Link](https://github.com/BRUNOSR-DEV/app_financeiro.git)
 
 #### 2. Ativar o Ambiente Virtual (venv)
 O projeto utiliza um ambiente virtual isolado chamado avir_af. No Windows, ative-o executando:
