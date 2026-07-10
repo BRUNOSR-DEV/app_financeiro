@@ -1,7 +1,7 @@
 ## 💰 MVP APP_FINANCEIRO | Gestão de Fluxo de Caixa Desktop
 
 ![Status do Projeto](https://img.shields.io/badge/Status-Finalizando-green?style=for-the-badge)
-![CI/CD Pipeline](https://github.com/BRUNOSR-DEV/app_financeiro/actions/workflows/ci.yml/badge.svg)
+![CI/CD](https://github.com/BRUNOSR-DEV/app_financeiro/actions/workflows/ci.yml/badge.svg)
 ![Python Version](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python)
 ![Database](https://img.shields.io/badge/MySQL-8.0+-orange?style=for-the-badge&logo=mysql)
 
@@ -70,7 +70,7 @@ A confiabilidade, portabilidade e estabilidade do ecossistema são garantidas po
 
 Além da robustez arquitetural, o app_financeiro foi projetado sob os pilares de UI/UX Inteligente e Soberania do Usuário. Cada componente de interface e inteligência analítica foi lapidado para entregar uma experiência fluida, previsível, interativa e visualmente rica. 
 
-`*Click/Toque no texto para mais detalhes`
+`💡Clique/Toque nos blocos abaixo para expandir os detalhes técnicos:💡`
 <details>
   <summary><b>📒​Data Access Layer (DAL)</b></summary>
   <p>Camada de persistência isolada em `repositorios.py`, utilizando **Row Mappers** para converter resultados SQL em dicionários Python.</p>
@@ -163,7 +163,7 @@ APP_FINANCEIRO/
 Siga o passo a passo abaixo para levantar o ambiente virtual, instalar as dependências, criar a estrutura do banco de dados e rodar tanto a aplicação quanto a suíte de testes.
 
 #### 1. Clonar o Repositório e Acessar o Diretório
-Git clone [Link](https://github.com/BRUNOSR-DEV/app_financeiro.git)
+Git clone:  [Link Para Repositório](https://github.com/BRUNOSR-DEV/app_financeiro.git)
 
 #### 2. Ativar o Ambiente Virtual (venv)
 O projeto utiliza um ambiente virtual isolado chamado avir_af. No Windows, ative-o executando:
