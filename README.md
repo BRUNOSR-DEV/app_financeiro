@@ -6,16 +6,12 @@
 ![Database](https://img.shields.io/badge/MySQL-8.0+-orange?style=for-the-badge&logo=mysql)
 -->
 
-## 🧱 Stack Tecnológico do Projeto
+### 🧱 Stack Tecnológico do Projeto
 
-O ecossistema deste MVP foi blindado utilizando as seguintes tecnologias e frameworks:
-
-*   **Back-End & Regras de Negócio:** ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
-*   **Persistência Relacional:** ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
-*   **Segurança (Hashing):** ![Bcrypt](https://img.shields.io/badge/Bcrypt-🔒-green?style=flat-square)
-*   **Interface Gráfica & UX:** ![CustomTkinter](https://img.shields.io/badge/CustomTkinter-🎨-orange?style=flat-square) ![Pygame](https://img.shields.io/badge/Pygame-111111?style=flat-square&logo=pygame&logoColor=white)
-*   **Inteligência Analítica:** ![Matplotlib](https://img.shields.io/badge/Matplotlib-ffffff?style=flat-square&logo=matplotlib&logoColor=black)
-*   **Garantia de Qualidade & CI/CD:** ![Unittest](https://img.shields.io/badge/Unittest-🧪-blue?style=flat-square) ![Coverage](https://img.shields.io/badge/Coverage.py-💥-red?style=flat-square) ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white)
+<div align="left">
+  <!-- Tecnologias aplicadas diretamente na construção do MVP -->
+  <img src="https://skillicons.dev/icons?i=python,mysql,githubactions&theme=dark" alt="Stack do Projeto" />
+</div>
 
 ---
 
