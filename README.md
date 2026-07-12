@@ -1,28 +1,28 @@
 ## 💰 MVP APP_FINANCEIRO | Gestão de Fluxo de Caixa Desktop
 <!--
 ![Status do Projeto](https://img.shields.io/badge/Status-Finalizando-green?style=for-the-badge)
-![CI/CD](https://github.com/BRUNOSR-DEV/app_financeiro/actions/workflows/ci.yml/badge.svg)
-![Python Version](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python)
-![Database](https://img.shields.io/badge/MySQL-8.0+-orange?style=for-the-badge&logo=mysql)
+
+
 -->
 
 ---
 
 <!--🧱 Stack Tecnológico do Projeto-->
-![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white)
+![Python Version](https://img.shields.io/badge/Python-3.11+-black?style=for-the-badge&logo=python&logoColor=red)
+![Database](https://img.shields.io/badge/MySQL-8.0+-black?style=for-the-badge&logo=mysql&logoColor=red)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-black?style=flat-square&logo=github-actions&logoColor=red)
 
-<!--> Bibliotecas -->
-![Bcrypt](https://img.shields.io/badge/Bcrypt-🔒-green?style=flat-square)
-![CustomTkinter](https://img.shields.io/badge/CustomTkinter-🖼️​-orange?style=flat-square) 
-![Pygame](https://img.shields.io/badge/Pygame-111111?style=flat-square&logo=pygame&logoColor=white)
-![Matplotlib](https://img.shields.io/badge/Matplotlib-ffffff?style=flat-square&logo=matplotlib&logoColor=black)
-![Unittest](https://img.shields.io/badge/Unittest-🧪-blue?style=flat-square) 
-![Coverage](https://img.shields.io/badge/Coverage.py-📊-red?style=flat-square)
+<!-- Bibliotecas -->
+![Bcrypt](https://img.shields.io/badge/Bcrypt-🔒-black?style=flat-square)
+![CustomTkinter](https://img.shields.io/badge/CustomTkinter-🖼️​-black?style=flat-square&logo=customtkinter&logoColor=red) 
+![Pygame](https://img.shields.io/badge/Pygame-🔊​-black?style=flat-square&logo=pygame&logoColor=red)
+![Matplotlib](https://img.shields.io/badge/Matplotlib-📊-black?style=flat-square&logo=matplotlib&logoColor=red)
+![Unittest](https://img.shields.io/badge/Unittest-🧪-black?style=flat-squarw&logo=unittest&logoColor=red) 
+![Coverage](https://img.shields.io/badge/Coverage.py-🧮-black?style=flat-square&logo=coverage&logoColor=red)
 
 <!-- Status do projeto-->
-![Status do Projeto](https://img.shields.io/badge/Status-Finalizando-green?style=for-the-badge)
+![Status do Projeto](https://img.shields.io/badge/Status-MVP-Finalizado-green?style=for-the-badge)
+![CI/CD](https://github.com/BRUNOSR-DEV/app_financeiro/actions/workflows/ci.yml/badge.svg)
 
 ---
 
