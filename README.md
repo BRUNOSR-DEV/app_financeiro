@@ -8,9 +8,9 @@
 ---
 
 <!--🧱 Stack Tecnológico do Projeto-->
-![Python Version](https://img.shields.io/badge/Python-3.11+-black?style=for-the-badge&logo=python&logoColor=red)
+![Agile Method](https://img.shields.io/badge/Agile_Kanban-black?style=for-the-badge&logo=trello&logoColor=red)![Python Version](https://img.shields.io/badge/Python-3.11+-black?style=for-the-badge&logo=python&logoColor=red)
 ![Database](https://img.shields.io/badge/MySQL-8.0+-black?style=for-the-badge&logo=mysql&logoColor=red)
-![Git Flow](https://img.shields.io/badge/Git_Flow-black?style=for-the-badge&logo=git&logoColor=red)![Agile Method](https://img.shields.io/badge/Agile_Kanban-black?style=for-the-badge&logo=trello&logoColor=red)![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-black?style=flat-square&logo=github-actions&logoColor=red)![Bcrypt](https://img.shields.io/badge/Bcrypt-🔒-black?style=flat-square)![CustomTkinter](https://img.shields.io/badge/CustomTkinter-🖼️-black?style=flat-square) ![Pygame](https://img.shields.io/badge/Pygame-🔊-black?style=flat-square&logo=pygame&logoColor=red)![Matplotlib](https://img.shields.io/badge/Matplotlib-📊-black?style=flat-square)![Unittest](https://img.shields.io/badge/Unittest-🧪-black?style=flat-square) ![Coverage](https://img.shields.io/badge/Coverage.py-🧮-black?style=flat-square)
+![Git Flow](https://img.shields.io/badge/Git_Flow-black?style=for-the-badge&logo=git&logoColor=red)![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-black?style=flat-square&logo=github-actions&logoColor=red)![Bcrypt](https://img.shields.io/badge/Bcrypt-🔒-black?style=flat-square)![CustomTkinter](https://img.shields.io/badge/CustomTkinter-🖼️-black?style=flat-square) ![Pygame](https://img.shields.io/badge/Pygame-🔊-black?style=flat-square&logo=pygame&logoColor=red)![Matplotlib](https://img.shields.io/badge/Matplotlib-📊-black?style=flat-square)![Unittest](https://img.shields.io/badge/Unittest-🧪-black?style=flat-square) ![Coverage](https://img.shields.io/badge/Coverage.py-🧮-black?style=flat-square)
 
 <!-- Status do projeto-->
 ![Status do Projeto](https://img.shields.io/badge/Status-MVP_Finalizado-green?style=for-the-badge)
