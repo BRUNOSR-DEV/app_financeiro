@@ -6,12 +6,23 @@
 ![Database](https://img.shields.io/badge/MySQL-8.0+-orange?style=for-the-badge&logo=mysql)
 -->
 
-### 🧱 Stack Tecnológico do Projeto
+---
 
-<div align="left">
-  <!-- Tecnologias aplicadas diretamente na construção do MVP -->
-  <img src="https://skillicons.dev/icons?i=python,mysql,githubactions&theme=dark" alt="Stack do Projeto" />
-</div>
+<!--🧱 Stack Tecnológico do Projeto-->
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white)
+
+<!--> Bibliotecas -->
+![Bcrypt](https://img.shields.io/badge/Bcrypt-🔒-green?style=flat-square)
+![CustomTkinter](https://img.shields.io/badge/CustomTkinter-🖼️​-orange?style=flat-square) 
+![Pygame](https://img.shields.io/badge/Pygame-111111?style=flat-square&logo=pygame&logoColor=white)
+![Matplotlib](https://img.shields.io/badge/Matplotlib-ffffff?style=flat-square&logo=matplotlib&logoColor=black)
+![Unittest](https://img.shields.io/badge/Unittest-🧪-blue?style=flat-square) 
+![Coverage](https://img.shields.io/badge/Coverage.py-📊-red?style=flat-square)
+
+<!-- Status do projeto-->
+![Status do Projeto](https://img.shields.io/badge/Status-Finalizando-green?style=for-the-badge)
 
 ---
 
