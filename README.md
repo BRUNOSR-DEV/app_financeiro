@@ -6,13 +6,19 @@
 -->
 
 ---
+
 <!--🧱 Stack Tecnológico do Projeto-->
 ![Python Version](https://img.shields.io/badge/Python-3.11+-black?style=for-the-badge&logo=python&logoColor=red)
-![Database](https://img.shields.io/badge/MySQL-8.0+-black?style=for-the-badge&logo=mysql&logoColor=red)![Git Flow](https://img.shields.io/badge/Git_Flow-🔄-black?style=flat-square&logo=git&logoColor=red)![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-black?style=flat-square&logo=github-actions&logoColor=red)![Bcrypt](https://img.shields.io/badge/Bcrypt-🔒-black?style=flat-square)![CustomTkinter](https://img.shields.io/badge/CustomTkinter-🖼️-black?style=flat-square) ![Pygame](https://img.shields.io/badge/Pygame-🔊-black?style=flat-square&logo=pygame&logoColor=red)![Matplotlib](https://img.shields.io/badge/Matplotlib-📊-black?style=flat-square)![Unittest](https://img.shields.io/badge/Unittest-🧪-black?style=flat-square)  ![Coverage](https://img.shields.io/badge/Coverage.py-🧮-black?style=flat-square)
+![Database](https://img.shields.io/badge/MySQL-8.0+-black?style=for-the-badge&logo=mysql&logoColor=red)
+![Git Flow](https://img.shields.io/badge/Git_Flow-black?style=for-the-badge&logo=git&logoColor=red)
+![Agile Method](https://img.shields.io/badge/Agile_Kanban-black?style=for-the-badge&logo=trello&logoColor=red)
+
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-black?style=flat-square&logo=github-actions&logoColor=red)![Bcrypt](https://img.shields.io/badge/Bcrypt-🔒-black?style=flat-square)![CustomTkinter](https://img.shields.io/badge/CustomTkinter-🖼️-black?style=flat-square) ![Pygame](https://img.shields.io/badge/Pygame-🔊-black?style=flat-square&logo=pygame&logoColor=red)![Matplotlib](https://img.shields.io/badge/Matplotlib-📊-black?style=flat-square)![Unittest](https://img.shields.io/badge/Unittest-🧪-black?style=flat-square) ![Coverage](https://img.shields.io/badge/Coverage.py-🧮-black?style=flat-square)
 
 <!-- Status do projeto-->
 ![Status do Projeto](https://img.shields.io/badge/Status-MVP_Finalizado-green?style=for-the-badge)
 ![CI/CD](https://github.com/BRUNOSR-DEV/app_financeiro/actions/workflows/ci.yml/badge.svg)
+
 ---
 
 Este projeto nasceu para solucionar uma das dores mais latentes da sociedade moderna: a gestão, o controle e a projeção financeira confiável. Mais do que um gerenciador, desenvolvi um **ecossistema comercialmente resiliente para análise de capacidade de fluxo de caixa**, projetado sob os pilares estritos de **Programação Orientada a Objetos (POO) Avançada**, **Arquitetura Limpa** e **Integridade Relacional de Dados**. O sistema mitiga falhas humanas e imprecisões matemáticas catastróficas comuns em planilhas tradicionais.
