@@ -26,7 +26,7 @@ Este projeto nasceu para solucionar uma das dores mais latentes da sociedade mod
 
 ---
 
-## 📇​​ Gerenciamento Ágil (Kanban Rastreável) & Git Flow
+### 📇​​ Gerenciamento Ágil (Kanban Rastreável) & Git Flow
 
 O ciclo de vida do projeto foi orquestrado utilizando a metodologia Kanban via **Trello**, com controle estrito de escopo por branches e validação contínua via Pull Requests.Cada funcionalidade, refatoração de banco ou implementação de teste foi mapeada/manipulada para garantir previsibilidade, foco em valor incremental e eliminação de desperdícios (débito técnico).
 
@@ -37,13 +37,13 @@ O ciclo de vida do projeto foi orquestrado utilizando a metodologia Kanban via *
 
 ---
 
-## 🏗️ Arquitetura Padrão Ouro & POO Avançada
+### 🏗️ Arquitetura Padrão Ouro & POO Avançada
 
 Organização impecável dividida em camadas desacopladas (models, utils, ui, tests). Aplicação estrita de Orientação a Objetos (POO), herança, encapsulamento, inversão de dependência e forte tipagem estática, garantindo manutenibilidade e fácil expansão do sistema.
 
 ---
 
-## 🏛️ Modelagem Relacional & Arquitetura de Banco (DER)
+### 🏛️ Modelagem Relacional & Arquitetura de Banco (DER)
 
 Concepção e design completo da infraestrutura de dados de ponta a ponta. Projetei o Diagrama de Entidade-Relacionamento (DER) do zero, estruturando tabelas normalizadas, relacionamentos complexos (1:N), chaves primárias/estrangeiras e constraints de integridade para garantir performance e consistência transacional no MySQL.
 
@@ -54,24 +54,24 @@ Concepção e design completo da infraestrutura de dados de ponta a ponta. Proje
 
 ---
 
-## 🔐 Segurança & Criptografia (Bcrypt)
+### 🔐 Segurança & Criptografia (Bcrypt)
 Camada de segurança por criptografia de via única (Hashing) utilizando Bcrypt com fator de custo configurado em 12 rounds. O repositório executa uma migração em tempo de execução: senhas legadas em texto limpo são validadas diretamente e, no primeiro login bem-sucedido, o sistema gera o hash automaticamente e sobrescreve o registro antigo no banco de dados de forma transparente.
 
 ---
 
-## 📅 Lógica Contábil & Manipulação de Datas
+### 📅 Lógica Contábil & Manipulação de Datas
 
 Domínio completo de regras de negócio financeiras complexas. Desenvolvimento de algoritmos para controle estrito de ciclos de faturamento de cartões de crédito, tratando de forma manual e segura o fluxo de parcelamentos através de manipulação avançada de strings e objetos de data (datetime).
 
 ---
 
-## ⚙️ Motor de Simulação & Mocks Temporais Avançados
+### ⚙️ Motor de Simulação & Mocks Temporais Avançados
 
 Sandbox de Projeção Financeira (Simulação Volátil em Memória): O ecossistema introduz uma funcionalidade avançada de simulação preditiva integrada aos formulários nativos de despesas e cartões de crédito. O usuário pode simular o impacto de novas compras parceladas ou recorrentes para o mês vigente e para os próximos 5 meses... eliminando completamente a poluição do banco de dados de produção.
 
 ---
 
-## 🧪 Engenharia de QA (Quality Assurance) & Esteira CI/CD (GitHub Actions)
+### 🧪 Engenharia de QA (Quality Assurance) & Esteira CI/CD (GitHub Actions)
 A confiabilidade, portabilidade e estabilidade do ecossistema são garantidas por uma estratégia moderna de QA (Quality Assurance). O projeto combina validações manuais (Testes Caixa Preta (Funcionais)) e uma suíte de 23 testes automatizados (Unitários + Integração) integrados a um pipeline de nuvem que homologa cada modificação no código em menos de 1 minuto.
 
 <div align="center">
@@ -81,7 +81,7 @@ A confiabilidade, portabilidade e estabilidade do ecossistema são garantidas po
 
 ---
 
-## 🚀 Outros Diferenciais de Engenharia de Software
+### 🚀 Outros Diferenciais de Engenharia de Software
 
 Além da robustez arquitetural, o app_financeiro foi projetado sob os pilares de UI/UX Inteligente e Soberania do Usuário. Cada componente de interface e inteligência analítica foi lapidado para entregar uma experiência fluida, previsível, interativa e visualmente rica. 
 
@@ -123,7 +123,7 @@ Além da robustez arquitetural, o app_financeiro foi projetado sob os pilares de
 
 ---
 
-## 🛠️ Tecnologias, Ecossistema e Bibliotecas Chave
+### 🛠️ Tecnologias, Ecossistema e Bibliotecas Chave
 
 Para construir este ecossistema estável, performático e desacoplado, foram selecionadas a dedo tecnologias que cobrem desde a fundação dos dados até a esteira de entrega contínua:
 
@@ -150,7 +150,7 @@ Para construir este ecossistema estável, performático e desacoplado, foram sel
 > 📝 **Nota de Engenharia:** Para fins de documentação limpa, apenas as bibliotecas estruturais e de arquitetura foram listadas acima. Todas as dependências secundárias, pacotes utilitários e sub-bibliotecas exatas estão rigorosamente mapeados e congelados no arquivo [`requirements.txt`](./requirements.txt).
 ---
 
-## 📁 Arquitetura do Projeto
+### 📁 Arquitetura do Projeto
 
 ```text
 APP_FINANCEIRO/
@@ -174,7 +174,7 @@ APP_FINANCEIRO/
 ```
 ---
 
-## 🔧 Como Rodar o Projeto
+### 🔧 Como Rodar o Projeto
 Siga o passo a passo abaixo para levantar o ambiente virtual, instalar as dependências, criar a estrutura do banco de dados e rodar tanto a aplicação quanto a suíte de testes.
 
 #### 1. Clonar o Repositório e Acessar o Diretório
