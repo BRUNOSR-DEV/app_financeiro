@@ -19,6 +19,7 @@
 </div>
 
 **Dentro do repositório do projeto (`DOCS`), tem as imagens de cada setor para visualização detalhada**
+
 ---
 
 Este projeto nasceu para solucionar uma das dores mais latentes da sociedade moderna: a gestão, o controle e a projeção financeira confiável. Mais do que um gerenciador, desenvolvi um **ecossistema comercialmente resiliente para análise de capacidade de fluxo de caixa**, projetado sob os pilares estritos de **Programação Orientada a Objetos (POO) Avançada**, **Arquitetura Limpa** e **Integridade Relacional de Dados**. O sistema mitiga falhas humanas e imprecisões matemáticas catastróficas comuns em planilhas tradicionais.
