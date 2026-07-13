@@ -1,9 +1,5 @@
 ## 💰 MVP APP_FINANCEIRO | Gestão de Fluxo de Caixa Desktop
-<!--
-![Status do Projeto](https://img.shields.io/badge/Status-Finalizando-green?style=for-the-badge)
 
-
--->
 
 ---
 
@@ -16,6 +12,13 @@
 ![Status do Projeto](https://img.shields.io/badge/Status-MVP_Finalizado-green?style=for-the-badge)
 ![CI/CD](https://github.com/BRUNOSR-DEV/app_financeiro/actions/workflows/ci.yml/badge.svg)
 
+---
+<div align="center">
+  <!-- Puxando o gif direto do repositório local -->
+  <img src="DOCS/a.f_prints_gif/app_financeiro.gif" width="400" alt="Apresentação App_financeiro" />
+</div>
+
+*Dentro de `DOCS` no repositório do projeto, tem as imagens para visualização detalhada*
 ---
 
 Este projeto nasceu para solucionar uma das dores mais latentes da sociedade moderna: a gestão, o controle e a projeção financeira confiável. Mais do que um gerenciador, desenvolvi um **ecossistema comercialmente resiliente para análise de capacidade de fluxo de caixa**, projetado sob os pilares estritos de **Programação Orientada a Objetos (POO) Avançada**, **Arquitetura Limpa** e **Integridade Relacional de Dados**. O sistema mitiga falhas humanas e imprecisões matemáticas catastróficas comuns em planilhas tradicionais.
