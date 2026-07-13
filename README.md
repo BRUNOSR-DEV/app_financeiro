@@ -15,7 +15,7 @@
 ---
 <div align="center">
   <!-- Puxando o gif direto do repositório local -->
-  <img src="DOCS/apresentacao/app_financeiro.gif" width="400" alt="Apresentação App_financeiro" />
+  <img src="DOCS/apresentacao/app_financeiro.gif" width="500" alt="Apresentação App_financeiro" />
 </div>
 
 **Dentro do repositório do projeto (`DOCS`), tem as imagens de cada setor para visualização detalhada**
