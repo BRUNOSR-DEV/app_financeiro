@@ -1,12 +1,9 @@
-## 💰 MVP APP_FINANCEIRO | Gestão de Fluxo de Caixa Desktop
-
+## 💰 MVP APP_FINANCEIRO | Gestão Financeira Desktop
 
 ---
 
 <!--🧱 Stack Tecnológico do Projeto-->
-![Agile Method](https://img.shields.io/badge/Agile_Kanban-black?style=for-the-badge&logo=trello&logoColor=red)![Python Version](https://img.shields.io/badge/Python-3.11+-black?style=for-the-badge&logo=python&logoColor=red)
-![Database](https://img.shields.io/badge/MySQL-8.0+-black?style=for-the-badge&logo=mysql&logoColor=red)
-![Git Flow](https://img.shields.io/badge/Git_Flow-black?style=for-the-badge&logo=git&logoColor=red)![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-black?style=flat-square&logo=github-actions&logoColor=red)![Bcrypt](https://img.shields.io/badge/Bcrypt-🔒-black?style=flat-square)![CustomTkinter](https://img.shields.io/badge/CustomTkinter-🖼️-black?style=flat-square) ![Pygame](https://img.shields.io/badge/Pygame-🔊-black?style=flat-square&logo=pygame&logoColor=red)![Matplotlib](https://img.shields.io/badge/Matplotlib-📊-black?style=flat-square)![Unittest](https://img.shields.io/badge/Unittest-🧪-black?style=flat-square) ![Coverage](https://img.shields.io/badge/Coverage.py-🧮-black?style=flat-square)
+![Agile Method](https://img.shields.io/badge/Agile_Kanban-black?style=for-the-badge&logo=trello&logoColor=red)![Python Version](https://img.shields.io/badge/Python-3.11+-black?style=for-the-badge&logo=python&logoColor=red)![Database](https://img.shields.io/badge/MySQL-8.0+-black?style=for-the-badge&logo=mysql&logoColor=red)![CRUD](https://img.shields.io/badge/CRUD_Architecture-💾-black?style=for-the-badge&logoColor=red)![Git Flow](https://img.shields.io/badge/Git_Flow-black?style=for-the-badge&logo=git&logoColor=red)![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-black?style=flat-square&logo=github-actions&logoColor=red)![Bcrypt](https://img.shields.io/badge/Bcrypt-🔒-black?style=flat-square)![CustomTkinter](https://img.shields.io/badge/CustomTkinter-🖼️-black?style=flat-square) ![Pygame](https://img.shields.io/badge/Pygame-🔊-black?style=flat-square&logo=pygame&logoColor=red)![Matplotlib](https://img.shields.io/badge/Matplotlib-📊-black?style=flat-square)![Unittest](https://img.shields.io/badge/Unittest-🧪-black?style=flat-square) ![Coverage](https://img.shields.io/badge/Coverage.py-🧮-black?style=flat-square)
 
 <!-- Status do projeto-->
 ![Status do Projeto](https://img.shields.io/badge/Status-MVP_Finalizado-green?style=for-the-badge)
@@ -18,11 +15,11 @@
   <img src="DOCS/apresentacao/app_financeiro.gif" width="500" alt="Apresentação App_financeiro" />
 </div>
 
-`💡Dentro do repositório do projeto (DOCS/apresentacao), tem as imagens de cada setor para visualização detalhada💡`
+`💡Veja os prints separados em DOCS/apresentacao💡`
 
 ---
 
-Este projeto nasceu para solucionar uma das dores mais latentes da sociedade moderna: a gestão, o controle e a projeção financeira confiável. Mais do que um gerenciador, desenvolvi um **ecossistema comercialmente resiliente para análise de capacidade de fluxo de caixa**, projetado sob os pilares estritos de **Programação Orientada a Objetos (POO) Avançada**, **Arquitetura Limpa** e **Integridade Relacional de Dados**. O sistema mitiga falhas humanas e imprecisões matemáticas catastróficas comuns em planilhas tradicionais.
+Este projeto nasceu para solucionar uma das dores mais latentes da sociedade moderna: a gestão, o controle e a projeção financeira confiável. Mais do que um gerenciador, desenvolvi um **ecossistema comercialmente resiliente para análise de capacidade de fluxo de caixa**, projetado sob os pilares estritos de **Programação Orientada a Objetos (POO) Avançada**, **Arquitetura Limpa** e um **Motor CRUD Relacional Completo focado na Integridade de Dados**. O sistema mitiga falhas humanas e imprecisões matemáticas catastróficas comuns em planilhas tradicionais.
 
 ---
 
@@ -32,10 +29,10 @@ O ciclo de vida do projeto foi orquestrado utilizando a metodologia Kanban via *
 
 <div align="center">
   <!-- Puxando o PNG direto do repositório local -->
-  <img src="DOCS/KANBAN/KANBAN_22_06_2026.png" width="250" alt="DER" />
+  <img src="DOCS/KANBAN/KANBAN_22_06_2026.png" width="300" alt="DER" />
 </div>
 
----
+--- 
 
 ### 🏗️ Arquitetura Padrão Ouro & POO Avançada
 
@@ -51,6 +48,12 @@ Concepção e design completo da infraestrutura de dados de ponta a ponta. Proje
   <!-- Puxando o PNG direto do repositório local -->
   <img src="DOCS/MER/DER_APP_FINANCEIRO.png" width="200" alt="DER" />
 </div>
+
+---
+
+### 💾 Persistência & Motor CRUD
+
+Arquitetura back-end totalmente estruturada sobre operações completas de **CRUD Relacional** (Criação, Consulta, Atualização e Exclusão de registros financeiros) com validações severas de integridade de dados e segurança de criptografia no MySQL.
 
 ---
 

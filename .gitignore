@@ -3,7 +3,7 @@ config.ini
 test_config.ini
 
 # Ambientes virtuais
-avir_af/
+avir_af
 vir_gt/
 venv/
 __pycache__/
