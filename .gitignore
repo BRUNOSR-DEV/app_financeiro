@@ -1,9 +1,12 @@
 # Configurações sensíveis
 config.ini
 test_config.ini
+build/
+dist/
+*.spec
 
 # Ambientes virtuais
-avir_af
+avir_af/
 vir_gt/
 venv/
 __pycache__/
