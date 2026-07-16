@@ -7,8 +7,20 @@ de alertas e triggers de notificações mapeados em assets binários (.mp3 e .mp
 
 import pygame
 import os
+import sys
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def get_base_dir():
+    """ Retorna o diretório base correto tanto em Dev quanto empacotado pelo PyInstaller """
+    
+    if getattr(sys, 'frozen', False):
+        # Se estiver rodando como .exe (PyInstaller), pega a pasta temporária de extração
+        return sys._MEIPASS
+    else:
+        # Se estiver rodando em desenvolvimento no VS Code
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+BASE_DIR = get_base_dir()
 
 try:
     pygame.mixer.init()
