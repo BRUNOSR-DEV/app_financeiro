@@ -52,6 +52,7 @@ class Database_teste:
                 'passwd': db_config.get('passwd'),
                 'db': db_config.get('db')
             }
+        
         except FileNotFoundError:
             print(f"Erro Crítico: {e}")
             return None
