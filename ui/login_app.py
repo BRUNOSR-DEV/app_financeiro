@@ -23,7 +23,7 @@ import customtkinter as ctk
 
 # ------------- CONFIGURAÇÃO INICIAL ---------------
 ctk.set_appearance_mode('dark')
-
+import sys
 
 class Login(ctk.CTk):
     """
@@ -37,6 +37,9 @@ class Login(ctk.CTk):
         super().__init__()
         self.db_conn: Database = Database()
         self.db: Rep_Usuario = Rep_Usuario(self.db_conn)
+
+        #Mapeia o clique no botão "X" da janela para matar o processo imediatamente
+        self.protocol("WM_DELETE_WINDOW", self.fechar_no_x)
 
         self.vcmd_num: tuple = (self.register(check_entry_num), '%P')
         self.crudManager: CrudManage = CrudManage(self, cb_atualiza_bd=self.atualiza_bd, cb_vcmd_num=self.vcmd_num)
@@ -80,6 +83,12 @@ class Login(ctk.CTk):
         self.usuarios: List[Dados_usuarios_db] = []
 
         self.atualiza_bd()
+
+    def fechar_no_x(self):
+        """Executado quando o usuário clica no X da janela de login"""
+        print("Encerrando aplicação pelo botão fechar da tela de login...")
+        self.destroy()   # Destrói a janela gráfica Tkinter
+        sys.exit(0)
 
     def atualiza_bd(self) -> None:
         """Sincroniza a listagem local cacheada de usuários cadastrados do repositório."""
