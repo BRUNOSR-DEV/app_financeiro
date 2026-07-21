@@ -344,7 +344,7 @@ class Cadastrar_despesa(ctk.CTkFrame):
         self.descricao.grid(row=8, column=0, padx=20, pady=(2, 10), sticky="ew")
 
         # ------ CATEGORIA ------
-        categorias = ['Não Selecionado', 'Essencial', 'Lazer', 'Hobby', 'Vestimenta/Acessórios','Eletrônicos', 'Evolução Pessoal', 'Saúde', 'Empréstimo', 'Reforma e Construção', 'Outros']
+        categorias = ['Não Selecionado', 'Essencial', 'Lazer/Hobby','Vestimenta/Acessórios','Eletrônicos', 'Estudos/Evolução', 'Saúde/Vigor', 'Procedimento Estético', 'Empréstimo/Dívidas', 'Casa/Reforma', 'Carro/Manutenção', 'Outros']
         ctk.CTkLabel(self, text="Categoria*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=9, column=0, padx=20, sticky="w")
         self.categoria = ctk.CTkOptionMenu(self, values=categorias)
         self.categoria.grid(row=10, column=0, padx=20, pady=(2, 10), sticky="ew")
@@ -784,7 +784,7 @@ class Cadastrar_assinatura(ctk.CTkFrame):
         self.campo_prim_dp.grid(row=10, column=0, padx=(2,10), pady=10)
 
         # ------- MENU DE CATEGORIAS ---------
-        categorias = ['Não Selecionado','Lazer', 'Essencial', 'Estudos', 'Saúde', ' Hobby','Streaming', 'Outros']
+        categorias = ['Não Selecionado','Lazer/Hobby', 'Essencial', 'Estudos/Evolução', 'Saúde/Vigor','Streaming', 'Outros']
 
         ctk.CTkLabel(self, text="Categorias*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=11, column=0, padx=20, sticky="w")
         self.menu_cat = ctk.CTkOptionMenu(self, values=categorias, width=300)
