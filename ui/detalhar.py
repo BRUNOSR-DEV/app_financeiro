@@ -589,11 +589,12 @@ class Listar_desp_tabela(ctk.CTkFrame):
                             data_aquisicao = ass.get('data_aquisicao')
 
                             resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes)
-                            _, entra_na_fatura, _ = resultado
+                            _, entra_na_fatura, controle_data = resultado
 
                             if entra_na_fatura:
                                 valor = Decimal(str(ass.get('valor')))
                                 total_deste_cartao += valor
+                                data_vencimento_fatura = controle_data
 
                     if despesas_do_cartao:
                         for desp in despesas_do_cartao:
