@@ -885,6 +885,7 @@ class Simulacao(ctk.CTkToplevel):
             else: # Despesa avulsa
                 data_pp = dado.get('prim_data_pag')
 
+
                 if not controle_mes and data_pp:
                     controle_mes = data_pp.month
             
@@ -893,14 +894,18 @@ class Simulacao(ctk.CTkToplevel):
             self.menu_mes.set(str_mes)
             self.tabela_frame.renderizar(controle_mes=controle_mes, escolha=str_mes, dados_simulacao=dados)
 
-            if tem_cartao:
-                escolha = f"[{nome_cartao}] - Mês: {str_mes}"
+            id_card_render = trocar_card if trocar_card else self.id_card_atual
+            cartao_selecionado = self.menu_cartao.get()
+
+            if cartao_selecionado:
+                escolha = f"[{cartao_selecionado}] - Mês: {str_mes}"
 
                 if trocar_card:
                     id_card = trocar_card
 
-                self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
-                self.menu_cartao.set(str(nome_cartao))   
+                self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card_render, controle_mes=controle_mes, escolha=escolha, dados_simulacao=dados)
+
+  
 
 
     def trocar_mes(self, escolha: str) -> None:
@@ -944,7 +949,7 @@ class Simulacao(ctk.CTkToplevel):
 
 
     def trocar_frame_cartao(self, escolha: str) -> None:
-        """Comuta as métricas do Sandbox para visualizar as faturas de outro cartão."""
+        """Comsuta as métricas do Sandbox para visualizar as faturas de outro cartão."""
 
         cartoes = self.dados_cartoes
         id_card = None
@@ -960,14 +965,17 @@ class Simulacao(ctk.CTkToplevel):
         
         if self.dados_select:
             self.controle_dados(dados=self.dados_select, trocar_card=self.id_card_atual)
+
         else:
             if not self.controle_mes:
                 self.controle_mes = self.mes_atual
                 self.menu_mes.set(str(self.mes_atual_str))
 
                 str_cartao_mes = f"[{escolha}] - Mês: {gerar_opcoes_meses().get(self.controle_mes)}"
+
                 self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, escolha=str_cartao_mes, controle_mes=self.controle_mes)
 
             else:
                 str_cartao_mes = f"[{escolha}] - Mês: {gerar_opcoes_meses().get(self.controle_mes)}"
+
                 self.frame_tab_fatura.tabela_cartao(id_user=self.id_user, id_card=id_card, escolha=str_cartao_mes, controle_mes=self.controle_mes)
