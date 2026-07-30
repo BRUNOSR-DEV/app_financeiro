@@ -11,3 +11,8 @@ vir_gt/
 venv/
 __pycache__/
 *.pyc
+
+
+#assets
+
+assets/
