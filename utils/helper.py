@@ -578,12 +578,11 @@ def controle_data_parc_cc(
 
     data_fech_real, data_venc_real = calcular_datas_reais_cartao(ano, mes, dia_vencimento, dia_fechamento)
 
-    #  ex: 2026-05-20       
+
     if data_compra_obj >= data_fech_real and not assinatura:
 
-        if data_venc_real.day < data_fech_real.day: # Se o fechamento ocorre no mês anterior, pula para o mês seguinte (ex: abril (vencimento: 05/04/2026))
+        if data_venc_real.day < data_fech_real.day and data_compra_obj.month == data_fech_real.month: 
             primeira_cobranca += relativedelta(months=2)
-
         else:
             primeira_cobranca += relativedelta(months=1)
 
