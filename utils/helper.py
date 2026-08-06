@@ -581,7 +581,7 @@ def controle_data_parc_cc(
 
     if data_compra_obj >= data_fech_real and not assinatura:
 
-        if data_venc_real.day < data_fech_real.day and data_compra_obj.month == data_fech_real.month: 
+        if data_venc_real.day < data_fech_real.day and data_compra_obj.day >= data_fech_real.day: 
             primeira_cobranca += relativedelta(months=2)
         else:
             primeira_cobranca += relativedelta(months=1)
