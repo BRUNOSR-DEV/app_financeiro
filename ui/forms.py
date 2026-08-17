@@ -344,7 +344,7 @@ class Cadastrar_despesa(ctk.CTkFrame):
         self.descricao.grid(row=8, column=0, padx=20, pady=(2, 10), sticky="ew")
 
         # ------ CATEGORIA ------
-        categorias = ['Não Selecionado', 'Essencial', 'Lazer/Hobby','Vestimenta/Acessórios','Eletrônicos', 'Estudos/Evolução', 'Saúde/Vigor', 'Procedimento Estético', 'Empréstimo/Dívidas', 'Casa/Reforma', 'Carro/Manutenção', 'Outros']
+        categorias = ['Não Selecionado', 'Comida/Higiene', 'Internet', 'Luz/Água', 'Lazer/Hobby','Vestimenta/Acessórios','Eletrônicos', 'Estudos/Evolução', 'Saúde/Vigor', 'Procedimento Estético', 'Empréstimo/Dívidas', 'Casa/Reforma', 'Carro/Manutenção', 'Outros']
         ctk.CTkLabel(self, text="Categoria*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=9, column=0, padx=20, sticky="w")
         self.categoria = ctk.CTkOptionMenu(self, values=categorias)
         self.categoria.grid(row=10, column=0, padx=20, pady=(2, 10), sticky="ew")
