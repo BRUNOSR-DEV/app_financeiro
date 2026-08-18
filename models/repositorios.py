@@ -1024,7 +1024,7 @@ class Rep_Assinatura:
 
         try:
             query = """
-                SELECT nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, id_cartao, id
+                SELECT nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, ativa, id_cartao, id
                 FROM assinaturas 
                 WHERE id_usuario = %s 
             """
@@ -1075,6 +1075,7 @@ class Rep_Assinatura:
                     a.data_aquisicao,
                     a.data_primeiro_pagamento,
                     a.dia_vencimento,
+                    a.ativa,
                     c.nome,
                     c.limite, 
                     c.dia_fechamento, 
@@ -1122,7 +1123,7 @@ class Rep_Assinatura:
 
         try:
             query = """
-                SELECT nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, id_cartao, id FROM assinaturas WHERE id_usuario = %s and id_cartao IS NULL
+                SELECT nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, ativa, id_cartao, id FROM assinaturas WHERE id_usuario = %s and id_cartao IS NULL
             """
         
             cursor.execute(query, (id_user,))
@@ -1205,6 +1206,42 @@ class Rep_Assinatura:
             conn.commit()
 
             print(f"Assinatura - '{assinatura.nome}' atualizada com sucesso!")
+            return True
+    
+        except MySQLdb.Error as e: 
+            print(f"Erro MySQL ao fazer atualização: {e}")
+            conn.rollback()
+            return False 
+    
+        except Exception as e:
+            print(f"Erro inesperado ao atualizar assinatura: {e}")
+            conn.rollback()
+            return False
+        
+        finally:
+            if gerenciar_conn:
+                self.db_conn.desconectar(conn)
+
+
+    def atualiza_checkbox(self, id_ass: int, status: bool, conn: Optional[Any] = None) -> bool:
+        """ Atualiza campo 'ativa' do banco de dados com o novo status do checkbox"""
+
+        gerenciar_conn = False
+
+        if conn is None:
+            conn = self.db_conn.conectar_bd_original()
+            gerenciar_conn = True
+
+        cursor = conn.cursor()
+
+        try:
+            sql = "UPDATE assinaturas SET ativa = %s WHERE id = %s"
+
+            cursor.execute(sql, (status, id_ass))
+
+            conn.commit()
+
+            print(f"Assinatura de ID- '{id_ass}' atualizada com sucesso!")
             return True
     
         except MySQLdb.Error as e: 

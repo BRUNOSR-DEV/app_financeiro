@@ -399,7 +399,7 @@ class Listar_assinaturas(ctk.CTkFrame):
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes 
-        self.dados_assinaturas = dados_assinaturas  
+        self.dados_assinaturas = dados_assinaturas  #cb vindo de crud_app
         self.controle_dados = controle_dados
         self.cdt_crud = cb_comandante_crud
 
@@ -422,6 +422,8 @@ class Listar_assinaturas(ctk.CTkFrame):
         ctk.CTkLabel(self.lista_frame, text="Data P/Pagamento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=5, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text="Categoria", font=ctk.CTkFont(weight="bold")).grid(row=0, column=6, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text="Método de Pagamento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=7, padx=5, pady=5, sticky="w")
+        ctk.CTkLabel(self.lista_frame, text="Ativa", font=ctk.CTkFont(weight="bold")).grid(row=0, column=8, padx=5, pady=5, sticky="w")
+
 
         self.listar()
 
@@ -444,6 +446,12 @@ class Listar_assinaturas(ctk.CTkFrame):
                 data_pp = dado.get('data_pp')
                 cat = dado.get('categoria')
 
+                # Pega o valor atual do banco (1 para True, 0 para False)
+                status_inicial = dado['ativa']
+
+                # variável de controle do Tkinter
+                var_status = ctk.BooleanVar(value=status_inicial)
+
                 if self.dados_cartoes:
                     for cartao in self.dados_cartoes:
                         if cartao.get('id_cartao') == dado.get('id_cc'):
@@ -461,14 +469,23 @@ class Listar_assinaturas(ctk.CTkFrame):
                 ctk.CTkLabel(self.lista_frame, text=str(cat), font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=str(nome_card), font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
 
+                # ------ CHECKBOX ---------
+                chb_ativa = ctk.CTkCheckBox(self.lista_frame, text="", variable=var_status, onvalue=True, offvalue=False,
+                        command=lambda id_ass=dado['id_ass'], v=var_status: self._ao_alternar_status(id_ass, v.get(), chb_ativa))
+
+                chb_ativa.grid(row=i, column=8, padx=10, pady=5)
+                CTkToolTip(chb_ativa, message="Atualizar Status")
+
+                # -------  BOTÃO EDIT --------
                 btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
                                      command=lambda dados=dado: self.confirmar_update(dados))
-                btn_edit.grid(row=i, column=8, padx=2)
+                btn_edit.grid(row=i, column=9, padx=2)
                 CTkToolTip(btn_edit, message="Editar Registro")
 
+                #----- BOTÃO DELETE ---------
                 btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
                                     command=lambda dados=dado: self.confirmar_delete(dados))
-                btn_del.grid(row=i, column=9, padx=5)
+                btn_del.grid(row=i, column=10, padx=5)
                 CTkToolTip(btn_del, message="Excluir Registro", delay=0.5, alpha=0.9, bg_color="red")
 
     def confirmar_update(self, dados: Dict[str, Any]) -> None:
@@ -507,6 +524,24 @@ class Listar_assinaturas(ctk.CTkFrame):
             else:
                 print("Erro ao deletar")
 
+    def _ao_alternar_status(self, id_ass: int, status: bool, chb_widget: ctk.CTkCheckBox):
+        """Gatilho acionado ao clicar na caixa do Checkbox"""
+    
+        # Atualiza o texto do widget visualmente (Ativa / Inativa)
+        chb_widget.configure(text="Ativa" if status else "Inativa")
+    
+        # Chama o método callback comandante crud que gerencia atualizações
+        if self.cdt_crud:
+            sucesso = self.cdt_crud(att_chb=(id_ass, status))
+    
+        if sucesso:
+            print(f"Status da assinatura {id_ass} alterado para: {status}")
+            # Opcional: Tocar som de notificação de sucesso
+            # tocar_notificacao('open_w', True)
+        else:
+            print(f"Erro ao atualizar status da assinatura {id_ass}")
+            # Reverte a caixa visualmente em caso de falha no banco
+            chb_widget.deselect() if status else chb_widget.select()
 
 # =================================================================================
 # --- DASHBOARD: TABELA DINÂMICA DE DESPESAS DO MÊS ---

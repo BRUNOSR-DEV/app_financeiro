@@ -500,7 +500,7 @@ class Assinaturas(ctk.CTkToplevel):
         self.frame_lista.grid_columnconfigure(0, weight=1)
         
 
-    def comandante_crud(self, inserir: Optional[Assinatura] = None, atualizar: Optional[Assinatura] = None, deletar: Optional[int] = None) -> Optional[bool]:
+    def comandante_crud(self, inserir: Optional[Assinatura] = None, atualizar: Optional[Assinatura] = None, deletar: Optional[int] = None, att_chb: Optional[tuple[int,bool]] = None) -> Optional[bool]:
         """Gerencia o disparo de inserts/updates de recorrências."""
 
         sucesso = None
@@ -512,6 +512,8 @@ class Assinaturas(ctk.CTkToplevel):
         elif deletar:
             self.notifica_delete = True
             sucesso = self.db.deletar_assinatura(id_ass=deletar)
+        elif att_chb:
+            sucesso = self.db.atualiza_checkbox(id_ass=att_chb[0], status=att_chb[1])
             
         if sucesso:
             self.definicao_sucesso()
