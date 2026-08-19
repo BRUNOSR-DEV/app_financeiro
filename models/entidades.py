@@ -8,7 +8,7 @@ estruturar os DTOs para consultas complexas de JOIN exigidas pela interface grá
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
 #BILIO PADRÕES
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal
 from typing import Optional, Dict, Any
 
@@ -296,7 +296,7 @@ class Assinatura:
     Representa cobranças recorrentes (mensais ou anuais) fixas do usuário.
     """
 
-    def __init__(self, nome: str, valor: Decimal, descricao: str, categoria: str, data_aq: datetime, data_pp: datetime, dia_venc: int, ativa: bool, id_cc: Optional[int] = None, id: Optional[int] = None) -> None:
+    def __init__(self, nome: str, valor: Decimal, descricao: str, categoria: str, data_aq: datetime, data_pp: datetime, dia_venc: int, ativa: bool, data_cancel: Optional[date], id_cc: Optional[int] = None, id: Optional[int] = None) -> None:
         
         self.nome: str = nome
         self.valor: Decimal = valor
@@ -306,6 +306,7 @@ class Assinatura:
         self.data_pp: datetime = data_pp
         self.dia_vencimento: int = dia_venc
         self.ativa: bool = ativa
+        self.data_cancelamento = data_cancel
         self.id_cc: Optional[int] = id_cc
         self.id_ass: Optional[int] = id
         

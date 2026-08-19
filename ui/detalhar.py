@@ -11,9 +11,12 @@ vencimentos e simulações para exibir resumos financeiros mensais e gráficos d
 
 # ----- FUNÇÕES DE AJUDA - (utils) -------
 from utils.helper import(
-    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, controle_data_parc, centralizar_janela_responsiva, formata_cor, distribuir_parcelas_decimal
+    gerar_opcoes_meses, mysql_para_obj, formatar_moeda, data_para_exibicao, controle_data_parc_cc, controle_data_parc, centralizar_janela_responsiva, formata_cor, distribuir_parcelas_decimal, data_para_mysql
 )
 from utils.audio_helper import tocar_notificacao 
+
+# ----- BANCO DE DADOS (models) ------
+from models.entidades import Assinatura
 
 #------ IMPORTAÇÃO DE CLASSES TYPEDDICT - (typedDict.py) --------
 from utils.typedDict import *
@@ -32,6 +35,7 @@ import customtkinter as ctk
 from CTkToolTip import *
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from tkcalendar import DateEntry
 
 
 # ------------------------------------ CONFIGURAÇÃO INICIAL -------------------------------------------
@@ -471,7 +475,7 @@ class Listar_assinaturas(ctk.CTkFrame):
 
                 # ------ CHECKBOX ---------
                 chb_ativa = ctk.CTkCheckBox(self.lista_frame, text="", variable=var_status, onvalue=True, offvalue=False,
-                        command=lambda id_ass=dado['id_ass'], v=var_status: self._ao_alternar_status(id_ass, v.get(), chb_ativa))
+                        command=lambda id_ass=dado['id_ass'], v=var_status: self.modal_config(id_ass, v.get(), chb_ativa))
 
                 chb_ativa.grid(row=i, column=8, padx=10, pady=5)
                 CTkToolTip(chb_ativa, message="Atualizar Status")
@@ -488,6 +492,8 @@ class Listar_assinaturas(ctk.CTkFrame):
                 btn_del.grid(row=i, column=10, padx=5)
                 CTkToolTip(btn_del, message="Excluir Registro", delay=0.5, alpha=0.9, bg_color="red")
 
+
+    # ------ Métodos de atualização/delete --------
     def confirmar_update(self, dados: Dict[str, Any]) -> None:
         if dados:
             if self.controle_dados: self.controle_dados(dados)
@@ -524,24 +530,114 @@ class Listar_assinaturas(ctk.CTkFrame):
             else:
                 print("Erro ao deletar")
 
-    def _ao_alternar_status(self, id_ass: int, status: bool, chb_widget: ctk.CTkCheckBox):
+
+    # -------- Métodos de verificação e atualização de checkbox ---------
+    def modal_config(self, id_ass: int, status:bool, chb_ativa: ctk.CTkCheckBox):
+        popup = ctk.CTkToplevel(self)
+        popup.title("Confirmação de Alteração")
+        centralizar_janela_responsiva(popup, tipo_janela='pequeno')
+        popup.grab_set()
+        popup.grid_columnconfigure((0, 1), weight=1)
+
+        dados = self.dados_assinaturas
+        if dados:
+            for ass in dados:
+                ass: Dados_assinaturas_db
+                if ass['id_ass'] == id_ass:
+                    self.nome= ass['nome']
+                    valor = ass['valor']
+                    desc = ass['descricao']
+                    cat = ass['categoria']
+                    data_aq = ass['data_aquisicao']
+                    data_pp = ass['data_pp']
+                    dia_venc = ass['dia_vencimento']
+                    id_cc = ass["id_cc"]
+
+        if status:
+            label = ctk.CTkLabel(popup, text=f"Iniciando novo ciclo da assinatura: - {self.nome} -. Os dados do ciclo anterior vão ser clonados (EDITE SE NECESSARIO!).", font=("Arial", 14))
+            label.grid(row=0, column=0, columnspan=2, pady=20)
+
+            self.label_data = ctk.CTkLabel(popup, text=f"Selecione a nova data de aquisição:", font=ctk.CTkFont(size=12,weight="bold"))
+            self.label_data.grid(row=1, column=0)
+            self.campo_data = DateEntry(popup, width=12, background='darkblue',
+                                                foreground='white', borderwidth=2, year=2026, 
+                                                locale='pt_BR', date_pattern='dd/mm/yyyy')
+            self.campo_data.grid(row=2, column=0, padx=(2, 10), pady=10)
+
+            # --- Criando o objeto assinatura ----  Passando nova data de aquisição como self.campo_data
+            obj_ass = Assinatura(self.nome, valor, desc, cat, data_para_mysql(self.campo_data), data_pp, dia_venc, id_cc, id_ass)
+            # -----------------------------------------------------------------------------
+
+            btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=popup.destroy)
+            btn_cancelar.grid(row=3, column=0, padx=10, pady=10)
+
+            btn_confirmar = ctk.CTkButton(popup, text="Sim, Iniciar Novo Ciclo!", fg_color="#c0392b", hover_color="#e74c3c",
+                                  command=lambda: self.alternar_status(popup, status, chb_ativa, ass_clonada=obj_ass))
+            btn_confirmar.grid(row=3, column=1, padx=10, pady=10)
+
+
+        # ------ CANCELAMENTO DA ASSINATURA -------
+        else:
+            label = ctk.CTkLabel(popup, text="Deseja encerrar o ciclo dessa assinatura?", font=("Arial", 14))
+            label.grid(row=0, column=0, columnspan=2, pady=20)
+
+            self.label_data = ctk.CTkLabel(popup, text=f"Selecione a data de cancelamento do ciclo:", font=ctk.CTkFont(size=12,weight="bold"))
+            self.label_data.grid(row=1, column=0)
+            self.campo_data = DateEntry(popup, width=12, background='darkblue',
+                                                foreground='white', borderwidth=2, year=2026, 
+                                                locale='pt_BR', date_pattern='dd/mm/yyyy')
+            self.campo_data.grid(row=2, column=0, padx=(2, 10), pady=10)
+
+            # ---- Criando o objeto de atualização ------
+            ass_cancelada =  Assinatura(self.nome, valor, desc, cat, data_aq, data_pp, dia_venc, ativa=status, data_cancel=data_para_mysql(self.campo_data), id_cc=id_cc, id=id_ass)
+            # -------------------------------------------
+
+            btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=popup.destroy)
+            btn_cancelar.grid(row=3, column=0, padx=10, pady=10)
+
+            btn_confirmar = ctk.CTkButton(popup, text="Sim, Encerrar!", fg_color="#c0392b", hover_color="#e74c3c",
+                                  command=lambda: self.alternar_status(popup, status, chb_ativa, ass_cancelada=ass_cancelada))
+            btn_confirmar.grid(row=3, column=1, padx=10, pady=10)
+
+
+    def alternar_status(self, popup: ctk.CTkToplevel, status: bool, chb_widget: ctk.CTkCheckBox, ass_clonada: Optional[Assinatura] = None, ass_cancelada: Optional[date] = None):
+
         """Gatilho acionado ao clicar na caixa do Checkbox"""
     
         # Atualiza o texto do widget visualmente (Ativa / Inativa)
         chb_widget.configure(text="Ativa" if status else "Inativa")
-    
-        # Chama o método callback comandante crud que gerencia atualizações
+
+        ac_sucesso = None
+        inserir_sucesso = None
+
+        # Chama o método callback comandante crud que gerencia atualizações/inserções
         if self.cdt_crud:
-            sucesso = self.cdt_crud(att_chb=(id_ass, status))
-    
-        if sucesso:
-            print(f"Status da assinatura {id_ass} alterado para: {status}")
-            # Opcional: Tocar som de notificação de sucesso
-            # tocar_notificacao('open_w', True)
+
+            if ass_cancelada:
+                ac_sucesso = self.cdt_crud(atualizar=ass_cancelada)
+
+            if ass_clonada:
+                inserir_sucesso = self.cdt_crud(inserir=ass_clonada)
+
+        txt_status = 'Ativo' if status else 'Cancelado'
+
+        if ac_sucesso:
+            print(f"Status da assinatura {self.nome} alterado para: {txt_status}")
+
+            popup.destroy
+
+        elif inserir_sucesso:
+            print(f"Status da assinatura {self.nome} alterado para: {txt_status}. Novo ciclo inserido/iniciado!")
+
+            popup.destroy
+
         else:
-            print(f"Erro ao atualizar status da assinatura {id_ass}")
+            print(f"Erro ao atualizar status da assinatura {self.nome}")
             # Reverte a caixa visualmente em caso de falha no banco
             chb_widget.deselect() if status else chb_widget.select()
+
+            popup.destroy
+
 
 # =================================================================================
 # --- DASHBOARD: TABELA DINÂMICA DE DESPESAS DO MÊS ---

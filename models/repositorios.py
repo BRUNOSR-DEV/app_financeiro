@@ -1024,7 +1024,7 @@ class Rep_Assinatura:
 
         try:
             query = """
-                SELECT nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, ativa, id_cartao, id
+                SELECT nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, ativa, data_cancelamento, id_cartao, id
                 FROM assinaturas 
                 WHERE id_usuario = %s 
             """
@@ -1076,6 +1076,7 @@ class Rep_Assinatura:
                     a.data_primeiro_pagamento,
                     a.dia_vencimento,
                     a.ativa,
+                    a.data_cancelamento,
                     c.nome,
                     c.limite, 
                     c.dia_fechamento, 
@@ -1123,7 +1124,7 @@ class Rep_Assinatura:
 
         try:
             query = """
-                SELECT nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, ativa, id_cartao, id FROM assinaturas WHERE id_usuario = %s and id_cartao IS NULL
+                SELECT nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, ativa, data_cancelamento, id_cartao, id FROM assinaturas WHERE id_usuario = %s and id_cartao IS NULL
             """
         
             cursor.execute(query, (id_user,))
@@ -1163,10 +1164,10 @@ class Rep_Assinatura:
         try:
             query = """
                 INSERT INTO assinaturas 
-                (nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, id_usuario, id_cartao) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, ativa, data_cancelamento, id_usuario, id_cartao) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            valores = (assinatura.nome, assinatura.valor, assinatura.descricao, assinatura.categoria, assinatura.data_aquisicao, assinatura.data_pp, assinatura.dia_vencimento, id_user, assinatura.id_cc)
+            valores = (assinatura.nome, assinatura.valor, assinatura.descricao, assinatura.categoria, assinatura.data_aquisicao, assinatura.data_pp, assinatura.dia_vencimento, assinatura.ativa, assinatura.data_cancelamento, id_user, assinatura.id_cc)
 
             cursor.execute(query, valores)
             conn.commit()
@@ -1199,9 +1200,9 @@ class Rep_Assinatura:
         cursor = conn.cursor()
     
         try:
-            sql = "UPDATE assinaturas SET nome = %s, valor = %s, descricao = %s, categoria= %s, data_aquisicao = %s, data_primeiro_pagamento = %s, dia_vencimento = %s,  id_cartao = %s WHERE id = %s"
+            sql = "UPDATE assinaturas SET nome = %s, valor = %s, descricao = %s, categoria= %s, data_aquisicao = %s, data_primeiro_pagamento = %s, dia_vencimento = %s, ativa = %s, data_cancelamento = %s,  id_cartao = %s WHERE id = %s"
 
-            cursor.execute(sql, (assinatura.nome, assinatura.valor, assinatura.descricao, assinatura.categoria, assinatura.data_aquisicao, assinatura.data_pp, assinatura.dia_vencimento, assinatura.id_cc, assinatura.id_ass))
+            cursor.execute(sql, (assinatura.nome, assinatura.valor, assinatura.descricao, assinatura.categoria, assinatura.data_aquisicao, assinatura.data_pp, assinatura.dia_vencimento, assinatura.ativa, assinatura.data_cancelamento, assinatura.id_cc, assinatura.id_ass))
 
             conn.commit()
 
