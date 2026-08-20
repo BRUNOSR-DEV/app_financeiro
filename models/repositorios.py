@@ -16,6 +16,7 @@ from models.entidades import *
 
 # ----- FUNÇÕES DE AJUDA - (UTILS) -------
 from utils.segurança import SegurancaService
+from utils.conversores import data_para_mysql
 
 # ------------------------------ IMPORTAÇÃO - MÓDULOS BIBLIOTECAS ---------------------------------
 # BIBLIO PADRÕES
@@ -1161,13 +1162,18 @@ class Rep_Assinatura:
             gerenciar_conn = True
             
         cursor = conn.cursor()
+
+        data_canc_format = data_para_mysql(assinatura.data_cancelamento)
+        data_aq_format = data_para_mysql(assinatura.data_aquisicao)
+        data_pp_format = data_para_mysql(assinatura.data_pp)
+
         try:
             query = """
                 INSERT INTO assinaturas 
                 (nome, valor, descricao, categoria, data_aquisicao, data_primeiro_pagamento, dia_vencimento, ativa, data_cancelamento, id_usuario, id_cartao) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            valores = (assinatura.nome, assinatura.valor, assinatura.descricao, assinatura.categoria, assinatura.data_aquisicao, assinatura.data_pp, assinatura.dia_vencimento, assinatura.ativa, assinatura.data_cancelamento, id_user, assinatura.id_cc)
+            valores = (assinatura.nome, assinatura.valor, assinatura.descricao, assinatura.categoria, data_aq_format, data_pp_format, assinatura.dia_vencimento, assinatura.ativa, data_canc_format, id_user, assinatura.id_cc)
 
             cursor.execute(query, valores)
             conn.commit()
@@ -1198,11 +1204,22 @@ class Rep_Assinatura:
             gerenciar_conn = True
 
         cursor = conn.cursor()
-    
+        
+        if assinatura.data_cancelamento is not None:
+            data_canc_format = data_para_mysql(assinatura.data_cancelamento)
+        else:
+            data_canc_format = assinatura.data_cancelamento
+
+        
+        data_aq_format = data_para_mysql(assinatura.data_aquisicao)
+        data_pp_format = data_para_mysql(assinatura.data_pp)
+
+        print(f"DEBUG VALORES {data_aq_format}:")
+
         try:
             sql = "UPDATE assinaturas SET nome = %s, valor = %s, descricao = %s, categoria= %s, data_aquisicao = %s, data_primeiro_pagamento = %s, dia_vencimento = %s, ativa = %s, data_cancelamento = %s,  id_cartao = %s WHERE id = %s"
 
-            cursor.execute(sql, (assinatura.nome, assinatura.valor, assinatura.descricao, assinatura.categoria, assinatura.data_aquisicao, assinatura.data_pp, assinatura.dia_vencimento, assinatura.ativa, assinatura.data_cancelamento, assinatura.id_cc, assinatura.id_ass))
+            cursor.execute(sql, (assinatura.nome, assinatura.valor, assinatura.descricao, assinatura.categoria, data_aq_format, data_pp_format, assinatura.dia_vencimento, assinatura.ativa, data_canc_format, assinatura.id_cc, assinatura.id_ass))
 
             conn.commit()
 

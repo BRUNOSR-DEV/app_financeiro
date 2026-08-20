@@ -417,6 +417,9 @@ class Listar_assinaturas(ctk.CTkFrame):
         self.lista_frame.grid_columnconfigure((0, 1, 2, 4, 5, 6, 7), weight=0) 
         self.lista_frame.grid_columnconfigure(3, weight=1) 
 
+        # configuração de data
+        self.ano_atual = datetime.now().date().year
+
         #cabeçalho
         ctk.CTkLabel(self.lista_frame, text='#', font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text='Nome', font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
@@ -475,7 +478,7 @@ class Listar_assinaturas(ctk.CTkFrame):
 
                 # ------ CHECKBOX ---------
                 chb_ativa = ctk.CTkCheckBox(self.lista_frame, text="", variable=var_status, onvalue=True, offvalue=False,
-                        command=lambda id_ass=dado['id_ass'], v=var_status: self.modal_config(id_ass, v.get(), chb_ativa))
+                        command=lambda dados=dado, v=var_status: self.modal_config(dados, v.get(), chb_ativa))
 
                 chb_ativa.grid(row=i, column=8, padx=10, pady=5)
                 CTkToolTip(chb_ativa, message="Atualizar Status")
@@ -507,7 +510,7 @@ class Listar_assinaturas(ctk.CTkFrame):
         popup.grab_set()
         popup.grid_columnconfigure((0, 1), weight=1)
 
-        label = ctk.CTkLabel(popup, text="Tem certeza que deseja\nexcluir esta assinatura?", font=("Arial", 14))
+        label = ctk.CTkLabel(popup, text="Tem certeza que deseja\nexcluir esta assinatura? \n obs. Ao apagar ela não apareça em relátórios de gastos.", font=("Arial", 14))
         label.grid(row=0, column=0, columnspan=2, pady=20)
 
         btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=popup.destroy)
@@ -532,40 +535,41 @@ class Listar_assinaturas(ctk.CTkFrame):
 
 
     # -------- Métodos de verificação e atualização de checkbox ---------
-    def modal_config(self, id_ass: int, status:bool, chb_ativa: ctk.CTkCheckBox):
+    def modal_config(self, dados: dict[Any], status:bool, chb_ativa: ctk.CTkCheckBox):
         popup = ctk.CTkToplevel(self)
         popup.title("Confirmação de Alteração")
         centralizar_janela_responsiva(popup, tipo_janela='pequeno')
         popup.grab_set()
         popup.grid_columnconfigure((0, 1), weight=1)
 
-        dados = self.dados_assinaturas
         if dados:
-            for ass in dados:
-                ass: Dados_assinaturas_db
-                if ass['id_ass'] == id_ass:
-                    self.nome= ass['nome']
-                    valor = ass['valor']
-                    desc = ass['descricao']
-                    cat = ass['categoria']
-                    data_aq = ass['data_aquisicao']
-                    data_pp = ass['data_pp']
-                    dia_venc = ass['dia_vencimento']
-                    id_cc = ass["id_cc"]
+            dados: Dados_assinaturas_db
 
+            self.nome= dados['nome']
+            valor = dados['valor']
+            desc = dados['descricao']
+            cat = dados['categoria']
+            data_aq = dados['data_aquisicao']
+            data_pp = dados['data_pp']
+            dia_venc = dados['dia_vencimento']
+            id_cc = dados['id_cc']
+            id_ass = dados['id_ass']
+
+        # --- INICINADO UM NOVO CICLO DE ASSINATURA, COPIANDO OS VALORES DA ANTIGA, menos a data de aquisição ---
         if status:
-            label = ctk.CTkLabel(popup, text=f"Iniciando novo ciclo da assinatura: - {self.nome} -. Os dados do ciclo anterior vão ser clonados (EDITE SE NECESSARIO!).", font=("Arial", 14))
-            label.grid(row=0, column=0, columnspan=2, pady=20)
+            label = ctk.CTkLabel(popup, text=f"Iniciando novo ciclo da assinatura: {self.nome}. \nOs dados do ciclo anterior vão ser clonados \n(EDITE SE NECESSARIO!).", font=("Arial", 14))
+            label.grid(row=0, column=0, columnspan=2, pady=10)
 
             self.label_data = ctk.CTkLabel(popup, text=f"Selecione a nova data de aquisição:", font=ctk.CTkFont(size=12,weight="bold"))
-            self.label_data.grid(row=1, column=0)
+            self.label_data.grid(row=1, column=0, columnspan=2, pady=10)
             self.campo_data = DateEntry(popup, width=12, background='darkblue',
-                                                foreground='white', borderwidth=2, year=2026, 
+                                                foreground='white', borderwidth=2, year=self.ano_atual, 
                                                 locale='pt_BR', date_pattern='dd/mm/yyyy')
-            self.campo_data.grid(row=2, column=0, padx=(2, 10), pady=10)
+            self.campo_data.grid(row=2, column=0, columnspan=2, padx=(2, 10), pady=10)
 
             # --- Criando o objeto assinatura ----  Passando nova data de aquisição como self.campo_data
-            obj_ass = Assinatura(self.nome, valor, desc, cat, data_para_mysql(self.campo_data), data_pp, dia_venc, id_cc, id_ass)
+            obj_ass = Assinatura(nome=self.nome, valor=valor, descricao=desc, categoria=cat, data_aq=self.campo_data.get_date(), data_pp=data_pp, dia_venc=dia_venc, id_cc=id_cc, id=id_ass)
+
             # -----------------------------------------------------------------------------
 
             btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=popup.destroy)
@@ -582,14 +586,15 @@ class Listar_assinaturas(ctk.CTkFrame):
             label.grid(row=0, column=0, columnspan=2, pady=20)
 
             self.label_data = ctk.CTkLabel(popup, text=f"Selecione a data de cancelamento do ciclo:", font=ctk.CTkFont(size=12,weight="bold"))
-            self.label_data.grid(row=1, column=0)
+            self.label_data.grid(row=1, column=0, columnspan=2, pady=20)
             self.campo_data = DateEntry(popup, width=12, background='darkblue',
                                                 foreground='white', borderwidth=2, year=2026, 
                                                 locale='pt_BR', date_pattern='dd/mm/yyyy')
-            self.campo_data.grid(row=2, column=0, padx=(2, 10), pady=10)
+            self.campo_data.grid(row=2, column=0, columnspan=2, padx=(2, 10), pady=10)
 
             # ---- Criando o objeto de atualização ------
-            ass_cancelada =  Assinatura(self.nome, valor, desc, cat, data_aq, data_pp, dia_venc, ativa=status, data_cancel=data_para_mysql(self.campo_data), id_cc=id_cc, id=id_ass)
+            ass_cancelada =  Assinatura(self.nome, valor, desc, cat, data_aq, data_pp, dia_venc, ativa=status, data_cancel=self.campo_data.get_date(), id_cc=id_cc, id=id_ass)
+
             # -------------------------------------------
 
             btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=popup.destroy)
@@ -600,15 +605,15 @@ class Listar_assinaturas(ctk.CTkFrame):
             btn_confirmar.grid(row=3, column=1, padx=10, pady=10)
 
 
-    def alternar_status(self, popup: ctk.CTkToplevel, status: bool, chb_widget: ctk.CTkCheckBox, ass_clonada: Optional[Assinatura] = None, ass_cancelada: Optional[date] = None):
+    def alternar_status(self, popup: ctk.CTkToplevel, status: bool, chb_widget: ctk.CTkCheckBox, ass_clonada: Optional[Assinatura] = None, ass_cancelada: Optional[Assinatura] = None):
 
         """Gatilho acionado ao clicar na caixa do Checkbox"""
     
         # Atualiza o texto do widget visualmente (Ativa / Inativa)
         chb_widget.configure(text="Ativa" if status else "Inativa")
 
-        ac_sucesso = None
-        inserir_sucesso = None
+        ac_sucesso = False
+        inserir_sucesso = False
 
         # Chama o método callback comandante crud que gerencia atualizações/inserções
         if self.cdt_crud:

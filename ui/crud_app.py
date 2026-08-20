@@ -491,7 +491,7 @@ class Assinaturas(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
 
          # ---------------- formulário de cadastro -----------------------
-        self.frame_cadastro = Cadastrar_assinatura(self, self.user_id, self.dados_cartoes, cb_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num)
+        self.frame_cadastro = Cadastrar_assinatura(self, self.user_id, self.dados_cartoes, cb_comandante_crud=self.comandante_crud, cb_vcmd_num=self.vcmd_num, cb_dados_ass = self.dados_assinaturas)
         self.frame_cadastro.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
         #------------------- FRAME DA LISTA (Update/Delete) ------------------------------
@@ -507,11 +507,15 @@ class Assinaturas(ctk.CTkToplevel):
 
         if inserir:
             sucesso = self.db.inserir_assinatura(id_user=self.user_id, assinatura=inserir)
+
         elif atualizar:
             sucesso = self.db.atualizar_assinatura(assinatura=atualizar)
+            print(F'DEBUG: AQ ---- {atualizar.data_aquisicao}')
+
         elif deletar:
             self.notifica_delete = True
             sucesso = self.db.deletar_assinatura(id_ass=deletar)
+
         elif att_chb:
             sucesso = self.db.atualiza_checkbox(id_ass=att_chb[0], status=att_chb[1])
             

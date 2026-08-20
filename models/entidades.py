@@ -296,7 +296,7 @@ class Assinatura:
     Representa cobranças recorrentes (mensais ou anuais) fixas do usuário.
     """
 
-    def __init__(self, nome: str, valor: Decimal, descricao: str, categoria: str, data_aq: datetime, data_pp: datetime, dia_venc: int, ativa: bool, data_cancel: Optional[date], id_cc: Optional[int] = None, id: Optional[int] = None) -> None:
+    def __init__(self, nome: str, valor: Decimal, descricao: str, categoria: str, data_aq: datetime, data_pp: datetime, dia_venc: int, ativa: bool = True, data_cancel: Optional[date] = None, id_cc: Optional[int] = None, id: Optional[int] = None) -> None:
         
         self.nome: str = nome
         self.valor: Decimal = valor
@@ -306,7 +306,7 @@ class Assinatura:
         self.data_pp: datetime = data_pp
         self.dia_vencimento: int = dia_venc
         self.ativa: bool = ativa
-        self.data_cancelamento = data_cancel
+        self.data_cancelamento: Optional[date] = data_cancel
         self.id_cc: Optional[int] = id_cc
         self.id_ass: Optional[int] = id
         
@@ -346,6 +346,7 @@ class Assinatura:
             'data_pp': self.data_pp,
             'dia_vencimento': self.dia_vencimento,
             'ativa': self.ativa,
+            'data_cancelamento': self.data_cancelamento,
             'id_cc': self.id_cc,
             'id_ass': self.id_ass
         }
@@ -358,7 +359,7 @@ class AssinaturaDetalhadoDTO:
     Utilizado para carregar a listagem analítica na interface gráfica de gerenciamento.
     """
 
-    def __init__(self, id: int, nome: str, valor: float, desc: str, cat: str,  data_aq: datetime, data_pp: datetime, dia_venc: int, ativa: bool, nome_card: str, limite_card: float, fech_card: int, venc_card: int, bandeira: str, cor: str) -> None:
+    def __init__(self, id: int, nome: str, valor: float, desc: str, cat: str,  data_aq: datetime, data_pp: datetime, dia_venc: int, ativa: bool, data_cancel: date, nome_card: str, limite_card: float, fech_card: int, venc_card: int, bandeira: str, cor: str) -> None:
 
         self.id_ass: int = id
         self.nome: str = nome
@@ -369,6 +370,7 @@ class AssinaturaDetalhadoDTO:
         self.data_prim_pag: datetime = data_pp
         self.dia_vencimento: int = dia_venc
         self.ativa: bool = ativa
+        self.data_cancelamento = data_cancel
 
         # Propriedades do cartão injetadas
         self.nome_cartao: str = nome_card

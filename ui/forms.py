@@ -729,13 +729,14 @@ class Cadastrar_car_cred(ctk.CTkFrame):
 class Cadastrar_assinatura(ctk.CTkFrame):
     """Formulário focado em pagamentos recorrentes indefinidos (Assinaturas)."""
 
-    def __init__(self, parent: Any = None, user_id: Optional[int] = None, dados_cartoes: Optional[List[Dict[str, Any]]] = None, cb_comandante_crud: Optional[Callable] = None, cb_vcmd_num: Optional[Callable] = None, *args, **kwargs) -> None:
+    def __init__(self, parent: Any = None, user_id: Optional[int] = None, dados_cartoes: Optional[List[Dict[str, Any]]] = None, cb_comandante_crud: Optional[Callable] = None, cb_vcmd_num: Optional[Callable] = None, cb_dados_ass= Optional[Callable], *args, **kwargs) -> None:
         super().__init__(parent, *args, **kwargs)
 
         self.user_id = user_id
         self.dados_cartoes = dados_cartoes or []
         self.cdt_crud = cb_comandante_crud
         self.vcmd_num = cb_vcmd_num
+        self.dados_ass = cb_dados_ass
         
         # ---------------- Gerencimento de self --------------------
         self.data_atual = datetime.now().date()
@@ -864,15 +865,23 @@ class Cadastrar_assinatura(ctk.CTkFrame):
             tocar_notificacao("dv_erro", True)
             self.after(3000, lambda: self.status_label.configure(text='')) 
             return
-        
-        obj_assinatura = Assinatura(nome=nome, valor=valor, descricao=descricao, categoria=categoria, data_aq=data_aq_mysql, data_pp=data_pp_mysql, dia_venc=dia_venc, id_cc=id_card) # type: ignore
 
+        #PEGA CAMPO 'ATIVA'
+        for ass in self.dados_ass:
+            if ass['id_ass'] == id_ass:
+                ativa = ass['ativa']
+
+        obj_assinatura = Assinatura(nome=nome, valor=valor, descricao=descricao, categoria=categoria, data_aq=data_aq, data_pp=data_pp, dia_venc=dia_venc, id_cc=id_card) # type: ignore
+
+        
         if not atualizar: 
             sucesso = self.cdt_crud(inserir=obj_assinatura) if self.cdt_crud else False
             msg_ok = "INSERIDOS"
             msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
         else: 
             obj_assinatura.id_ass = id_ass
+            obj_assinatura.ativa = ativa
+
             sucesso = self.cdt_crud(atualizar=obj_assinatura) if self.cdt_crud else False
             msg_ok = "ATUALIZADOS"
             msg_falha = "Não foi possível ATUALIZAR os dados, contate o adm do sistema...'"
