@@ -430,7 +430,7 @@ class Listar_assinaturas(ctk.CTkFrame):
         ctk.CTkLabel(self.lista_frame, text="Categoria", font=ctk.CTkFont(weight="bold")).grid(row=0, column=6, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text="Método de Pagamento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=7, padx=5, pady=5, sticky="w")
         ctk.CTkLabel(self.lista_frame, text="Ativa", font=ctk.CTkFont(weight="bold")).grid(row=0, column=8, padx=5, pady=5, sticky="w")
-
+        ctk.CTkLabel(self.lista_frame, text="Cancelamento", font=ctk.CTkFont(weight="bold")).grid(row=0, column=9, padx=5, pady=5, sticky="w")
 
         self.listar()
 
@@ -452,6 +452,7 @@ class Listar_assinaturas(ctk.CTkFrame):
                 data_aq = dado.get('data_aquisicao')
                 data_pp = dado.get('data_pp')
                 cat = dado.get('categoria')
+                data_cancelamento =  dado.get('data_cancelamento')
 
                 # Pega o valor atual do banco (1 para True, 0 para False)
                 status_inicial = dado['ativa']
@@ -471,28 +472,31 @@ class Listar_assinaturas(ctk.CTkFrame):
                 ctk.CTkLabel(self.lista_frame, text=str(nome), font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=formatar_moeda(valor), text_color="#27ae60", font=('Ariel', 14)).grid(row=i, column=2, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=str(desc), font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=str(data_aq), font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=str(data_pp), font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data_aq), font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data_pp), font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=str(cat), font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=str(nome_card), font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
 
                 # ------ CHECKBOX ---------
-                chb_ativa = ctk.CTkCheckBox(self.lista_frame, text="", variable=var_status, onvalue=True, offvalue=False,
+                chb_ativa = ctk.CTkCheckBox(self.lista_frame, text="", width=24, variable=var_status, onvalue=True, offvalue=False,
                         command=lambda dados=dado, v=var_status: self.modal_config(dados, v.get(), chb_ativa))
 
                 chb_ativa.grid(row=i, column=8, padx=10, pady=5)
                 CTkToolTip(chb_ativa, message="Atualizar Status")
 
+                # ------- CANCELAMENTO -------
+                ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data_cancelamento), font=('Ariel', 14)).grid(row=i, column=9, padx=5, pady=2, sticky="w")
+
                 # -------  BOTÃO EDIT --------
                 btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
                                      command=lambda dados=dado: self.confirmar_update(dados))
-                btn_edit.grid(row=i, column=9, padx=2)
+                btn_edit.grid(row=i, column=10, padx=2)
                 CTkToolTip(btn_edit, message="Editar Registro")
 
                 #----- BOTÃO DELETE ---------
                 btn_del = ctk.CTkButton(self.lista_frame, text="X", width=30, fg_color="#c0392b", hover_color="#e74c3c",
                                     command=lambda dados=dado: self.confirmar_delete(dados))
-                btn_del.grid(row=i, column=10, padx=5)
+                btn_del.grid(row=i, column=11, padx=5)
                 CTkToolTip(btn_del, message="Excluir Registro", delay=0.5, alpha=0.9, bg_color="red")
 
 
@@ -608,40 +612,34 @@ class Listar_assinaturas(ctk.CTkFrame):
     def alternar_status(self, popup: ctk.CTkToplevel, status: bool, chb_widget: ctk.CTkCheckBox, ass_clonada: Optional[Assinatura] = None, ass_cancelada: Optional[Assinatura] = None):
 
         """Gatilho acionado ao clicar na caixa do Checkbox"""
-    
-        # Atualiza o texto do widget visualmente (Ativa / Inativa)
-        chb_widget.configure(text="Ativa" if status else "Inativa")
 
         ac_sucesso = False
         inserir_sucesso = False
 
+        txt_status = 'Ativo' if status else 'Inativo'
+
         # Chama o método callback comandante crud que gerencia atualizações/inserções
         if self.cdt_crud:
-
             if ass_cancelada:
                 ac_sucesso = self.cdt_crud(atualizar=ass_cancelada)
 
             if ass_clonada:
                 inserir_sucesso = self.cdt_crud(inserir=ass_clonada)
 
-        txt_status = 'Ativo' if status else 'Cancelado'
-
         if ac_sucesso:
             print(f"Status da assinatura {self.nome} alterado para: {txt_status}")
-
-            popup.destroy
+            popup.destroy()
 
         elif inserir_sucesso:
             print(f"Status da assinatura {self.nome} alterado para: {txt_status}. Novo ciclo inserido/iniciado!")
-
-            popup.destroy
+            popup.destroy()
 
         else:
             print(f"Erro ao atualizar status da assinatura {self.nome}")
             # Reverte a caixa visualmente em caso de falha no banco
             chb_widget.deselect() if status else chb_widget.select()
 
-            popup.destroy
+            popup.destroy()
 
 
 # =================================================================================

@@ -25,19 +25,35 @@ def str_para_data(data_str: str) -> Optional[datetime]:
         return None
 
 
-def data_para_exibicao(data_obj: Union[datetime, date, str, None]) -> str:
+def data_para_exibicao(data: Union[datetime, date, str, None]) -> str:
     """
-    Formata objetos datetime para o padrão de leitura da UI brasileira.
-
-    Args:
-        data_obj: Objeto de data a ser formatado.
-
-    Returns:
-        str: Data no formato 'DD/MM/AAAA', ou string vazia se nulo.
+    Formata objetos date/datetime ou strings do MySQL ('YYYY-MM-DD') 
+    para o padrão de leitura da UI brasileira ('DD/MM/AAAA').
     """
-    if data_obj and hasattr(data_obj, "strftime"):
-        return data_obj.strftime("%d/%m/%Y")
-    return ""
+    if data is None:
+        return ''
+
+    # Se já for objeto date/datetime do Python
+    if isinstance(data, (date, datetime)):
+        return data.strftime("%d/%m/%Y")
+
+    # Se for String
+    if isinstance(data, str):
+        data = data.strip()
+        if not data:
+            return ''
+
+        # Se for string do formato MySQL ('YYYY-MM-DD')
+        if len(data) == 10 and data[4] == '-' and data[7] == '-':
+            # Fatiamento limpo e rápido: '2026-08-21' -> '21/08/2026'
+            ano, mes, dia = data.split('-')
+            return f"{dia}/{mes}/{ano}"
+
+        # Se já estiver no formato BR ('DD/MM/AAAA'), devolve ela mesma
+        if len(data) == 10 and data[2] == '/' and data[5] == '/':
+            return data
+
+    return ''
 
 
 def data_para_mysql(data_obj: Union[datetime, date, None]) -> Optional[str]:

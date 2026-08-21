@@ -866,10 +866,15 @@ class Cadastrar_assinatura(ctk.CTkFrame):
             self.after(3000, lambda: self.status_label.configure(text='')) 
             return
 
+        
         #PEGA CAMPO 'ATIVA'
+        self.ativa = True
+        self.cancelamento = None
         for ass in self.dados_ass:
             if ass['id_ass'] == id_ass:
-                ativa = ass['ativa']
+                self.ativa = ass['ativa']
+                self.cancelamento = ass['data_cancelamento']
+
 
         obj_assinatura = Assinatura(nome=nome, valor=valor, descricao=descricao, categoria=categoria, data_aq=data_aq, data_pp=data_pp, dia_venc=dia_venc, id_cc=id_card) # type: ignore
 
@@ -878,9 +883,11 @@ class Cadastrar_assinatura(ctk.CTkFrame):
             sucesso = self.cdt_crud(inserir=obj_assinatura) if self.cdt_crud else False
             msg_ok = "INSERIDOS"
             msg_falha = "Não foi possível SALVAR os dados, contate o adm do sistema...'"
+
         else: 
             obj_assinatura.id_ass = id_ass
-            obj_assinatura.ativa = ativa
+            obj_assinatura.ativa = self.ativa
+            obj_assinatura.data_cancelamento = self.cancelamento
 
             sucesso = self.cdt_crud(atualizar=obj_assinatura) if self.cdt_crud else False
             msg_ok = "ATUALIZADOS"
