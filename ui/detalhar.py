@@ -546,41 +546,23 @@ class Listar_assinaturas(ctk.CTkFrame):
         popup.grab_set()
         popup.grid_columnconfigure((0, 1), weight=1)
 
-        if dados:
-            dados: Dados_assinaturas_db
-
-            self.nome= dados['nome']
-            valor = dados['valor']
-            desc = dados['descricao']
-            cat = dados['categoria']
-            data_aq = dados['data_aquisicao']
-            data_pp = dados['data_pp']
-            dia_venc = dados['dia_vencimento']
-            id_cc = dados['id_cc']
-            id_ass = dados['id_ass']
-
         # --- INICINADO UM NOVO CICLO DE ASSINATURA, COPIANDO OS VALORES DA ANTIGA, menos a data de aquisição ---
         if status:
-            label = ctk.CTkLabel(popup, text=f"Iniciando novo ciclo da assinatura: {self.nome}. \nOs dados do ciclo anterior vão ser clonados \n(EDITE SE NECESSARIO!).", font=("Arial", 14))
+            label = ctk.CTkLabel(popup, text=f"Iniciando novo ciclo da assinatura: {dados['nome']}. \nOs dados do ciclo anterior vão ser clonados \n(EDITE SE NECESSARIO!).", font=("Arial", 14))
             label.grid(row=0, column=0, columnspan=2, pady=10)
 
             self.label_data = ctk.CTkLabel(popup, text=f"Selecione a nova data de aquisição:", font=ctk.CTkFont(size=12,weight="bold"))
             self.label_data.grid(row=1, column=0, columnspan=2, pady=10)
-            self.campo_data = DateEntry(popup, width=12, background='darkblue',
+            self.campo_data_aq = DateEntry(popup, width=12, background='darkblue',
                                                 foreground='white', borderwidth=2, year=self.ano_atual, 
                                                 locale='pt_BR', date_pattern='dd/mm/yyyy')
-            self.campo_data.grid(row=2, column=0, columnspan=2, padx=(2, 10), pady=10)
-
-            # --- Criando o objeto assinatura ----  Passando nova data de aquisição como self.campo_data
-            obj_ass = Assinatura(nome=self.nome, valor=valor, descricao=desc, categoria=cat, data_aq=self.campo_data.get_date(), data_pp=data_pp, dia_venc=dia_venc, id_cc=id_cc, id=id_ass)
-
-            # -----------------------------------------------------------------------------
+            self.campo_data_aq.grid(row=2, column=0, columnspan=2, padx=(2, 10), pady=10)
 
             btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=popup.destroy)
             btn_cancelar.grid(row=3, column=0, padx=10, pady=10)
 
             btn_confirmar = ctk.CTkButton(popup, text="Sim, Iniciar Novo Ciclo!", fg_color="#c0392b", hover_color="#e74c3c",
-                                  command=lambda: self.alternar_status(popup, status, chb_ativa, ass_clonada=obj_ass))
+                                  command=lambda: self.alternar_status(popup, dados, status, chb_ativa, ass_clonada=True))
             btn_confirmar.grid(row=3, column=1, padx=10, pady=10)
 
 
@@ -591,47 +573,61 @@ class Listar_assinaturas(ctk.CTkFrame):
 
             self.label_data = ctk.CTkLabel(popup, text=f"Selecione a data de cancelamento do ciclo:", font=ctk.CTkFont(size=12,weight="bold"))
             self.label_data.grid(row=1, column=0, columnspan=2, pady=20)
-            self.campo_data = DateEntry(popup, width=12, background='darkblue',
+            self.campo_data_canc = DateEntry(popup, width=12, background='darkblue',
                                                 foreground='white', borderwidth=2, year=2026, 
                                                 locale='pt_BR', date_pattern='dd/mm/yyyy')
-            self.campo_data.grid(row=2, column=0, columnspan=2, padx=(2, 10), pady=10)
-
-            # ---- Criando o objeto de atualização ------
-            ass_cancelada =  Assinatura(self.nome, valor, desc, cat, data_aq, data_pp, dia_venc, ativa=status, data_cancel=self.campo_data.get_date(), id_cc=id_cc, id=id_ass)
-
-            # -------------------------------------------
+            self.campo_data_canc.grid(row=2, column=0, columnspan=2, padx=(2, 10), pady=10)
 
             btn_cancelar = ctk.CTkButton(popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=popup.destroy)
             btn_cancelar.grid(row=3, column=0, padx=10, pady=10)
 
             btn_confirmar = ctk.CTkButton(popup, text="Sim, Encerrar!", fg_color="#c0392b", hover_color="#e74c3c",
-                                  command=lambda: self.alternar_status(popup, status, chb_ativa, ass_cancelada=ass_cancelada))
+                                  command=lambda: self.alternar_status(popup, dados, status, chb_ativa, ass_cancelada=True))
             btn_confirmar.grid(row=3, column=1, padx=10, pady=10)
 
 
-    def alternar_status(self, popup: ctk.CTkToplevel, status: bool, chb_widget: ctk.CTkCheckBox, ass_clonada: Optional[Assinatura] = None, ass_cancelada: Optional[Assinatura] = None):
+    def alternar_status(self, popup: ctk.CTkToplevel, dados: dict, status: bool, chb_widget: ctk.CTkCheckBox, ass_clonada: Optional[bool] = None, ass_cancelada: Optional[bool] = None):
 
         """Gatilho acionado ao clicar na caixa do Checkbox"""
 
+        txt_status = 'Ativo' if status else 'Inativo'
         ac_sucesso = False
         inserir_sucesso = False
 
-        txt_status = 'Ativo' if status else 'Inativo'
+        if dados:
+            dados: Dados_assinaturas_db
 
-        # Chama o método callback comandante crud que gerencia atualizações/inserções
-        if self.cdt_crud:
-            if ass_cancelada:
-                ac_sucesso = self.cdt_crud(atualizar=ass_cancelada)
+            nome= dados['nome']
+            valor = dados['valor']
+            desc = dados['descricao']
+            cat = dados['categoria']
+            data_aq = dados['data_aquisicao']
+            data_pp = dados['data_pp']
+            dia_venc = dados['dia_vencimento']
+            id_cc = dados['id_cc']
+            id_ass = dados['id_ass']
 
-            if ass_clonada:
-                inserir_sucesso = self.cdt_crud(inserir=ass_clonada)
+        # Criando o obj assinatura
+        obj_assinatura = Assinatura(nome=nome, valor=valor, descricao=desc, categoria=cat, data_aq=data_aq, data_pp=data_pp, dia_venc=dia_venc, ativa=status, id_cc=id_cc, id=id_ass)
+
+        # -- obj ass recebe o campo cancelamento e add data aquisição ---
+        if ass_cancelada:
+            obj_assinatura.data_cancelamento = self.campo_data_canc.get_date()
+
+            ac_sucesso = self.cdt_crud(atualizar=obj_assinatura) if self.cdt_crud else False
+
+        # -- pega os valores da compra cancelada e add nova data de aquisição e envia pro cdt_crud --
+        elif ass_clonada:
+            obj_assinatura.data_aquisicao = self.campo_data_aq.get_date()
+
+            inserir_sucesso = self.cdt_crud(inserir=obj_assinatura) if self.cdt_crud else False
 
         if ac_sucesso:
-            print(f"Status da assinatura {self.nome} alterado para: {txt_status}")
+            print(f"Status da assinatura {nome} alterado para: {txt_status}")
             popup.destroy()
 
         elif inserir_sucesso:
-            print(f"Status da assinatura {self.nome} alterado para: {txt_status}. Novo ciclo inserido/iniciado!")
+            print(f"Status da assinatura {nome} alterado para: {txt_status}. Novo ciclo inserido/iniciado!")
             popup.destroy()
 
         else:
