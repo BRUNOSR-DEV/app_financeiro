@@ -82,10 +82,12 @@ class Dados_assinaturas_db(TypedDict):
     nome: str
     valor: float
     descricao: str
-    data_aquisicao: datetime
-    data_pp: datetime
+    data_aquisicao: date
+    data_pp: date
     categoria: str
     dia_vencimento: int
+    ativa: bool
+    data_cancelamento: date
     id_cc: Optional[int]
 
 

@@ -316,7 +316,7 @@ def centralizar_janela_responsiva(janela: Any, tipo_janela: str = "main") -> Non
     
     elif tipo_janela == 'pequeno':
         pct_largura = 0.20 if largura_tela > 1920 else 0.30
-        pct_altura = 0.15 if altura_tela > 1080 else 0.20
+        pct_altura = 0.22 if altura_tela > 1080 else 0.20
     
     else:
         pct_largura = 0.55 if largura_tela > 1920 else 0.75
