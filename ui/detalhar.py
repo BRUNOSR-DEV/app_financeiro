@@ -547,9 +547,9 @@ class Listar_assinaturas(ctk.CTkFrame):
         self.popup.grid_columnconfigure((0, 1), weight=1)
 
         self.status_original = bool(dados.get('ativa', True))
-        self.confirmado = False
 
         self.popup.protocol("WM_DELETE_WINDOW", self.fechar_sem_confirmar)
+        self.confirmado = False
 
         data_pp = dados['data_pp']
         linha = 3
@@ -598,7 +598,7 @@ class Listar_assinaturas(ctk.CTkFrame):
                                                 locale='pt_BR', date_pattern='dd/mm/yyyy')
             self.campo_data_canc.grid(row=2, column=0, columnspan=2, padx=(2, 10), pady=10)
 
-            btn_cancelar = ctk.CTkButton(self.popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=self.popup.destroy)
+            btn_cancelar = ctk.CTkButton(self.popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=self.fechar_sem_confirmar)
             btn_cancelar.grid(row=3, column=0, padx=10, pady=10)
 
             btn_confirmar = ctk.CTkButton(self.popup, text="Sim, Encerrar!", fg_color="#c0392b", hover_color="#e74c3c",
@@ -610,11 +610,11 @@ class Listar_assinaturas(ctk.CTkFrame):
 
         """Gatilho acionado ao clicar na caixa do Checkbox"""
 
-        self.confirmado = True
-
         txt_status = 'Ativo' if status else 'Inativo'
         ac_sucesso = False
         inserir_sucesso = False
+
+        self.confirmado = True
 
         if dados:
             dados: Dados_assinaturas_db
@@ -664,14 +664,10 @@ class Listar_assinaturas(ctk.CTkFrame):
 
     def fechar_sem_confirmar(self):
         """Método chamado se fechar no 'X' ou clicar em 'Cancelar'"""
+
         if not self.confirmado:
-            if self.status_original:
-                self.chb_ativa.select()
-                self.var_status.set(True)
-            else:
-                self.chb_ativa.deselect()
-                self.var_status.set(False)
-                
+            self.chb_ativa.select() if self.status_original else self.chb_ativa.deselect()
+  
             print("Modal fechado sem confirmar. Checkbox revertido para o estado do banco!")
 
         self.popup.destroy()
