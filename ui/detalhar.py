@@ -746,13 +746,19 @@ class Listar_desp_tabela(ctk.CTkFrame):
                 data_vencimento_fatura = None
 
                 if assin_card or despesas_do_cartao or dados_simulacao:
+
                     if assin_card:
                         for ass in assin_card:
                             dia_f = ass.get('dia_fechamento_cc')
                             dia_v = ass.get('dia_vencimento_cc')
                             data_aquisicao = ass.get('data_aquisicao')
 
-                            resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes)
+                            ativa = bool(ass['ativa'])
+                            data_cancelamento = mysql_para_obj(ass['data_cancelamento'])
+                            data_aq = mysql_para_obj(ass['data_aq'])
+
+                            resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes, acd=(ativa, data_cancelamento, data_aq))
+
                             _, entra_na_fatura, controle_data = resultado
 
                             if entra_na_fatura:

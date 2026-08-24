@@ -515,8 +515,10 @@ def controle_data_parc_cc(
     dia_fechamento: int, 
     dia_vencimento: int, 
     total_parcelas: Optional[int] = None, 
-    controle_mes: Optional[int] = None, 
-    data_atual: Optional[date] = None
+    controle_mes: Optional[int] = None,
+    data_atual: Optional[date] = None,
+    acd = Optional[Tuple[bool, date]] =  None # acd = ativa, cancelamento, data aquisição
+
 ) -> Tuple[str, bool, date]:
     
     """
@@ -593,7 +595,7 @@ def controle_data_parc_cc(
         meses_passados = (diferenca_anos * 12) + diferenca_meses
 
         parcela_atual = meses_passados + 1
-    
+
 
     _, data_pagamento = calcular_datas_reais_cartao(
             data_alvo.year, 
@@ -606,14 +608,26 @@ def controle_data_parc_cc(
     #           ASSINATURA
     #===================================
     if assinatura:
+        ativa, data_cancel, data_aq = acd
 
-        data_inicio_cobranca = primeira_cobranca.replace(day=1)
-        data_alvo_inicio = data_alvo.replace(day=1) # type: ignore
+        simulacao_data_cancel = datetime(data_atual.year, data_atual.month, data_cancel.day)
+        simulacao_data_renovacao = datetime(data_atual.year, data_atual.month, data_aq.day)
 
-        if data_alvo_inicio >= data_inicio_cobranca:
-            return "Mensal", True, data_pagamento # True é controle_parc
-        else:
-            return "Mensal", False, data_pagamento 
+        if not ativa: # ----- assinatura inativa ------
+
+            if simulacao_data_renovacao < simulacao_data_cancel:
+
+                return "Cancelada", True, data_pagamento
+            
+        else: # ---- Assinatura ativa -----
+
+            data_inicio_cobranca = primeira_cobranca.replace(day=1)
+            data_alvo_inicio = data_alvo.replace(day=1) # type: ignore
+
+            if data_alvo_inicio >= data_inicio_cobranca:
+                return "Mensal", True, data_pagamento # True é controle_parc
+            else:
+                return "Mensal", False, data_pagamento 
 
     #======================================
     #      DESPESAS COMUNS PARCELADAS
