@@ -517,9 +517,8 @@ def controle_data_parc_cc(
     total_parcelas: Optional[int] = None, 
     controle_mes: Optional[int] = None,
     data_atual: Optional[date] = None,
-    acd = Optional[Tuple[bool, date]] =  None # acd = ativa, cancelamento, data aquisição
-
-) -> Tuple[str, bool, date]:
+    acd: Optional[Tuple[bool, date, date]] = None,# acd = ativa, cancelamento, data aquisição 
+    ) -> Tuple[str, bool, date]:
     
     """
     Motor de processamento de regras de negócio para Cartões de Crédito.
@@ -608,16 +607,31 @@ def controle_data_parc_cc(
     #           ASSINATURA
     #===================================
     if assinatura:
-        ativa, data_cancel, data_aq = acd
+        ativa:bool = acd[0] 
+        data_cancel:date = acd[1] #20/08/2026
+        data_aq:date = acd[2]     #04/02/2026
 
-        simulacao_data_cancel = datetime(data_atual.year, data_atual.month, data_cancel.day)
-        simulacao_data_renovacao = datetime(data_atual.year, data_atual.month, data_aq.day)
+        if not ativa and data_cancel: # ----- assinatura inativa ------
 
-        if not ativa: # ----- assinatura inativa ------
+            data_renovacao = ajustar_dia_seguro(data_cancel.year, data_cancel.month, data_aq.day) #04/08/2026
+            
+            data_fechamento = ajustar_dia_seguro(data_cancel.year, data_cancel.month, dia_fechamento) #06/08/2026
 
-            if simulacao_data_renovacao < simulacao_data_cancel:
+            if data_renovacao < data_fechamento: #TESTE DA TRUE
+                base_vencimento = ajustar_dia_seguro(data_cancel.year, data_cancel.month, dia_vencimento) #12/08/2026
+                ultima_parcela  = base_vencimento
 
-                return "Cancelada", True, data_pagamento
+            elif data_renovacao >= data_fechamento: #Teste da False
+                base_vencimento = ajustar_dia_seguro(data_cancel.year, data_cancel.month, dia_vencimento)  #se True 12/09/2026
+                ultima_parcela = base_vencimento + relativedelta(months=1)
+
+            data_alvo_inicio = data_alvo.replace(day=1)
+            ultima_parcela_inicio = ultima_parcela.replace(day=1)
+
+            if ultima_parcela_inicio == data_alvo_inicio:
+                return "Ult/Parc", True, ultima_parcela
+            else: 
+                return "Ult/Parc", False, ultima_parcela
             
         else: # ---- Assinatura ativa -----
 
@@ -641,3 +655,10 @@ def controle_data_parc_cc(
         
         else:
             return f"{parcela_atual}/{total_parcelas}", True, data_pagamento   # True é controle_parc
+
+
+def ajustar_dia_seguro(ano: int, mes: int, dia_desejado: int) -> date:
+    """Garante que a data seja criada mesmo se o mês tiver menos dias que o dia desejado (ex: dia 31 em fev)."""
+    ultimo_dia_mes = calendar.monthrange(ano, mes)[1]
+    dia_real = min(dia_desejado, ultimo_dia_mes)
+    return date(ano, mes, dia_real)

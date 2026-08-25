@@ -753,9 +753,9 @@ class Listar_desp_tabela(ctk.CTkFrame):
                             dia_v = ass.get('dia_vencimento_cc')
                             data_aquisicao = ass.get('data_aquisicao')
 
-                            ativa = bool(ass['ativa'])
+                            ativa = ass['ativa']
                             data_cancelamento = mysql_para_obj(ass['data_cancelamento'])
-                            data_aq = mysql_para_obj(ass['data_aq'])
+                            data_aq = mysql_para_obj(ass['data_aquisicao'])
 
                             resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes, acd=(ativa, data_cancelamento, data_aq))
 
@@ -993,7 +993,11 @@ class Listar_cat_grafico(ctk.CTkFrame):
                         dia_v = ass.get('dia_vencimento_cc')
                         data_aquisicao = ass.get('data_aquisicao')
 
-                        resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes)
+                        ativa = ass['ativa']
+                        data_cancelamento = mysql_para_obj(ass['data_cancelamento'])
+                        data_aq = mysql_para_obj(ass['data_aquisicao'])
+
+                        resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes, acd=(ativa, data_cancelamento, data_aq))
                         _, entra_na_fatura, _ = resultado
 
                         if entra_na_fatura:
