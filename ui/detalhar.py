@@ -832,16 +832,21 @@ class Listar_desp_tabela(ctk.CTkFrame):
                     data_pp = mysql_para_obj(ass['data_pp'])
                     dia_venc = ass['dia_vencimento']
                     nome = ass['nome']
-                    valor = ass["valor"]
+                    valor: Decimal = ass["valor"]
 
                     ativa: bool = bool(ass['ativa'])
                     data_cancel: date = mysql_para_obj(ass['data_cancelamento'])
 
-                    resultado = controle_data_parc(data_pp, dia_venc, total_parcelas=None, controle_mes=controle_mes, ac=(ativa, data_cancel))
-                    str_sit, entra_no_mes, data_vencimento = resultado
+                    resultado = controle_data_parc(data_pp, dia_venc, total_parcelas=None, controle_mes=controle_mes, acv=(ativa, data_cancel, valor))
+
+                    str_sit, entra_no_mes, data_vencimento, valor_total = resultado
 
                     if entra_no_mes:
+                        if valor_total:
+                            valor = valor_total
+
                         total_ass_avulcas += Decimal(str(valor))
+
                         ctk.CTkLabel(self.tabela_frame, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
                         ctk.CTkLabel(self.tabela_frame, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
                         ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
@@ -1045,15 +1050,18 @@ class Listar_cat_grafico(ctk.CTkFrame):
                 for ass in assin_avulsas:
                     data_pp = mysql_para_obj(ass.get('data_pp'))
                     dia_venc = ass.get('dia_vencimento')
-                    valor = Decimal(str(ass.get('valor')))
+                    valor:Decimal = Decimal(str(ass.get('valor')))
 
                     ativa = bool(ass['ativa'])
                     data_cancel = mysql_para_obj(ass['data_cancelamento'])
 
-                    resultado = controle_data_parc(data_pp, dia_venc, controle_mes=controle_mes, ac=(ativa, data_cancel))
-                    _, entra_no_mes, _ = resultado
+                    resultado = controle_data_parc(data_pp, dia_venc, controle_mes=controle_mes, acv=(ativa, data_cancel, valor))
+                    _, entra_no_mes, _, valor_total = resultado
 
                     if entra_no_mes:
+                        if valor_total:
+                            valor = valor_total
+
                         total_previsto += valor
                         categoria = ass.get('categoria', 'Outros')
                         gastos_por_categoria[categoria] += valor

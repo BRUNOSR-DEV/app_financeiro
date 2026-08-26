@@ -427,7 +427,7 @@ def controle_data_parc(
     total_parcelas: Optional[int] = None, 
     controle_mes: Optional[int] = None, 
     data_atual: Optional[datetime] = None,
-    ac: Optional[tuple[bool, date, date]] = None
+    acv: Optional[tuple[bool, date, date]] = None
 ) -> Tuple[str, bool, datetime]:
     """
     Motor de processamento de regras de negócio para Despesas Avulsas e Assinaturas.
@@ -493,30 +493,50 @@ def controle_data_parc(
 
 
     if assinatura:
-        ativa:bool = ac[0] 
-        data_cancel:date = ac[1] 
+        ativa:bool = acv[0] 
+        data_cancel:date = acv[1]
+        valor_original: Decimal = acv[2]
 
         if not ativa and data_cancel: # ----- assinatura inativa ------
 
-            base_vencimento = ajustar_dia_seguro(data_cancel.year, data_cancel.month, data_pp.day)
-            ultima_parcela = base_vencimento
+            venc_mes_cancel = ajustar_dia_seguro(data_cancel.year, data_cancel.month, data_pp.day)
+            ultima_parcela = venc_mes_cancel
+            pro_rata = False # Cancelamento antes do vencimento/inicio de ciclo
+
+            # Define o início do ciclo afetado
+            if data_cancel >= venc_mes_cancel:
+                # Cancelou depois do vencimento -> O ciclo atual começou no vencimento deste mês
+                inicio_ciclo = venc_mes_cancel
+                
+            else:
+                # Cancelou antes do vencimento -> O ciclo atual começou no vencimento do mês anterior
+                inicio_ciclo = venc_mes_cancel - relativedelta(months=1)
+                pro_rata = True
+
+            dias_utilizados = (data_cancel - inicio_ciclo).days
+            _, total_dias_mes = calendar.monthrange(data_cancel.year, data_cancel.month)
+    
+            # Valor Proporcional Final
+            valor_pro_rata = round((valor_original / total_dias_mes) * dias_utilizados, 2)
+
+            valor_total = Decimal(str(valor_pro_rata)) if pro_rata else Decimal(str(valor_pro_rata + valor_original))
 
             data_alvo_inicio = data_alvo.replace(day=1)
             ultima_parcela_inicio = ultima_parcela.replace(day=1)
 
             if ultima_parcela_inicio == data_alvo_inicio:
-                return "Ult/Parc", True, ultima_parcela
+                return "Ult/Parc Pro Rata", True, ultima_parcela, valor_total
             else: 
-                return "Ult/Parc", False, ultima_parcela
+                return "Ult/Parc", False, ultima_parcela, None
             
         else:
             data_inicio_cobranca = data_pp.replace(day=1)
             data_alvo_inicio = data_alvo.replace(day=1) 
 
             if data_alvo_inicio >= data_inicio_cobranca:
-                return "Mensal", True, data_pagamento
+                return "Mensal", True, data_pagamento, None
             else:
-                return "Mensal", False, data_pagamento
+                return "Mensal", False, data_pagamento, None
         
     if not assinatura:
         if parcela_atual < 1: # type: ignore
