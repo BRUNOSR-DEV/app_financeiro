@@ -753,9 +753,9 @@ class Listar_desp_tabela(ctk.CTkFrame):
                             dia_v = ass.get('dia_vencimento_cc')
                             data_aquisicao = ass.get('data_aquisicao')
 
-                            ativa = ass['ativa']
-                            data_cancelamento = mysql_para_obj(ass['data_cancelamento'])
-                            data_aq = mysql_para_obj(ass['data_aquisicao'])
+                            ativa: bool = bool(ass['ativa'])
+                            data_cancelamento: date = mysql_para_obj(ass['data_cancelamento'])
+                            data_aq: date = mysql_para_obj(ass['data_aquisicao'])
 
                             resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes, acd=(ativa, data_cancelamento, data_aq))
 
@@ -817,7 +817,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                         })
 
     
-        # Desenha a tabela
+        # ----- PARTE AVULSA -----
         if despesas or lista_faturas_resumo or assin or dados_simulacao:
             ctk.CTkLabel(self.tabela_frame, text="Local/Nome", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=5, pady=5, sticky="w")
             ctk.CTkLabel(self.tabela_frame, text="Parcelas", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=5, pady=5, sticky="w")
@@ -829,21 +829,24 @@ class Listar_desp_tabela(ctk.CTkFrame):
 
             if assin: 
                 for ass in assin:
-                        data_pp = mysql_para_obj(ass['data_pp'])
-                        dia_venc = ass['dia_vencimento']
-                        nome = ass['nome']
-                        valor = ass["valor"]
+                    data_pp = mysql_para_obj(ass['data_pp'])
+                    dia_venc = ass['dia_vencimento']
+                    nome = ass['nome']
+                    valor = ass["valor"]
 
-                        resultado = controle_data_parc(data_pp, dia_venc, total_parcelas=None, controle_mes=controle_mes )
-                        str_sit, entra_no_mes, data_vencimento = resultado
+                    ativa: bool = bool(ass['ativa'])
+                    data_cancel: date = mysql_para_obj(ass['data_cancelamento'])
 
-                        if entra_no_mes:
-                            total_ass_avulcas += Decimal(str(valor))
-                            ctk.CTkLabel(self.tabela_frame, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
-                            ctk.CTkLabel(self.tabela_frame, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
-                            ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
-                            ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
-                            linha += 1
+                    resultado = controle_data_parc(data_pp, dia_venc, total_parcelas=None, controle_mes=controle_mes, ac=(ativa, data_cancel))
+                    str_sit, entra_no_mes, data_vencimento = resultado
+
+                    if entra_no_mes:
+                        total_ass_avulcas += Decimal(str(valor))
+                        ctk.CTkLabel(self.tabela_frame, text=nome).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=str_sit).grid(row=linha, column=1, padx=3, pady=1, sticky="w")
+                        ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(valor), justify=ctk.LEFT, text_color="red").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
+                        ctk.CTkLabel(self.tabela_frame, text=data_para_exibicao(data_vencimento)).grid(row=linha, column=3, padx=5, pady=2, sticky="w")
+                        linha += 1
 
             if despesas:
                 for _, dados in enumerate(despesas):
@@ -993,9 +996,9 @@ class Listar_cat_grafico(ctk.CTkFrame):
                         dia_v = ass.get('dia_vencimento_cc')
                         data_aquisicao = ass.get('data_aquisicao')
 
-                        ativa = ass['ativa']
-                        data_cancelamento = mysql_para_obj(ass['data_cancelamento'])
-                        data_aq = mysql_para_obj(ass['data_aquisicao'])
+                        ativa = bool(ass['ativa'])
+                        data_cancelamento: date = mysql_para_obj(ass['data_cancelamento'])
+                        data_aq: date = mysql_para_obj(ass['data_aquisicao'])
 
                         resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes, acd=(ativa, data_cancelamento, data_aq))
                         _, entra_na_fatura, _ = resultado
@@ -1044,7 +1047,10 @@ class Listar_cat_grafico(ctk.CTkFrame):
                     dia_venc = ass.get('dia_vencimento')
                     valor = Decimal(str(ass.get('valor')))
 
-                    resultado = controle_data_parc(data_pp, dia_venc, controle_mes=controle_mes)
+                    ativa = bool(ass['ativa'])
+                    data_cancel = mysql_para_obj(ass['data_cancelamento'])
+
+                    resultado = controle_data_parc(data_pp, dia_venc, controle_mes=controle_mes, ac=(ativa, data_cancel))
                     _, entra_no_mes, _ = resultado
 
                     if entra_no_mes:
@@ -1167,7 +1173,11 @@ class Listar_faturas_cartao(ctk.CTkFrame):
                     dia_f = ass.get('dia_fechamento_cc')
                     dia_v = ass.get('dia_vencimento_cc')
 
-                    resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes )
+                    ativa: bool = bool(ass['ativa'])
+                    data_cancel: date = mysql_para_obj(ass['data_cancelamento'])
+                    data_aq: date = mysql_para_obj(ass['data_aquisicao'])
+
+                    resultado = controle_data_parc_cc(data_aquisicao, dia_f, dia_v, controle_mes=controle_mes, acd=(ativa, data_cancel, data_aq))
                     str_sit, entra_no_mes, data_vencimento = resultado
 
                     if entra_no_mes:

@@ -426,7 +426,8 @@ def controle_data_parc(
     dia_vencimento: int, 
     total_parcelas: Optional[int] = None, 
     controle_mes: Optional[int] = None, 
-    data_atual: Optional[datetime] = None
+    data_atual: Optional[datetime] = None,
+    ac: Optional[tuple[bool, date, date]] = None
 ) -> Tuple[str, bool, datetime]:
     """
     Motor de processamento de regras de negócio para Despesas Avulsas e Assinaturas.
@@ -490,14 +491,32 @@ def controle_data_parc(
         ultimo_dia = calendar.monthrange(data_alvo.year, data_alvo.month)[1] # type: ignore
         data_pagamento = data_alvo.replace(day=ultimo_dia) # type: ignore
 
-    if assinatura:
-        data_inicio_cobranca = data_pp.replace(day=1)
-        data_alvo_inicio = data_alvo.replace(day=1) # type: ignore
 
-        if data_alvo_inicio >= data_inicio_cobranca:
-            return "Mensal", True, data_pagamento
+    if assinatura:
+        ativa:bool = ac[0] 
+        data_cancel:date = ac[1] 
+
+        if not ativa and data_cancel: # ----- assinatura inativa ------
+
+            base_vencimento = ajustar_dia_seguro(data_cancel.year, data_cancel.month, data_pp.day)
+            ultima_parcela = base_vencimento
+
+            data_alvo_inicio = data_alvo.replace(day=1)
+            ultima_parcela_inicio = ultima_parcela.replace(day=1)
+
+            if ultima_parcela_inicio == data_alvo_inicio:
+                return "Ult/Parc", True, ultima_parcela
+            else: 
+                return "Ult/Parc", False, ultima_parcela
+            
         else:
-            return "Mensal", False, data_pagamento
+            data_inicio_cobranca = data_pp.replace(day=1)
+            data_alvo_inicio = data_alvo.replace(day=1) 
+
+            if data_alvo_inicio >= data_inicio_cobranca:
+                return "Mensal", True, data_pagamento
+            else:
+                return "Mensal", False, data_pagamento
         
     if not assinatura:
         if parcela_atual < 1: # type: ignore
