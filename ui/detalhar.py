@@ -458,7 +458,7 @@ class Listar_assinaturas(ctk.CTkFrame):
                 status_inicial = dado['ativa']
 
                 # variável de controle do Tkinter
-                self.var_status = ctk.BooleanVar(value=status_inicial)
+                var_status = ctk.BooleanVar(value=status_inicial)
 
                 if self.dados_cartoes:
                     for cartao in self.dados_cartoes:
@@ -478,11 +478,13 @@ class Listar_assinaturas(ctk.CTkFrame):
                 ctk.CTkLabel(self.lista_frame, text=str(nome_card), font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
 
                 # ------ CHECKBOX ---------
-                self.chb_ativa = ctk.CTkCheckBox(self.lista_frame, text="", width=24, variable=self.var_status, onvalue=True, offvalue=False,
-                        command=lambda dados=dado, v=self.var_status: self.modal_config(dados, v.get(), self.chb_ativa))
+                chb_ativa = ctk.CTkCheckBox(self.lista_frame, text="", width=24, variable=var_status, onvalue=True, offvalue=False)
 
-                self.chb_ativa.grid(row=i, column=8, padx=10, pady=5)
-                CTkToolTip(self.chb_ativa, message="Atualizar Status")
+                chb_ativa.configure(
+                    command=lambda d=dado, v=var_status, c=chb_ativa: self.modal_config(d, v.get(), c, v)
+                )
+                chb_ativa.grid(row=i, column=8, padx=10, pady=5)
+                CTkToolTip(chb_ativa, message="Atualizar Status")
 
                 # ------- CANCELAMENTO -------
                 ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data_cancelamento), font=('Ariel', 14)).grid(row=i, column=9, padx=5, pady=2, sticky="w")
@@ -539,7 +541,7 @@ class Listar_assinaturas(ctk.CTkFrame):
 
 
     # -------- Métodos de verificação e atualização de checkbox ---------
-    def modal_config(self, dados: dict[Any], status:bool, chb_ativa: ctk.CTkCheckBox):
+    def modal_config(self, dados: dict[str, Any], novo_status: bool, chb_ativa: ctk.CTkCheckBox, var_status_linha: ctk.BooleanVar):
         self.popup = ctk.CTkToplevel(self)
         self.popup.title("Confirmação de Alteração")
         centralizar_janela_responsiva(self.popup, tipo_janela='pequeno')
@@ -547,65 +549,119 @@ class Listar_assinaturas(ctk.CTkFrame):
         self.popup.grid_columnconfigure((0, 1), weight=1)
 
         self.status_original = bool(dados.get('ativa', True))
-
-        self.popup.protocol("WM_DELETE_WINDOW", self.fechar_sem_confirmar)
+        self.widget_linha_atual = chb_ativa
+        self.var_status_linha_atual = var_status_linha
         self.confirmado = False
 
-        data_pp = dados['data_pp']
+        # Função de destruição com liberação do foco do Tkinter
+        def destruir_popup():
+            try:
+                self.popup.grab_release()
+            except Exception:
+                pass
+            self.popup.destroy()
+
+        # Fechamento seguro quando cancelado (reverte UI e estado interno)
+        def fechar_sem_confirmar():
+            if not self.confirmado:
+                self.var_status_linha_atual.set(self.status_original)
+                if self.status_original:
+                    self.widget_linha_atual.select()
+                else:
+                    self.widget_linha_atual.deselect()
+                print("Modal fechado sem confirmar. Checkbox revertido!")
+
+            self.after(10, destruir_popup)
+
+        # Confirmação do fluxo (marca a flag para NÃO reverter ao fechar)
+        def processar_confirmacao(callback_alternar):
+            nonlocal self
+            self.confirmado = True
+            callback_alternar()
+            self.after(10, destruir_popup)
+
+        data_pp = dados.get('data_pp')
         linha = 3
 
-        # --- INICINADO UM NOVO CICLO DE ASSINATURA, COPIANDO OS VALORES DA ANTIGA, menos a data de aquisição ---
-        if status:
-            label = ctk.CTkLabel(self.popup, text=f"Iniciando novo ciclo da assinatura: {dados['nome']}. \nOs dados do ciclo anterior vão ser clonados \n(EDITE SE NECESSARIO!).", font=("Arial", 14))
+        # --- INICIANDO UM NOVO CICLO DE ASSINATURA ---
+        if novo_status:
+            label = ctk.CTkLabel(
+                self.popup, 
+                text=f"Iniciando novo ciclo da assinatura: {dados['nome']}. \nOs dados do ciclo anterior vão ser clonados \n(EDITE SE NECESSÁRIO!).", 
+                font=("Arial", 14)
+            )
             label.grid(row=0, column=0, columnspan=2, pady=10)
 
-            self.label_data = ctk.CTkLabel(self.popup, text=f"Selecione a nova data de aquisição:", font=ctk.CTkFont(size=12,weight="bold"))
+            self.label_data = ctk.CTkLabel(self.popup, text="Selecione a nova data de aquisição:", font=ctk.CTkFont(size=12, weight="bold"))
             self.label_data.grid(row=1, column=0, columnspan=2, pady=10)
 
-            self.campo_data_aq = DateEntry(self.popup, width=12, background='darkblue',
-                                                foreground='white', borderwidth=2, year=self.ano_atual, 
-                                                locale='pt_BR', date_pattern='dd/mm/yyyy')
+            self.campo_data_aq = DateEntry(
+                self.popup, width=12, background='darkblue',
+                foreground='white', borderwidth=2, year=self.ano_atual, 
+                locale='pt_BR', date_pattern='dd/mm/yyyy'
+            )
             self.campo_data_aq.grid(row=2, column=0, columnspan=2, padx=(2, 10), pady=10)
 
             if data_pp:
                 linha = 5
 
-                self.label_data_pp = ctk.CTkLabel(self.popup, text=f"Selecione a data do primeiro pagamento:", font=ctk.CTkFont(size=12,weight="bold"))
+                self.label_data_pp = ctk.CTkLabel(self.popup, text="Selecione a data do primeiro pagamento:", font=ctk.CTkFont(size=12, weight="bold"))
                 self.label_data_pp.grid(row=3, column=0, columnspan=2, pady=10)
 
-                self.campo_data_pp = DateEntry(self.popup, width=12, background='darkblue',
-                        foreground='white', borderwidth=2, year=self.ano_atual, 
-                        locale='pt_BR', date_pattern='dd/mm/yyyy')
+                self.campo_data_pp = DateEntry(
+                    self.popup, width=12, background='darkblue',
+                    foreground='white', borderwidth=2, year=self.ano_atual, 
+                    locale='pt_BR', date_pattern='dd/mm/yyyy'
+                )
                 self.campo_data_pp.grid(row=4, column=0, columnspan=2, padx=(2, 10), pady=10)
 
-            btn_cancelar = ctk.CTkButton(self.popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=self.popup.destroy)
+            btn_cancelar = ctk.CTkButton(
+                self.popup, text="Cancelar", fg_color="gray", hover_color="#555555", 
+                command=fechar_sem_confirmar 
+            )
             btn_cancelar.grid(row=linha, column=0, padx=10, pady=10)
 
-            btn_confirmar = ctk.CTkButton(self.popup, text="Sim, Iniciar Novo Ciclo!", fg_color="#c0392b", hover_color="#e74c3c",
-                                  command=lambda: self.alternar_status(self.popup, dados, status, chb_ativa, ass_clonada=True))
+            btn_confirmar = ctk.CTkButton(
+                self.popup, text="Sim, Iniciar Novo Ciclo!", fg_color="#c0392b", hover_color="#e74c3c",
+                command=lambda: processar_confirmacao(
+                    lambda: self.alternar_status(self.popup, dados, novo_status, chb_ativa, ass_clonada=True) # 👈 Corrigido 'status' para 'novo_status'
+                )
+            )
             btn_confirmar.grid(row=linha, column=1, padx=10, pady=10)
-
 
         # ------ CANCELAMENTO DA ASSINATURA -------
         else:
             label = ctk.CTkLabel(self.popup, text="Deseja encerrar o ciclo dessa assinatura?", font=("Arial", 14))
             label.grid(row=0, column=0, columnspan=2, pady=20)
 
-            self.label_data = ctk.CTkLabel(self.popup, text=f"Selecione a data de cancelamento do ciclo:", font=ctk.CTkFont(size=12,weight="bold"))
+            self.label_data = ctk.CTkLabel(self.popup, text="Selecione a data de cancelamento do ciclo:", font=ctk.CTkFont(size=12, weight="bold"))
             self.label_data.grid(row=1, column=0, columnspan=2, pady=20)
-            self.campo_data_canc = DateEntry(self.popup, width=12, background='darkblue',
-                                                foreground='white', borderwidth=2, year=2026, 
-                                                locale='pt_BR', date_pattern='dd/mm/yyyy')
+
+            self.campo_data_canc = DateEntry(
+                self.popup, width=12, background='darkblue',
+                foreground='white', borderwidth=2, year=self.ano_atual, 
+                locale='pt_BR', date_pattern='dd/mm/yyyy'
+            )
             self.campo_data_canc.grid(row=2, column=0, columnspan=2, padx=(2, 10), pady=10)
 
-            btn_cancelar = ctk.CTkButton(self.popup, text="Cancelar", fg_color="gray", hover_color="#555555", command=self.fechar_sem_confirmar)
+            btn_cancelar = ctk.CTkButton(
+                self.popup, text="Cancelar", fg_color="gray", hover_color="#555555", 
+            command=fechar_sem_confirmar 
+            )
             btn_cancelar.grid(row=3, column=0, padx=10, pady=10)
 
-            btn_confirmar = ctk.CTkButton(self.popup, text="Sim, Encerrar!", fg_color="#c0392b", hover_color="#e74c3c",
-                                  command=lambda: self.alternar_status(self.popup, dados, status, chb_ativa, ass_cancelada=True))
+            btn_confirmar = ctk.CTkButton(
+                self.popup, text="Sim, Encerrar!", fg_color="#c0392b", hover_color="#e74c3c",
+                command=lambda: processar_confirmacao(
+                    lambda: self.alternar_status(self.popup, dados, novo_status, chb_ativa, ass_cancelada=True)
+            )
+            )
             btn_confirmar.grid(row=3, column=1, padx=10, pady=10)
 
+        # Vinculação do 'X' do topo da janela
+        self.popup.protocol("WM_DELETE_WINDOW", fechar_sem_confirmar)
 
+        
     def alternar_status(self, popup: ctk.CTkToplevel, dados: dict, status: bool, chb_widget: ctk.CTkCheckBox, ass_clonada: Optional[bool] = None, ass_cancelada: Optional[bool] = None):
 
         """Gatilho acionado ao clicar na caixa do Checkbox"""
@@ -662,15 +718,6 @@ class Listar_assinaturas(ctk.CTkFrame):
 
             popup.destroy()
 
-    def fechar_sem_confirmar(self):
-        """Método chamado se fechar no 'X' ou clicar em 'Cancelar'"""
-
-        if not self.confirmado:
-            self.chb_ativa.select() if self.status_original else self.chb_ativa.deselect()
-  
-            print("Modal fechado sem confirmar. Checkbox revertido para o estado do banco!")
-
-        self.popup.destroy()
 
 # =================================================================================
 # --- DASHBOARD: TABELA DINÂMICA DE DESPESAS DO MÊS ---
