@@ -826,13 +826,12 @@ class Cadastrar_assinatura(ctk.CTkFrame):
         categoria = self.menu_cat.get().strip()
         cartao = self.menu_cc.get().strip()
 
-        data_aq_mysql = data_para_mysql(data_aq)
-        data_pp_mysql = None
+        data_pp_reform = None
 
         if data_pp != self.sentinela:
             dia_venc = data_pp.day
             verifica_data_pp = True
-            data_pp_mysql = data_para_mysql(data_pp)
+            data_pp_reform = data_pp
 
             if data_pp.year == self.sentinela.year:
                 self.status_label.configure(text='Mude o ano da data de primeiro pagemento', text_color='red')
@@ -876,7 +875,7 @@ class Cadastrar_assinatura(ctk.CTkFrame):
                 self.cancelamento = ass['data_cancelamento']
 
 
-        obj_assinatura = Assinatura(nome=nome, valor=valor, descricao=descricao, categoria=categoria, data_aq=data_aq, data_pp=data_pp, dia_venc=dia_venc, id_cc=id_card) # type: ignore
+        obj_assinatura = Assinatura(nome=nome, valor=valor, descricao=descricao, categoria=categoria, data_aq=data_aq, data_pp=data_pp_reform, dia_venc=dia_venc, id_cc=id_card)
 
         
         if not atualizar: 
