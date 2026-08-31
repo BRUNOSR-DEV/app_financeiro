@@ -10,7 +10,9 @@ estruturar os DTOs para consultas complexas de JOIN exigidas pela interface grá
 #BILIO PADRÕES
 from datetime import datetime, date
 from decimal import Decimal
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
+
+from utils.conversores import mysql_para_obj
 
 # =================================================================================
 # --- ENTIDADE USUARIO ---
@@ -296,17 +298,17 @@ class Assinatura:
     Representa cobranças recorrentes (mensais ou anuais) fixas do usuário.
     """
 
-    def __init__(self, nome: str, valor: Decimal, descricao: str, categoria: str, data_aq: datetime, data_pp: datetime, dia_venc: int, ativa: bool = True, data_cancel: Optional[date] = None, id_cc: Optional[int] = None, id: Optional[int] = None) -> None:
+    def __init__(self, nome: str, valor: Decimal, descricao: str, categoria: str, data_aq: Union[date, str], data_pp: Union[date, str], dia_venc: int, ativa: bool = True, data_cancel: Optional[Union[date, str]] = None, id_cc: Optional[int] = None, id: Optional[int] = None) -> None:
         
         self.nome: str = nome
         self.valor: Decimal = valor
         self.descricao: str = descricao
         self.categoria: str = categoria
-        self.data_aquisicao: datetime = data_aq
-        self.data_pp: datetime = data_pp
-        self.dia_vencimento: int = dia_venc
+        self.data_aquisicao: date = mysql_para_obj(data_aq)
+        self.data_pp: date|None = mysql_para_obj(data_pp)
+        self.dia_vencimento: int|None = dia_venc
         self.ativa: bool = ativa
-        self.data_cancelamento: Optional[date] = data_cancel
+        self.data_cancelamento: Optional[date] = mysql_para_obj(data_cancel)
         self.id_cc: Optional[int] = id_cc
         self.id_ass: Optional[int] = id
         
@@ -359,22 +361,22 @@ class AssinaturaDetalhadoDTO:
     Utilizado para carregar a listagem analítica na interface gráfica de gerenciamento.
     """
 
-    def __init__(self, id: int, nome: str, valor: float, desc: str, cat: str,  data_aq: datetime, data_pp: datetime, dia_venc: int, ativa: bool, data_cancel: date, nome_card: str, limite_card: float, fech_card: int, venc_card: int, bandeira: str, cor: str) -> None:
+    def __init__(self, id: int, nome: str, valor: Decimal, desc: str, cat: str,  data_aq: Union[date, str], data_pp: Union[date, str, None], dia_venc: Union[int, None], ativa: bool, data_cancel: Union[date, str, None], nome_card: str, limite_card: Decimal, fech_card: int, venc_card: int, bandeira: str, cor: str) -> None:
 
         self.id_ass: int = id
         self.nome: str = nome
-        self.valor: float = valor
+        self.valor: Decimal = valor
         self.descricao: str = desc
         self.categoria: str = cat
-        self.data_aquisicao: datetime = data_aq
-        self.data_prim_pag: datetime = data_pp
-        self.dia_vencimento: int = dia_venc
+        self.data_aquisicao: date = mysql_para_obj(data_aq)
+        self.data_prim_pag: Union[date, None] = mysql_para_obj(data_pp)
+        self.dia_vencimento: Union[int, None] = dia_venc
         self.ativa: bool = ativa
-        self.data_cancelamento = data_cancel
+        self.data_cancelamento = mysql_para_obj(data_cancel)
 
         # Propriedades do cartão injetadas
         self.nome_cartao: str = nome_card
-        self.limite_cartao: float = limite_card
+        self.limite_cartao: Decimal = limite_card
         self.dia_fechamento_cc: int = fech_card
         self.dia_vencimento_cc: int = venc_card
         self.bandeira: str = bandeira
