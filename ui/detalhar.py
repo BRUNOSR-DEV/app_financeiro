@@ -224,8 +224,8 @@ class Listar_despesas(ctk.CTkFrame):
                 ctk.CTkLabel(self.lista_frame, text=str(parcelas), font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=str(descricao), font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=str(categoria), font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=str(data_compra), font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=str(data_pp), font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data_compra), font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data_pp), font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=str(nome_card), font=('Ariel', 14)).grid(row=i, column=8, padx=5, pady=2, sticky="w")
 
                 btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
