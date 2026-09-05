@@ -170,6 +170,7 @@ def formata_cor(nome_cor: Optional[str] = None, cor: Optional[str] = None) -> st
         elif nome_cor == 'Vermelho': return "#dd0404"
         elif nome_cor == 'Cinza': return "#616161"
         elif nome_cor == 'Verde': return "#2CBA00"
+        elif nome_cor == 'Azul': return "#0307FF"
         else:
             print('Cor selecionada não está registrada!')
             return '' # Retorno de segurança
@@ -181,6 +182,7 @@ def formata_cor(nome_cor: Optional[str] = None, cor: Optional[str] = None) -> st
         elif cor == "#dd0404": return 'Vermelho'
         elif cor == "#616161": return 'Cinza'
         elif cor == "#2CBA00": return 'Verde'
+        elif cor == "#0307FF": return 'Azul'
         else:
             print("Campo 'Cor' do db veio nula, retornando 'Sem Cor'")
             return 'Sem Cor'

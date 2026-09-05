@@ -785,7 +785,7 @@ class Cadastrar_assinatura(ctk.CTkFrame):
         self.campo_prim_dp.grid(row=10, column=0, padx=(2,10), pady=10)
 
         # ------- MENU DE CATEGORIAS ---------
-        categorias = ['Não Selecionado','Lazer/Hobby', 'Essencial', 'Estudos/Evolução', 'Saúde/Vigor','Streaming', 'Outros']
+        categorias = ['Não Selecionado','Internet', 'Luz/Água', 'Games/Lazer', 'Estudos/Evolução', 'Saúde/Vigor','Streaming', 'Outros']
 
         ctk.CTkLabel(self, text="Categorias*", font=ctk.CTkFont(size=12, weight="bold")).grid(row=11, column=0, padx=20, sticky="w")
         self.menu_cat = ctk.CTkOptionMenu(self, values=categorias, width=300)

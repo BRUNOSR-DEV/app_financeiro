@@ -214,9 +214,11 @@ class Listar_despesas(ctk.CTkFrame):
                     for cartao in self.dados_cartoes:
                         if cartao.get('id_cartao') == dado.get('id_cc'):
                             nome_card = cartao.get('nome_cartao')
+                            cor = cartao['cor']
                             
                 if nome_card is None:
                     nome_card = "Boleto/Avulça"
+                    cor = "#F7F7FC"
 
                 ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=str(local), font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
@@ -226,7 +228,10 @@ class Listar_despesas(ctk.CTkFrame):
                 ctk.CTkLabel(self.lista_frame, text=str(categoria), font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data_compra), font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data_pp), font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=str(nome_card), font=('Ariel', 14)).grid(row=i, column=8, padx=5, pady=2, sticky="w")
+
+                frame_borda = ctk.CTkFrame(self.lista_frame, border_width=2, border_color=cor, corner_radius=5,fg_color="transparent")
+                frame_borda.grid(row=i, column=8, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(frame_borda, text=str(nome_card), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
 
                 btn_edit = ctk.CTkButton(self.lista_frame, text="📝", width=30, fg_color="transparent", hover_color="#34495e",
                                      command=lambda dados=dado: self.confirmar_update(dados))
@@ -237,6 +242,7 @@ class Listar_despesas(ctk.CTkFrame):
                                     command=lambda dados=dado: self.confirmar_delete(dados))
                 btn_del.grid(row=i, column=10, padx=5)
                 CTkToolTip(btn_del, message="Excluir Registro", delay=0.5, alpha=0.9, bg_color="red")
+            
                 
     def confirmar_update(self, dados: Dict[str, Any]) -> None:
         if dados:
@@ -325,9 +331,14 @@ class Listar_car_cred(ctk.CTkFrame):
                 dia_venc = dado.get('dia_vencimento')
                 bandeira = dado.get('bandeira')
                 cor = formata_cor(cor=str(dado.get('cor')))
+                cor_hex = dado['cor']
 
                 ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=str(nome), font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
+
+                frame_borda = ctk.CTkFrame(self.lista_frame, border_width=2, border_color=cor_hex, corner_radius=5,fg_color="transparent")
+                frame_borda.grid(row=i, column=1, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(frame_borda, text=str(nome), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
+
                 ctk.CTkLabel(self.lista_frame, text=formatar_moeda(limite), text_color="#27ae60", font=('Ariel', 14)).grid(row=i, column=2, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=str(dia_fec), font=('Ariel', 14)).grid(row=i, column=3, padx=3, pady=1, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=str(dia_venc), font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
@@ -464,9 +475,11 @@ class Listar_assinaturas(ctk.CTkFrame):
                     for cartao in self.dados_cartoes:
                         if cartao.get('id_cartao') == dado.get('id_cc'):
                             nome_card = cartao.get('nome_cartao')
+                            cor = cartao['cor']
                             
                 if nome_card is None:
                     nome_card = "Boleto/Avulça"
+                    cor = "#F6F6FD"
 
                 ctk.CTkLabel(self.lista_frame, text=str(i), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=str(nome), font=('Ariel', 14)).grid(row=i, column=1, padx=5, pady=2, sticky="w")
@@ -475,7 +488,10 @@ class Listar_assinaturas(ctk.CTkFrame):
                 ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data_aq), font=('Ariel', 14)).grid(row=i, column=4, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=data_para_exibicao(data_pp), font=('Ariel', 14)).grid(row=i, column=5, padx=5, pady=2, sticky="w")
                 ctk.CTkLabel(self.lista_frame, text=str(cat), font=('Ariel', 14)).grid(row=i, column=6, padx=5, pady=2, sticky="w")
-                ctk.CTkLabel(self.lista_frame, text=str(nome_card), font=('Ariel', 14)).grid(row=i, column=7, padx=5, pady=2, sticky="w")
+
+                frame_borda = ctk.CTkFrame(self.lista_frame, border_width=2, border_color=cor, corner_radius=5,fg_color="transparent")
+                frame_borda.grid(row=i, column=7, padx=5, pady=2, sticky="w")
+                ctk.CTkLabel(frame_borda, text=str(nome_card), font=('Ariel', 14)).grid(row=i, column=0, padx=5, pady=2, sticky="w")
 
                 # ------ CHECKBOX ---------
                 chb_ativa = ctk.CTkCheckBox(self.lista_frame, text="", width=24, variable=var_status, onvalue=True, offvalue=False)
@@ -859,6 +875,7 @@ class Listar_desp_tabela(ctk.CTkFrame):
                     if (total_deste_cartao > Decimal('0.0')) or (mensalidade_simulacao_card > Decimal('0.0')):
                         lista_faturas_resumo.append({
                             'local': f"Fatura - {nome_cartao}",
+                            'cor': info_cartao['cor'],
                             'valor': (total_deste_cartao + mensalidade_simulacao_card),
                             'vencimento': data_vencimento_fatura
                         })
@@ -930,7 +947,9 @@ class Listar_desp_tabela(ctk.CTkFrame):
           
             if lista_faturas_resumo:
                 for fatura in lista_faturas_resumo:
-                    ctk.CTkLabel(self.tabela_frame, text=fatura['local']).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                    frame_borda = ctk.CTkFrame(self.tabela_frame, border_width=2, border_color=fatura['cor'], corner_radius=5,fg_color="transparent")
+                    frame_borda.grid(row=linha, column=0, padx=5, pady=2, sticky="w")
+                    ctk.CTkLabel(frame_borda, text=fatura['local'], font=('Ariel', 14)).grid(row=linha, column=0, padx=5, pady=2, sticky="w")
                     ctk.CTkLabel(self.tabela_frame, text="-").grid(row=linha, column=1, padx=3, pady=1, sticky="w") 
                     ctk.CTkLabel(self.tabela_frame, text=formatar_moeda(fatura['valor']), justify=ctk.LEFT, text_color="orange").grid(row=linha, column=2, padx=5, pady=2, sticky="e")
             
