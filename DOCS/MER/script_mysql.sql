@@ -117,6 +117,8 @@ CREATE TABLE IF NOT EXISTS `app_financeiro_v2`.`assinaturas` (
   `data_aquisicao` DATE NOT NULL,
   `data_primeiro_pagamento` DATE NULL,
   `dia_vencimento` INT NULL,
+  `ativa` TINYINT NOT NULL DEFAULT 1,
+  `data_cancelamento` DATE NULL,
   `id_usuario` INT NOT NULL,
   `id_cartao` INT NULL,
   PRIMARY KEY (`id`),
