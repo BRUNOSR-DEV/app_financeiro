@@ -649,7 +649,8 @@ class Test_Rep_Assinatura(unittest.TestCase):
         self.user_id = Rep_Usuario().inserir_usuario(usuario=self.user1, conn=self.conn)
         self.cc_id = Rep_Cartao_credito().inserir_cc(self.user_id, cartao=card_click, conn=self.conn)
 
-        self.netflix = Assinatura('Netflix', 42.50, 'Streaming para casa', 'Streaming', date(2026,7,1), None, None, self.cc_id)
+        self.netflix = Assinatura('Netflix', 42.50, 'Streaming para casa', 'Streaming', date(2026,7,1), None, None, 1, None, self.cc_id)
+        #self.primevideo = Assinatura('Prime Vídeo', 35,90, 'Streaming', date(2026,8,5), None, None, 1, None, self.cc_id)
 
 
     def tearDown(self):
@@ -659,28 +660,28 @@ class Test_Rep_Assinatura(unittest.TestCase):
     
 
 
-    def test_inserir_assinaturas_dados_assinaturas(self):
+    def test_inserir_assinaturas_dados_assinaturas(self): 
         """Garante que o método retorne o id do objeto inserido no banco"""
 
         #Verifica se o método inseri o objeto
         self.assertIsNotNone(self.rep.inserir_assinatura(self.user_id, self.netflix, conn=self.conn))
 
-        #Chama o método de listagem e passa o retono para a variável 'ass'
+        #Chama o método de listagem e passa o retorno para a variável 'ass'
         ass = self.rep.dados_assinaturas(self.user_id, self.conn)
 
         #Verifica se o tamanho da lista é de 1
-        self.assertEqual(len(ass), 1, 'O método não retono uma lista com dicionários')
+        self.assertEqual(len(ass), 1, 'O método não retornou uma lista com dicionários')
 
-        #Verifica se o dicionário dentro da lista tem o valor insiro
+        #Verifica se o dicionário dentro da lista tem o valor inserido
         self.assertEqual(ass[0]['nome'], 'Netflix')
         self.assertEqual(ass[0]['data_aquisicao'], date(2026,7,1))
 
 
-    def test_pega_assinatura_cartao_avulsa(self):
+    def test_pega_assinatura_cartao_avulsa(self): 
         """Garante que os métodos de listagem especializada retorne os valores corretos que foram inseridos"""
 
         #objeto avulso
-        jornal = Assinatura('Jornal da Vila', 12.50, 'Jornal entregue por moradores', 'Informação', date(2026,6,20), date(2026,7,5), 5, None)
+        jornal = Assinatura('Jornal da Vila', 12.50, 'Jornal entregue por moradores', 'Informação', date(2026,6,20), date(2026,7,5), 5, 1, None, None)
 
         #Inseri objetos no banco
         self.rep.inserir_assinatura(self.user_id, self.netflix, self.conn) # objeto inserido   COM cartão
@@ -705,7 +706,7 @@ class Test_Rep_Assinatura(unittest.TestCase):
         '''Garante que o método atualize e delete assinaturas passando o id da mesma'''
 
         #objeto avulso
-        jornal = Assinatura('Jornal da Vila', 12.50, 'Jornal entregue por moradores', 'Informação', date(2026,6,20), date(2026,7,5), 5, None)
+        jornal = Assinatura('Jornal da Vila', 12.50, 'Jornal entregue por moradores', 'Informação', date(2026,6,20), date(2026,7,5), 5, 1, None, None)
 
         #Inseri objetos no banco
         id_net = self.rep.inserir_assinatura(self.user_id, self.netflix, self.conn) # objeto inserido   COM cartão

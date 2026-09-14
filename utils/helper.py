@@ -431,7 +431,7 @@ def controle_data_parc(
     total_parcelas: Optional[int] = None, 
     controle_mes: Optional[int] = None, 
     data_atual: Optional[datetime] = None,
-    acv: Optional[tuple[bool, date, date]] = None
+    acv: Optional[tuple[bool, date, date]] = None #acd = ativa, cancelamento, valor
 ) -> Tuple[str, bool, datetime]:
     """
     Motor de processamento de regras de negócio para Despesas Avulsas e Assinaturas.
@@ -583,7 +583,6 @@ def controle_data_parc_cc(
     if data_atual is None:
         data_atual = datetime.now().date()
 
-    assinatura = False
 
 
     # configurando meses para comparação
@@ -613,7 +612,9 @@ def controle_data_parc_cc(
 
     primeira_cobranca = data_compra_obj
 
-    # Verifica se a manipulação é de assinatura
+    # Verifica se a manipulação é de assinatura e se tem manipulação de cancelamento
+    assinatura = False
+
     if total_parcelas is None:
         assinatura = True
 
@@ -679,7 +680,7 @@ def controle_data_parc_cc(
         else: # ---- Assinatura ativa -----
 
             data_inicio_cobranca = primeira_cobranca.replace(day=1)
-            data_alvo_inicio = data_alvo.replace(day=1) # type: ignore
+            data_alvo_inicio = data_alvo.replace(day=1) 
 
             if data_alvo_inicio >= data_inicio_cobranca:
                 return "Mensal", True, data_pagamento # True é controle_parc

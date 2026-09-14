@@ -12,7 +12,7 @@ class TestControleDataParcCC(unittest.TestCase):
         self.mes_vigente = 5
 
 
-    def test_assinatura_ativa_no_mes_vigente(self):
+    def test_assinatura_ativa_no_mes_vigente(self): #FALHA!
         """Assinatura deve ser exibida como 'Mensal' e True no mês atual."""
 
         # Arrange
@@ -25,7 +25,8 @@ class TestControleDataParcCC(unittest.TestCase):
             dia_vencimento=5,
             total_parcelas=None,  # None indica Assinatura
             controle_mes=self.mes_vigente,
-            data_atual=self.data_atual_mock
+            data_atual=self.data_atual_mock,
+            acd= (1, None, data_compra)
         )
 
         # Assert
@@ -33,7 +34,7 @@ class TestControleDataParcCC(unittest.TestCase):
         self.assertTrue(visivel, "A assinatura deveria estar visível no mês vigente.")
 
 
-    def test_assinatura_nao_deve_aparecer_no_passado(self):
+    def test_assinatura_nao_deve_aparecer_no_passado(self): #FALHAA
         """Se o filtro estiver em um mês anterior à assinatura, ela fica oculta."""
 
         # Arrange
@@ -47,14 +48,15 @@ class TestControleDataParcCC(unittest.TestCase):
             dia_vencimento=5,
             total_parcelas=None,
             controle_mes=mes_anterior,
-            data_atual=self.data_atual_mock
+            data_atual=self.data_atual_mock,
+            acd= (1, None, data_compra)
         )
 
         # Assert
         self.assertFalse(visivel, "A assinatura não deve aparecer em meses anteriores à contratação.")
 
 
-    def test_compra_apos_fechamento_pula_fatura(self):
+    def test_compra_apos_fechamento_pula_fatura(self): 
         """Compra no dia 27 com fechamento no dia 25 deve pular para a fatura seguinte."""
 
         # Arrange
