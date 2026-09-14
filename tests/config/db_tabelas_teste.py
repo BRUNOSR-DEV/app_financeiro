@@ -104,6 +104,8 @@ def inicializar_banco_completo(conn: MySQLdb.Connection):
             `data_aquisicao` DATE NOT NULL,
             `data_primeiro_pagamento` DATE NULL,
             `dia_vencimento` INT NULL,
+            `ativa` TINYINT(1) NOT NULL DEFAULT 1,
+            `data_cancelamento` DATE NULL DEFAULT NULL, 
             `id_usuario` INT NOT NULL,
             `id_cartao` INT NULL,
             PRIMARY KEY (`id`),
