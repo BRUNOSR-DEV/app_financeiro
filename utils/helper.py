@@ -652,22 +652,24 @@ def controle_data_parc_cc(
     #===================================
     if assinatura:
         ativa:bool = acd[0] 
-        data_cancel:date = acd[1] #20/08/2026
-        data_aq:date = acd[2]     #04/02/2026
+        data_cancel:date = acd[1] #07/10/2026
+        data_aq:date = acd[2]     #15/08/2026
 
         if not ativa and data_cancel: # ----- assinatura inativa ------
-
-            data_renovacao = ajustar_dia_seguro(data_cancel.year, data_cancel.month, data_aq.day) #04/08/2026
             
-            data_fechamento = ajustar_dia_seguro(data_cancel.year, data_cancel.month, dia_fechamento) #06/08/2026
+            data_renovacao = ajustar_dia_seguro(data_cancel.year, data_cancel.month, data_aq.day) #15/10/2026
+            
+            #data_fechamento = ajustar_dia_seguro(data_cancel.year, data_cancel.month, dia_fechamento) #06/10/2026
 
-            if data_renovacao < data_fechamento: #TESTE DA TRUE
-                base_vencimento = ajustar_dia_seguro(data_cancel.year, data_cancel.month, dia_vencimento) #12/08/2026
+            verifica = data_cancel <= data_renovacao
+
+            if verifica:  #True
+                base_vencimento = ajustar_dia_seguro(data_cancel.year, data_cancel.month, dia_vencimento) #12/10/2026
                 ultima_parcela  = base_vencimento
 
-            elif data_renovacao >= data_fechamento: #Teste da False
-                base_vencimento = ajustar_dia_seguro(data_cancel.year, data_cancel.month, dia_vencimento)  #se True 12/09/2026
-                ultima_parcela = base_vencimento + relativedelta(months=1)
+            else: 
+                base_vencimento = ajustar_dia_seguro(data_cancel.year, data_cancel.month, dia_vencimento)  #12/10/2026
+                ultima_parcela = base_vencimento + relativedelta(months=1) #12/11/2026
 
             data_alvo_inicio = data_alvo.replace(day=1)
             ultima_parcela_inicio = ultima_parcela.replace(day=1)
@@ -679,13 +681,17 @@ def controle_data_parc_cc(
             
         else: # ---- Assinatura ativa -----
 
-            data_inicio_cobranca = primeira_cobranca.replace(day=1)
-            data_alvo_inicio = data_alvo.replace(day=1) 
+            # a cobrança pula para a fatura do próximo mês!
+            if primeira_cobranca.day >= dia_fechamento:
+                primeira_cobranca = primeira_cobranca + relativedelta(months=1) # Reatribuição com months=1
+
+            data_inicio_cobranca = primeira_cobranca.replace(day=1) # Virou 01/11/2026
+            data_alvo_inicio = data_alvo.replace(day=1)             # É 01/10/2026
 
             if data_alvo_inicio >= data_inicio_cobranca:
-                return "Mensal", True, data_pagamento # True é controle_parc
+                return "Mensal", True, data_pagamento # True ativa a exibição no mês
             else:
-                return "Mensal", False, data_pagamento 
+                return "Mensal", False, data_pagamento
 
     #======================================
     #      DESPESAS COMUNS PARCELADAS

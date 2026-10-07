@@ -71,6 +71,7 @@ class Test_Rep_Usuario(unittest.TestCase):
         print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO USUÁRIO")
         print("==================================================")
 
+        #NECESSARIO PARA RODAR A ESTEIRA CI/CD - BANCO DO GITHUB ACTIONS
         inicializar_banco_completo(cls.conn)
 
 
@@ -273,6 +274,7 @@ class Test_Rep_Receita(unittest.TestCase):
         print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO RECEITA")
         print("==================================================")
 
+        #NECESSARIO PARA RODAR A ESTEIRA CI/CD - BANCO DO GITHUB ACTIONS
         inicializar_banco_completo(cls.conn)
 
     @classmethod
@@ -384,6 +386,7 @@ class Test_Rep_Despesa(unittest.TestCase):
         print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO DESPESA")
         print("==================================================")
 
+        #NECESSARIO PARA RODAR A ESTEIRA CI/CD - BANCO DO GITHUB ACTIONS
         inicializar_banco_completo(cls.conn)
 
     @classmethod
@@ -512,6 +515,7 @@ class Test_Rep_Cartao_credito(unittest.TestCase):
         print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO CARTAO_CREDITO")
         print("==================================================")
 
+        #NECESSARIO PARA RODAR A ESTEIRA CI/CD - BANCO DO GITHUB ACTIONS
         inicializar_banco_completo(cls.conn)
 
     @classmethod
@@ -616,6 +620,7 @@ class Test_Rep_Assinatura(unittest.TestCase):
         print("   INICIANDO SUÍTE DE TESTES: REPOSITÓRIO ASSINATURA")
         print("==================================================")
 
+        #NECESSARIO PARA RODAR A ESTEIRA CI/CD - BANCO DO GITHUB ACTIONS
         inicializar_banco_completo(cls.conn)
 
     @classmethod
